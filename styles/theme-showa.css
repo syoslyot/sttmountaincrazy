@@ -1,0 +1,91 @@
+/* ── SHOWA — 昭和登山海報 ── */
+[data-theme="showa"] {
+  --bg:           #f0e6cc;
+  --bg-alt:       #e8d8b4;
+  --fg:           #1a1008;
+  --fg-muted:     #5a3e28;
+  --accent:       #2d4a2d;
+  --accent2:      #4a6741;
+  --border:       1px solid #8b6f4a;
+  --border-color: #8b6f4a;
+  --radius:       2px;
+  --font-body:    'Noto Serif TC', serif;
+  --font-display: 'Noto Serif TC', serif;
+  --card-shadow:  2px 2px 8px rgba(60,30,10,0.15);
+  --navbar-h:     64px;
+}
+
+[data-theme="showa"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+[data-theme="showa"] .navbar {
+  background: #1a1008;
+  border-bottom: 2px solid #8b6f4a;
+  font-family: 'Noto Serif TC', serif;
+}
+
+[data-theme="showa"] .navbar-logo {
+  letter-spacing: 0.15em;
+  font-weight: 700;
+}
+
+[data-theme="showa"] .exp-card {
+  border-bottom: 1px solid #c4a87a;
+}
+[data-theme="showa"] .exp-card:hover {
+  background: #e8d8b4;
+}
+
+[data-theme="showa"] .exp-card-name {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+[data-theme="showa"] .tab-btn {
+  font-family: 'Noto Serif TC', serif;
+  letter-spacing: 0.1em;
+}
+[data-theme="showa"] .tab-btn.active {
+  color: #2d4a2d;
+  border-bottom-color: #2d4a2d;
+}
+
+[data-theme="showa"] .search-input {
+  border: 1px solid #8b6f4a;
+  background: #f8f0d8;
+  font-family: 'Noto Serif TC', serif;
+}
+
+[data-theme="showa"] .county-btn {
+  font-family: 'Noto Serif TC', serif;
+  border-color: #8b6f4a;
+  letter-spacing: 0.05em;
+}
+[data-theme="showa"] .county-btn:hover,
+[data-theme="showa"] .county-btn.active {
+  background: #2d4a2d;
+  border-color: #2d4a2d;
+}
+
+[data-theme="showa"] .detail-title {
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+[data-theme="showa"] .detail-section-title {
+  font-family: 'Noto Serif TC', serif;
+  letter-spacing: 0.12em;
+  color: #5a3e28;
+  border-bottom-color: #c4a87a;
+}
+
+[data-theme="showa"] .theme-badge {
+  background: #1a1008;
+  color: #f0e6cc;
+  border-color: #8b6f4a;
+}
+[data-theme="showa"] .theme-badge-dot {
+  background: #c4a87a;
+}

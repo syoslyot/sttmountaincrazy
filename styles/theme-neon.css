@@ -1,0 +1,132 @@
+/* ── NEON — 台式霓虹夜市 ── */
+[data-theme="neon"] {
+  --bg:           #080810;
+  --bg-alt:       #111122;
+  --fg:           #e8e8ff;
+  --fg-muted:     #8888bb;
+  --accent:       #00d4ff;
+  --accent2:      #ff00a8;
+  --border:       1px solid #00d4ff44;
+  --border-color: #00d4ff44;
+  --radius:       4px;
+  --font-body:    'Space Grotesk', 'Noto Sans TC', sans-serif;
+  --font-display: 'Noto Sans TC', sans-serif;
+  --card-shadow:  0 0 16px rgba(0,212,255,0.1);
+  --navbar-h:     60px;
+}
+
+[data-theme="neon"] .navbar {
+  background: #050510;
+  border-bottom: 1px solid #00d4ff66;
+  box-shadow: 0 2px 20px rgba(0,212,255,0.15);
+}
+
+[data-theme="neon"] .navbar-logo {
+  color: #00d4ff;
+  text-shadow: 0 0 12px #00d4ff, 0 0 30px #00d4ff66;
+  letter-spacing: 0.1em;
+  font-weight: 900;
+}
+
+[data-theme="neon"] .navbar-link {
+  color: #8888bb;
+}
+[data-theme="neon"] .navbar-link:hover {
+  color: #00d4ff;
+  text-shadow: 0 0 8px #00d4ff;
+}
+
+[data-theme="neon"] .exp-card {
+  border-bottom: 1px solid #ffffff11;
+  border-left: 2px solid transparent;
+}
+[data-theme="neon"] .exp-card:hover {
+  background: #111122;
+  border-left-color: #00d4ff;
+  box-shadow: inset 0 0 20px rgba(0,212,255,0.05);
+}
+
+[data-theme="neon"] .exp-card-name {
+  color: #e8e8ff;
+  font-weight: 700;
+}
+[data-theme="neon"] .exp-card-meta {
+  color: #6666aa;
+}
+
+[data-theme="neon"] .tab-btn {
+  color: #6666aa;
+  border-bottom-color: transparent;
+}
+[data-theme="neon"] .tab-btn.active {
+  color: #00d4ff;
+  border-bottom-color: #00d4ff;
+  text-shadow: 0 0 8px #00d4ff66;
+}
+
+[data-theme="neon"] .search-input {
+  background: #111122;
+  border: 1px solid #00d4ff44;
+  color: #e8e8ff;
+}
+[data-theme="neon"] .search-input:focus {
+  outline: none;
+  border-color: #00d4ff;
+  box-shadow: 0 0 12px rgba(0,212,255,0.3);
+}
+
+[data-theme="neon"] .county-btn {
+  background: #111122;
+  border: 1px solid #ffffff22;
+  color: #8888bb;
+}
+[data-theme="neon"] .county-btn:hover,
+[data-theme="neon"] .county-btn.active {
+  background: transparent;
+  border-color: #ff00a8;
+  color: #ff00a8;
+  text-shadow: 0 0 8px #ff00a8;
+  box-shadow: 0 0 10px rgba(255,0,168,0.3);
+}
+
+[data-theme="neon"] .home-left {
+  border-right-color: #ffffff11;
+}
+
+[data-theme="neon"] .tab-bar {
+  background: #080810;
+  border-bottom-color: #ffffff11;
+}
+
+[data-theme="neon"] .detail-title {
+  color: #00d4ff;
+  text-shadow: 0 0 20px rgba(0,212,255,0.4);
+}
+[data-theme="neon"] .detail-section-title {
+  color: #ff00a8;
+  border-bottom-color: #ff00a822;
+  text-shadow: 0 0 8px rgba(255,0,168,0.4);
+}
+
+[data-theme="neon"] .theme-badge {
+  background: #080810;
+  border-color: #00d4ff44;
+  color: #00d4ff;
+}
+[data-theme="neon"] .theme-badge-dot {
+  background: #00d4ff;
+  box-shadow: 0 0 6px #00d4ff;
+}
+
+[data-theme="neon"] .date-preset-btn {
+  background: #111122;
+  border-color: #ffffff22;
+  color: #8888bb;
+}
+[data-theme="neon"] .date-preset-btn:hover { background: #1a1a33; }
+[data-theme="neon"] .date-preset-btn.active {
+  background: transparent;
+  color: #00d4ff;
+  border-color: #00d4ff;
+  box-shadow: 0 0 10px rgba(0,212,255,0.3);
+}

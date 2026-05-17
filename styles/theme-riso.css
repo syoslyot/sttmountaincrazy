@@ -1,0 +1,115 @@
+/* ── RISO — 油印 Risograph 小誌 ── */
+[data-theme="riso"] {
+  --bg:           #fffde7;
+  --bg-alt:       #fff9c4;
+  --fg:           #1a1000;
+  --fg-muted:     #5a4a00;
+  --accent:       #e65100;   /* 橘色主印刷色 */
+  --accent2:      #0066cc;   /* 藍色第二印刷色 */
+  --border:       1px solid #00000022;
+  --border-color: #00000022;
+  --radius:       0px;
+  --font-body:    'Noto Sans TC', sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
+  --card-shadow:  3px 3px 0 #e6510044;
+  --navbar-h:     58px;
+}
+
+/* Risograph grain overlay via SVG filter */
+[data-theme="riso"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+[data-theme="riso"] .navbar {
+  background: #e65100;
+  border-bottom: none;
+}
+
+[data-theme="riso"] .navbar-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.25em;
+}
+
+[data-theme="riso"] .exp-card {
+  border-bottom: 1px solid #00000022;
+  position: relative;
+}
+[data-theme="riso"] .exp-card:hover {
+  background: #fff9c4;
+  transform: rotate(-0.3deg);
+  box-shadow: 3px 3px 0 #0066cc44;
+}
+[data-theme="riso"] .exp-card:nth-child(even):hover {
+  transform: rotate(0.3deg);
+}
+
+[data-theme="riso"] .exp-card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.1em;
+  font-size: 1.1rem;
+  color: #e65100;
+}
+[data-theme="riso"] .exp-card-meta {
+  color: #0066cc;
+  font-size: 0.72rem;
+}
+
+[data-theme="riso"] .tab-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.15em;
+  font-size: 0.85rem;
+}
+[data-theme="riso"] .tab-btn.active {
+  color: #e65100;
+  border-bottom-color: #e65100;
+}
+
+[data-theme="riso"] .search-input {
+  border: 2px solid #0066cc;
+  font-weight: 700;
+}
+[data-theme="riso"] .search-input:focus {
+  outline: 3px solid #e65100;
+}
+
+[data-theme="riso"] .county-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.05em;
+  border: 2px solid #0066cc;
+  color: #0066cc;
+}
+[data-theme="riso"] .county-btn:hover,
+[data-theme="riso"] .county-btn.active {
+  background: #e65100;
+  color: #fffde7;
+  border-color: #e65100;
+}
+
+[data-theme="riso"] .detail-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.1em;
+  color: #e65100;
+}
+[data-theme="riso"] .detail-section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.2em;
+  color: #0066cc;
+  border-bottom: 2px solid #0066cc44;
+}
+
+[data-theme="riso"] .theme-badge {
+  border: 2px solid #e65100;
+  transform: rotate(-1deg);
+  font-weight: 700;
+}
+[data-theme="riso"] .theme-badge-dot {
+  background: #0066cc;
+}

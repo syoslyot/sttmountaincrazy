@@ -1,0 +1,107 @@
+/* ── TOPO — 等高線測量圖 ── */
+[data-theme="topo"] {
+  --bg:           #f5f0e8;
+  --bg-alt:       #ede6d6;
+  --fg:           #2a1f0e;
+  --fg-muted:     #6b5a3e;
+  --accent:       #4a6741;
+  --accent2:      #8b7355;
+  --border:       1px solid #8b735566;
+  --border-color: #8b735566;
+  --radius:       1px;
+  --font-body:    'Courier Prime', 'Noto Serif TC', monospace;
+  --font-display: 'Noto Serif TC', serif;
+  --card-shadow:  none;
+  --navbar-h:     58px;
+}
+
+/* 等高線背景 pattern */
+[data-theme="topo"] body {
+  background-color: #f5f0e8;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cellipse cx='60' cy='60' rx='55' ry='50' fill='none' stroke='%238b735522' stroke-width='1'/%3E%3Cellipse cx='60' cy='60' rx='40' ry='35' fill='none' stroke='%238b735522' stroke-width='1'/%3E%3Cellipse cx='60' cy='60' rx='25' ry='20' fill='none' stroke='%238b735533' stroke-width='1'/%3E%3Cellipse cx='60' cy='60' rx='12' ry='8' fill='none' stroke='%238b735544' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+[data-theme="topo"] .navbar {
+  background: #2a1f0e;
+  border-bottom: 1px solid #8b7355;
+  font-family: 'Courier Prime', monospace;
+}
+
+[data-theme="topo"] .navbar-logo {
+  font-family: 'Noto Serif TC', serif;
+  letter-spacing: 0.12em;
+  font-weight: 300;
+}
+
+[data-theme="topo"] .exp-card {
+  border-bottom: 1px dashed #8b735566;
+  border-left: 3px solid transparent;
+}
+[data-theme="topo"] .exp-card:hover {
+  background: #ede6d6;
+  border-left-color: #4a6741;
+}
+
+[data-theme="topo"] .exp-card-name {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+[data-theme="topo"] .exp-card-meta {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+[data-theme="topo"] .tab-btn {
+  font-family: 'Courier Prime', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+[data-theme="topo"] .tab-btn.active {
+  color: #4a6741;
+  border-bottom-color: #4a6741;
+}
+
+[data-theme="topo"] .search-input {
+  border: 1px solid #8b7355;
+  background: #fdf8ef;
+  font-family: 'Courier Prime', monospace;
+}
+
+[data-theme="topo"] .county-btn {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  border-color: #8b735566;
+  letter-spacing: 0.05em;
+}
+[data-theme="topo"] .county-btn:hover,
+[data-theme="topo"] .county-btn.active {
+  background: #4a6741;
+  border-color: #4a6741;
+}
+
+[data-theme="topo"] .detail-title {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  border-bottom: 1px dashed #8b7355;
+  padding-bottom: 0.5rem;
+}
+[data-theme="topo"] .detail-section-title {
+  font-family: 'Courier Prime', monospace;
+  color: #6b5a3e;
+  letter-spacing: 0.1em;
+  border-bottom: 1px dashed #8b735566;
+}
+
+[data-theme="topo"] .theme-badge {
+  font-family: 'Courier Prime', monospace;
+  border: 1px dashed #8b7355;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+}
+[data-theme="topo"] .theme-badge-dot {
+  background: #4a6741;
+}
