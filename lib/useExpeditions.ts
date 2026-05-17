@@ -1,0 +1,74 @@
+'use client'
+
+import { useState, useEffect, useCallback, useRef } from 'react'
+
+export interface Expedition {
+  id: number
+  name: string
+  date_start: string
+  date_end: string | null
+  county: string | null
+  region: string | null
+  leader: string | null
+}
+
+export type FilterMode = 'recent' | 'county' | 'date' | 'search'
+
+export interface ExpeditionFilter {
+  mode: FilterMode
+  county?: string
+  query?: string
+  months?: number
+}
+
+const PAGE_SIZE = 20
+
+function buildParams(filter: ExpeditionFilter, page: number): URLSearchParams {
+  const p = new URLSearchParams({ page: String(page) })
+  if (filter.mode === 'county' && filter.county) p.set('county', filter.county)
+  if (filter.mode === 'search' && filter.query)  p.set('q', filter.query)
+  if (filter.mode === 'date' && filter.months) {
+    const d = new Date()
+    d.setMonth(d.getMonth() - filter.months)
+    p.set('start', d.toISOString().slice(0, 10))
+    p.set('end', new Date().toISOString().slice(0, 10))
+  }
+  return p
+}
+
+export function useExpeditions(filter: ExpeditionFilter) {
+  const [exps, setExps]       = useState<Expedition[]>([])
+  const [total, setTotal]     = useState(0)
+  const [loading, setLoading] = useState(false)
+  const pageRef               = useRef(1)
+  const filterRef             = useRef(filter)
+
+  const load = useCallback(async (reset: boolean) => {
+    if (loading) return
+    const page = reset ? 1 : pageRef.current
+    setLoading(true)
+    try {
+      const res  = await fetch(`/api/expeditions?${buildParams(filterRef.current, page)}`)
+      const data = await res.json()
+      setExps(prev => reset ? data.expeditions : [...prev, ...data.expeditions])
+      setTotal(data.total)
+      pageRef.current = page + 1
+    } finally {
+      setLoading(false)
+    }
+  }, [loading])
+
+  useEffect(() => {
+    filterRef.current = filter
+    pageRef.current = 1
+    setExps([])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    load(true)
+  }, [filter.mode, filter.county, filter.query, filter.months])
+
+  const loadMore = useCallback(() => {
+    if (!loading && exps.length < total) load(false)
+  }, [loading, exps.length, total, load])
+
+  return { exps, total, loading, loadMore }
+}
