@@ -23,7 +23,11 @@ export default async function CoolDetailPage({ params }: Props) {
     'SELECT filename, content FROM records WHERE expedition_id = ?'
   ).all(id) as { filename: string; content: string }[]
 
+  const mapFiles = db.prepare(
+    'SELECT file_path FROM map_files WHERE expedition_id = ?'
+  ).all(id) as { file_path: string }[]
+
   const gpxPaths = ((exp.gpx_paths as string | null) ?? '').split(',').filter(Boolean)
 
-  return <CoolDetail exp={exp as any} gpxPaths={gpxPaths} records={records} />
+  return <CoolDetail exp={exp as any} gpxPaths={gpxPaths} records={records} mapFiles={mapFiles} />
 }

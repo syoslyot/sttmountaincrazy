@@ -15,6 +15,7 @@ interface ExpData {
   region_exit: string | null
   leader: string | null
   description: string | null
+  preview_image: string | null
 }
 
 interface RecordItem { filename: string; content: string }
@@ -23,6 +24,7 @@ interface Props {
   exp: ExpData
   gpxPaths: string[]
   records: RecordItem[]
+  mapFiles: { file_path: string }[]
 }
 
 function fmtDate(d: string | null | undefined): string {
@@ -143,39 +145,6 @@ function CoolMap({ gpxPaths }: { gpxPaths: string[] }) {
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }
 
-function PdfPreview({ exp, peaks }: { exp: ExpData; peaks: string[] }) {
-  const region = regionLabel(exp)
-  const days = daysSpan(exp.date_start, exp.date_end)
-  return (
-    <div className="pdf-doc">
-      <div className="pdf-head">
-        <div>成大山協</div>
-        <div>REC-{String(exp.id).padStart(4, '0')}</div>
-      </div>
-      <div className="pdf-h1">{exp.name} · 出隊紀錄</div>
-      <div className="pdf-sub">
-        {fmtDate(exp.date_start)}{exp.date_end ? ` — ${fmtDate(exp.date_end)}` : ''}
-        {exp.leader ? `　/　領隊：${exp.leader}` : ''}
-      </div>
-      <hr className="pdf-hr"/>
-      <table className="pdf-table">
-        <tbody>
-          {peaks.length > 0 && <tr><th>路線</th><td>{peaks.join(' → ')}</td></tr>}
-          {region && <tr><th>地區</th><td>{region}</td></tr>}
-          <tr><th>天數</th><td>{days} 天</td></tr>
-        </tbody>
-      </table>
-      {exp.description && <>
-        <div className="pdf-h2">出隊摘要</div>
-        <p className="pdf-p">{exp.description}</p>
-      </>}
-      <div className="pdf-foot">
-        <div>成功大學山地服務社</div>
-        <div>頁次 1 / 1</div>
-      </div>
-    </div>
-  )
-}
 
 function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwitch, records }: {
   record: RecordItem
@@ -250,7 +219,9 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
   )
 }
 
-export function CoolDetail({ exp, gpxPaths, records }: Props) {
+const IMG_ROTS = [-1.5, 1.2, -2, 0.8, -1, 1.8]
+
+export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   const [peaks, setPeaks]     = useState<string[]>([])
   const [openRec, setOpenRec] = useState<number | null>(null)
   const mapSectionRef = useRef<HTMLDivElement>(null)
@@ -278,26 +249,31 @@ export function CoolDetail({ exp, gpxPaths, records }: Props) {
 
   const gpxFilename = gpxPaths[0]?.split('/').pop() ?? gpxPaths[0]
 
+  // Collect screenshot images: preview_image first, then image map_files
+  const screenshots: string[] = []
+  if (exp.preview_image) {
+    const name = String(exp.preview_image).split('/').pop() ?? ''
+    if (name) screenshots.push(name)
+  }
+  mapFiles
+    .filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f.file_path))
+    .forEach(f => {
+      const name = f.file_path.split('/').pop() ?? ''
+      if (name && !screenshots.includes(name)) screenshots.push(name)
+    })
+
   return (
     <div id="cool-root">
       <div className="neon-detail">
-        {/* Hero */}
-        <header className="d-hero">
+        {/* Hero — 只保留隊伍基本資訊 */}
+        <header className="d-hero" style={{ minHeight: 'auto', paddingBottom: '40px' }}>
           <Link href="/cool" className="d-back">◀ 回去看更多</Link>
-          <div className="d-hero-bg">{peaks[0] || exp.name}</div>
-          <div className="d-hero-tag">#{String(exp.id).padStart(4, '0')}</div>
-          <h1 className="d-title">
-            {[...exp.name].map((ch, i) => (
-              <span key={i} style={{ transform: `rotate(${(i % 2 ? 1 : -1) * (3 + (i % 3))}deg) translateY(${(i % 3 - 1) * 6}px)` }}>{ch}</span>
-            ))}
-          </h1>
-          <div className="d-hero-chips">
+          <div className="d-hero-chips" style={{ marginTop: '28px' }}>
+            <span className="chip c2" style={{ fontSize: '18px', fontWeight: 900 }}>{exp.name}</span>
             <span className="chip c1">★ {fmtDate(exp.date_start)}{exp.date_end ? ` — ${fmtDate(exp.date_end)}` : ''}</span>
             {exp.leader    && <span className="chip c3">領隊 {exp.leader}</span>}
             {regionLabel(exp) && <span className="chip c5">{regionLabel(exp)}</span>}
-            {peaks.map((p, i) => <span key={i} className="chip c6">▲ {p}</span>)}
           </div>
-          {exp.description && <p className="d-summary">{exp.description}</p>}
         </header>
 
         {/* Map */}
@@ -316,35 +292,61 @@ export function CoolDetail({ exp, gpxPaths, records }: Props) {
           </div>
         </section>
 
-        {/* PDF + Records */}
+        {/* 出隊資料（左）+ 沿途紀錄（右）兩欄 */}
         <section className="d-docs-section">
-          <div className="d-section-label">★ 出隊資料 ★</div>
-          <div className="d-pdf-stage">
-            <div className="d-pdf-paper">
-              <PdfPreview exp={exp} peaks={peaks} />
-            </div>
-            <div className="d-pdf-stamp">官方<br/>紀錄</div>
-          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'start' }}>
 
-          <div className="d-records-wrap">
-            <div className="d-section-label alt">★ 沿途紀錄 ★</div>
-            {records.length === 0 ? (
-              <div className="d-empty">◢◤ 此次無附加紀錄 ◢◤</div>
-            ) : (
-              <div className="d-rec-grid">
-                {records.map((r, i) => {
-                  const ext = r.filename.split('.').pop() ?? 'txt'
-                  const name = r.filename.replace(/\.(docx|txt|pdf)$/, '')
-                  return (
-                    <button key={i} className={`d-rec-card rc${i % 4}`} onClick={() => openRecord(i)}>
-                      <div className="d-rec-ext">.{ext}</div>
-                      <div className="d-rec-name">{name}</div>
-                      <div className="d-rec-cta">點我看 →</div>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
+            {/* 左：截圖 */}
+            <div>
+              <div className="d-section-label">★ 出隊資料 ★</div>
+              {screenshots.length === 0 ? (
+                <div className="d-empty">◢◤ 無截圖資料 ◢◤</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                  {screenshots.map((name, i) => (
+                    <div key={name} style={{
+                      border: '5px solid #1a0030',
+                      boxShadow: i % 2 === 0
+                        ? '14px 14px 0 #ff006e, 28px 28px 0 #ffd60a'
+                        : '14px 14px 0 #ffd60a, 28px 28px 0 #00f5d4',
+                      transform: `rotate(${IMG_ROTS[i % IMG_ROTS.length]}deg)`,
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/api/preview?file=${encodeURIComponent(name)}`}
+                        alt={`出隊資料 ${i + 1}`}
+                        style={{ display: 'block', width: '100%', height: 'auto' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 右：沿途紀錄 */}
+            <div>
+              <div className="d-section-label alt">★ 沿途紀錄 ★</div>
+              {records.length === 0 ? (
+                <div className="d-empty">◢◤ 此次無附加紀錄 ◢◤</div>
+              ) : (
+                <div className="d-rec-grid" style={{ gridTemplateColumns: '1fr' }}>
+                  {records.map((r, i) => {
+                    const ext = r.filename.split('.').pop() ?? 'txt'
+                    const name = r.filename.replace(/\.(docx|txt|pdf)$/, '')
+                    return (
+                      <button key={i} className={`d-rec-card rc${i % 4}`} onClick={() => openRecord(i)}>
+                        <div className="d-rec-ext">.{ext}</div>
+                        <div className="d-rec-name">{name}</div>
+                        <div className="d-rec-cta">點我看 →</div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
           </div>
         </section>
 
