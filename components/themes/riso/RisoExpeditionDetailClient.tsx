@@ -162,7 +162,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row', position: 'relative' }}>
 
         {/* Map area */}
-        <div style={{ flex: 1, maxWidth: '54%', minWidth: 0, zIndex: 1, paddingBottom: '3%' }}>
+        <div style={{ flex: 1, maxWidth: '55%', minWidth: 0, zIndex: 1, paddingBottom: '3%' }}>
           <RisoLeafletMap activeGpx={activeGpx} />
         </div>
 
@@ -192,9 +192,9 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
               alt="隊伍資訊"
               style={{
                 position: 'absolute',
-                top: '-3%',
+                top: 'calc(-3% - 5px)',
                 right: -30,
-                width: '128%',
+                width: '134%',
                 transform: 'rotate(-3deg)',
                 zIndex: 10,
                 boxShadow: '6px 6px 0 rgba(0,0,0,0.28)',
