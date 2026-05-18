@@ -49,16 +49,17 @@ interface RocketProps {
   duration: number
   animKey: number
   flipX?: boolean
+  scale?: number
 }
 
-function CurvedRocket({ pathD, duration, animKey, flipX }: RocketProps) {
+function CurvedRocket({ pathD, duration, animKey, flipX, scale = 1 }: RocketProps) {
   return (
     <div key={animKey} style={{
       position: 'fixed', zIndex: 999, pointerEvents: 'none',
       offsetPath: `path("${pathD}")`,
       offsetRotate: 'auto',
       animation: `rocketTravel ${duration}s linear forwards`,
-      transform: flipX ? 'scaleX(-1)' : undefined,
+      transform: `scaleX(${flipX ? -1 : 1}) scale(${scale})`,
     }}>
       {ROCKET_SVG}
     </div>
@@ -66,17 +67,24 @@ function CurvedRocket({ pathD, duration, animKey, flipX }: RocketProps) {
 }
 
 export function RocketSystem() {
-  const [r1, setR1] = useState({ show: false, top: 20, key: 0, fromLeft: true, dur: 4 })
-  const [r2, setR2] = useState({ show: false, path: '', key: 0, dur: 5 })
-  const [r3, setR3] = useState({ show: false, path: '', key: 0, flipX: false, dur: 6 })
+  const [r1, setR1] = useState({ show: false, path: '', key: 0, flipX: false, dur: 4, scale: 1 })
+  const [r2, setR2] = useState({ show: false, path: '', key: 0, dur: 5, scale: 1 })
+  const [r3, setR3] = useState({ show: false, path: '', key: 0, flipX: false, dur: 6, scale: 1 })
   const pathsRef = useRef({ r2: '', r3: '' })
 
   useEffect(() => {
-    // Rocket 1: horizontal, random direction, random speed
+    // Rocket 1: horizontal straight line, random direction, random speed
     const fireR1 = () => {
       const fromLeft = Math.random() > 0.5
+      const top = 10 + Math.random() * 60
+      const y = top / 100 * window.innerHeight
+      const vw = window.innerWidth
+      const path = fromLeft
+        ? `M -90 ${y} L ${vw + 90} ${y}`
+        : `M ${vw + 90} ${y} L -90 ${y}`
       const dur = r(3, 6)
-      setR1({ show: true, top: 10 + Math.random() * 60, key: Date.now(), fromLeft, dur })
+      const scale = r(1.0, 1.2)
+      setR1({ show: true, path, key: Date.now(), flipX: !fromLeft, dur, scale })
       setTimeout(() => setR1(p => ({ ...p, show: false })), dur * 1000 + 200)
     }
     fireR1()
@@ -86,8 +94,9 @@ export function RocketSystem() {
     const fireR2 = () => {
       const { r2: path } = genPaths()
       const dur = r(4, 8)
+      const scale = r(1.0, 1.2)
       pathsRef.current.r2 = path
-      setR2({ show: true, path, key: Date.now(), dur })
+      setR2({ show: true, path, key: Date.now(), dur, scale })
       setTimeout(() => setR2(p => ({ ...p, show: false })), dur * 1000 + 200)
     }
     let t2: ReturnType<typeof setInterval> | undefined
@@ -97,9 +106,10 @@ export function RocketSystem() {
     const fireR3 = () => {
       const { r3: path, r3fromLeft } = genPaths()
       const dur = r(4, 8)
+      const scale = r(1.0, 1.2)
       pathsRef.current.r3 = path
       const flipX = !r3fromLeft
-      setR3({ show: true, path, key: Date.now(), flipX, dur })
+      setR3({ show: true, path, key: Date.now(), flipX, dur, scale })
       setTimeout(() => setR3(p => ({ ...p, show: false })), dur * 1000 + 200)
     }
     let t3: ReturnType<typeof setInterval> | undefined
@@ -114,25 +124,18 @@ export function RocketSystem() {
 
   return (
     <>
-      <style>{`@keyframes rocketFly { from { transform: translateX(-120px) } to { transform: translateX(calc(100vw + 120px)) } } @keyframes rocketTravel { from { offset-distance: 0% } to { offset-distance: 100% } }`}</style>
+      <style>{`@keyframes rocketTravel { from { offset-distance: 0% } to { offset-distance: 100% } }`}</style>
 
-      {r1.show && (
-        <div style={{
-          position: 'fixed', top: `${r1.top}%`, left: 0, zIndex: 999, pointerEvents: 'none',
-          transform: r1.fromLeft ? undefined : 'scaleX(-1)',
-        }}>
-          <div style={{ display: 'inline-block', animation: `rocketFly ${r1.dur}s linear forwards` }}>
-            {ROCKET_SVG}
-          </div>
-        </div>
+      {r1.show && r1.path && (
+        <CurvedRocket pathD={r1.path} duration={r1.dur} animKey={r1.key} flipX={r1.flipX} scale={r1.scale} />
       )}
 
       {r2.show && r2.path && (
-        <CurvedRocket pathD={r2.path} duration={r2.dur} animKey={r2.key} />
+        <CurvedRocket pathD={r2.path} duration={r2.dur} animKey={r2.key} scale={r2.scale} />
       )}
 
       {r3.show && r3.path && (
-        <CurvedRocket pathD={r3.path} duration={r3.dur} animKey={r3.key} flipX={r3.flipX} />
+        <CurvedRocket pathD={r3.path} duration={r3.dur} animKey={r3.key} flipX={r3.flipX} scale={r3.scale} />
       )}
     </>
   )
