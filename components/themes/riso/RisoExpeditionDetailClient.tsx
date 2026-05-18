@@ -22,7 +22,7 @@ interface Props {
 export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
   const [activeGpx, setActiveGpx] = useState<string | null>(gpxPaths[0] ?? null)
   const [selectedRecord, setSelectedRecord] = useState<number>(0)
-  const [showRecord, setShowRecord] = useState(false)
+  const [showRecord, setShowRecord] = useState(true)
 
   const pdfFiles = mapFiles.filter(f => f.file_path.toLowerCase().endsWith('.pdf'))
   const p1Image = exp.preview_image
@@ -162,7 +162,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row', position: 'relative' }}>
 
         {/* Map area */}
-        <div style={{ flex: 1, maxWidth: '55%', minWidth: 0, zIndex: 1 }}>
+        <div style={{ flex: 1, maxWidth: '55%', minWidth: 0, zIndex: 1, marginTop: '10px', marginLeft: '180px' }}>
           <RisoLeafletMap activeGpx={activeGpx} />
         </div>
 
@@ -192,9 +192,9 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
               alt="隊伍資訊"
               style={{
                 position: 'absolute',
-                top: 'calc(-3% - 5px)',
-                right: -30,
-                width: '132%',
+                top: 'calc(-10% + 25px)',
+                right: 30,
+                width: '95%',
                 maxWidth: 'none',
                 transform: 'rotate(-3deg)',
                 zIndex: 10,
