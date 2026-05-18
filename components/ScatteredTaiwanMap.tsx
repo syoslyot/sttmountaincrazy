@@ -13,8 +13,6 @@ const COUNTY_NORMALIZE: Record<string, string> = {
 }
 const ISLANDS = new Set(['澎湖縣', '金門縣', '連江縣'])
 
-function seededRand(seed: number) { return Math.abs(Math.sin(seed + 1) * 10000) % 1 }
-function nameHash(s: string) { return s.split('').reduce((a, c) => a + c.charCodeAt(0), 0) }
 
 interface CountyPiece {
   name: string
@@ -113,13 +111,16 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       const sel = selectedRef.current
       const snap = snapRef.current
 
-      if (!d.moved) {
-        // Only treat as click if mouse was down for < 300ms (not a hold)
-        if (Date.now() - mousedownTimeRef.current < 300) {
-          const isOnly = sel.length === 1 && sel[0] === d.name
-          onSelectRef.current(isOnly ? [] : [d.name])
+      const elapsed = Date.now() - mousedownTimeRef.current
+      if (!d.moved && elapsed < 300) {
+        // Quick click
+        if (sel.includes(d.name)) {
+          if (sel.length === 1) onSelectRef.current([])
+          // else: in a group — do nothing, drag to deselect
+        } else {
+          onSelectRef.current([d.name])
         }
-      } else if (snap) {
+      } else if (d.moved && snap) {
         // Align dragged piece to target using projection coordinates
         const targetPiece = piecesRef.current[snap.idx]
         const draggedPiece = piecesRef.current[d.idx]
@@ -140,6 +141,9 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         setOverrides(nextOverrides)
 
         onSelectRef.current([...new Set([...sel, d.name, snap.name])])
+      } else if (d.moved) {
+        // Drag away with no snap: remove only this county from selection
+        onSelectRef.current(sel.filter(c => c !== d.name))
       }
 
       snapRef.current = null
@@ -221,29 +225,25 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       let gi = 0
       const result: CountyPiece[] = []
       nameToFeatures.forEach((features, name) => {
-        // 1–2 pieces per county, seeded by name so count is stable
-        const target = 1 + Math.floor(seededRand(nameHash(name) % 100) * 2)
-        for (let t = 0; t < target; t++) {
-          const f = features[t % features.length]
-          const i = gi++
-          const bounds = pathGen.bounds(f)
-          const [x0, y0] = bounds[0]; const [x1, y1] = bounds[1]
-          const natW = x1 - x0; const natH = y1 - y0
+        const f = features[0]
+        const i = gi++
+        const bounds = pathGen.bounds(f)
+        const [x0, y0] = bounds[0]; const [x1, y1] = bounds[1]
+        const natW = x1 - x0; const natH = y1 - y0
 
-          result.push({
-            name,
-            pathD: pathGen(f) ?? '',
-            viewBox: `${x0} ${y0} ${natW} ${natH}`,
-            displayW: natW * globalScale,
-            displayH: natH * globalScale,
-            x: Math.max(1, Math.min(94, 2 + Math.random() * xRange)),
-            y: Math.max(1, Math.min(89, yBase + Math.random() * yRange)),
-            rotation: (Math.random() - 0.5) * rotRange,
-            zIndex: 5 + (i % 8),
-            fallDuration: 700 + seededRand(i) * 400,
-            fallDelay: i * 55,
-          })
-        }
+        result.push({
+          name,
+          pathD: pathGen(f) ?? '',
+          viewBox: `${x0} ${y0} ${natW} ${natH}`,
+          displayW: natW * globalScale,
+          displayH: natH * globalScale,
+          x: Math.max(1, Math.min(94, 2 + Math.random() * xRange)),
+          y: Math.max(1, Math.min(89, yBase + Math.random() * yRange)),
+          rotation: (Math.random() - 0.5) * rotRange,
+          zIndex: 5 + (i % 8),
+          fallDuration: 700 + Math.random() * 400,
+          fallDelay: i * 55,
+        })
       })
 
       if (alive) setPieces(result)
