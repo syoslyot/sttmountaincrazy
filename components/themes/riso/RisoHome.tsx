@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useExpeditions } from '@/lib/useExpeditions'
 
 const RocketSystem = dynamic(() => import('./RocketSystem').then(m => m.RocketSystem), { ssr: false })
+const SpeechBubble = dynamic(() => import('./SpeechBubble').then(m => m.SpeechBubble), { ssr: false })
 const ScatteredTaiwanMap = dynamic(() => import('@/components/ScatteredTaiwanMap').then(m => m.ScatteredTaiwanMap), { ssr: false })
 
 const ROTS = [-4, 2, -1.5, 3, -2.5, 1, -3, 0.5, 2.5, -1]
@@ -51,6 +52,7 @@ export function RisoHome() {
       <div style={{ position: 'fixed', inset: 0, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E\")", pointerEvents: 'none', zIndex: 100, animation: 'risoGrain 6s ease-in-out infinite' }} />
 
       <RocketSystem />
+      <SpeechBubble />
 
       {/* Color sheets */}
       <div style={{ position: 'fixed', top: '-5%', left: '-8%', width: '55%', height: '65%', background: 'rgba(230,81,0,0.06)', transform: 'rotate(-3deg)', pointerEvents: 'none', zIndex: 0 }} />
@@ -64,7 +66,7 @@ export function RisoHome() {
         fillNormal="rgba(230,81,0,0.13)"
         fillSelected="#e65100"
         stroke="#1a1000"
-        maxPx={220}
+        maxPx={180}
       />
 
       {/* Header */}
