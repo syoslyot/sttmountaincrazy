@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { TaiwanMap } from '@/components/TaiwanMap'
 import { useExpeditions } from '@/lib/useExpeditions'
 
 const RainCanvas = dynamic(() => import('./RainCanvas').then(m => m.RainCanvas), { ssr: false })
+const ScatteredTaiwanMap = dynamic(() => import('@/components/ScatteredTaiwanMap').then(m => m.ScatteredTaiwanMap), { ssr: false })
 
 export function NeonHome() {
   const [county, setCounty] = useState<string | null>(null)
@@ -14,12 +14,6 @@ export function NeonHome() {
   const [query, setQuery] = useState('')
   const [months, setMonths] = useState<number | undefined>()
   const sentinelRef = useRef<HTMLDivElement>(null)
-  const [tick, setTick] = useState(0)
-
-  useEffect(() => {
-    const t = setInterval(() => setTick(n => n + 1), 1200)
-    return () => clearInterval(t)
-  }, [])
 
   const filter = tab === 'search' && query ? { mode: 'search' as const, query }
     : tab === 'date' && months ? { mode: 'date' as const, months }
@@ -44,10 +38,22 @@ export function NeonHome() {
         @keyframes scanline { 0%,100% { opacity: 0.03 } 50% { opacity: 0.07 } }
         @keyframes neonFlicker { 0%,100% { opacity: 1 } 92% { opacity: 1 } 93% { opacity: 0.4 } 94% { opacity: 1 } 97% { opacity: 0.7 } 98% { opacity: 1 } }
         @keyframes hudPulse { 0%,100% { border-color: #00d4ff44 } 50% { border-color: #00d4ff99 } }
-        .neon-card:hover { background: #111133 !important; border-color: #00d4ff !important; box-shadow: 0 0 20px rgba(0,212,255,0.2) !important; }
+        .neon-card:hover { background: rgba(17,17,51,0.9) !important; border-color: #00d4ff !important; box-shadow: 0 0 20px rgba(0,212,255,0.2) !important; }
       `}</style>
 
-      {/* Rain */}
+      {/* Counties fall behind rain — rendered before RainCanvas so rain paints on top */}
+      <ScatteredTaiwanMap
+        selected={county}
+        onSelect={tab === 'map' ? c => setCounty(c) : () => {}}
+        variant="fall"
+        fillNormal="rgba(0,212,255,0.10)"
+        fillSelected="rgba(0,212,255,0.50)"
+        stroke="#00d4ff"
+        glowColor="#00d4ff"
+        maxPx={130}
+      />
+
+      {/* Rain — z:1, above counties in DOM order */}
       <RainCanvas />
 
       {/* Scanlines overlay */}
@@ -77,7 +83,6 @@ export function NeonHome() {
             NCKU MTN.
           </div>
           <div style={{ flex: 1 }} />
-          {/* Tabs as neon buttons */}
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {(['map','date','search'] as const).map(t => (
               <button key={t} onClick={() => setTab(t)}
@@ -90,33 +95,38 @@ export function NeonHome() {
       </div>
 
       {/* Content grid */}
-      <div style={{ position: 'relative', zIndex: 10, display: 'grid', gridTemplateColumns: '300px 1fr', gap: 0, height: 'calc(100vh - 140px)' }}>
+      <div style={{ position: 'relative', zIndex: 10, display: 'grid', gridTemplateColumns: '260px 1fr', gap: 0, height: 'calc(100vh - 140px)' }}>
 
-        {/* Left panel — HUD */}
-        <div style={{ borderRight: '1px solid #00d4ff22', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
+        {/* Left panel — HUD filter controls */}
+        <div style={{ borderRight: '1px solid #00d4ff22', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', background: 'rgba(8,8,16,0.7)', backdropFilter: 'blur(4px)' }}>
           <div style={{ border: '1px solid #00d4ff33', padding: '0.5rem 0.75rem', fontSize: '0.6rem', letterSpacing: '0.2em', color: '#00d4ff66', animation: 'hudPulse 3s infinite' }}>
             ◈ {tab === 'map' ? 'MAP MODE' : tab === 'date' ? 'DATE FILTER' : 'SEARCH MODE'}
           </div>
 
           {tab === 'map' && (
             <>
-              <div style={{ border: '1px solid #00d4ff33', height: '240px', animation: 'hudPulse 4s infinite', boxShadow: 'inset 0 0 20px rgba(0,212,255,0.05)', overflow: 'hidden' }}>
-                <TaiwanMap selected={county} onSelect={setCounty} />
+              <div style={{ fontSize: '0.6rem', color: '#00d4ff44', letterSpacing: '0.12em', lineHeight: 1.6 }}>
+                縣市形狀正從上方落下
+                <br />點選形狀篩選出隊紀錄
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
-                {['台北','新北','基隆','宜蘭','桃園','新竹','苗栗','台中','花蓮','彰化','南投','雲林','嘉義','台南','台東','高雄','屏東'].map(c => (
-                  <button key={c} onClick={() => setCounty(county===c?null:c)}
-                    style={{ border: `1px solid ${county===c?'#ff00a8':'#ffffff22'}`, background: county===c?'transparent':'transparent', color: county===c?'#ff00a8':'#6666aa', padding: '3px 2px', fontFamily:"'Space Grotesk',sans-serif", fontSize:'0.65rem', cursor:'pointer', boxShadow: county===c?glow('#ff00a8'):undefined, textShadow: county===c?glow('#ff00a8'):undefined }}>
-                    {c}
-                  </button>
-                ))}
-              </div>
+              {county ? (
+                <div style={{ border: '1px solid #ff00a8', padding: '0.5rem 0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: glow('#ff00a8') }}>
+                  <span style={{ color: '#ff00a8', fontSize: '0.9rem', letterSpacing: '0.1em', textShadow: glow('#ff00a8') }}>{county}</span>
+                  <button onClick={() => setCounty(null)} style={{ background: 'none', border: 'none', color: '#ff00a8', cursor: 'pointer', fontSize: '1rem' }}>×</button>
+                </div>
+              ) : (
+                <div style={{ border: '1px dashed #00d4ff22', padding: '0.5rem 0.75rem', fontSize: '0.65rem', color: '#00d4ff33', letterSpacing: '0.08em' }}>
+                  — no region selected —
+                </div>
+              )}
             </>
           )}
+
           {tab === 'search' && (
             <input value={query} onChange={e => setQuery(e.target.value)} placeholder="SEARCH..." autoFocus
-              style={{ background: '#111122', border: '1px solid #00d4ff44', color: '#e8e8ff', padding: '8px 12px', fontFamily:"'Space Grotesk',sans-serif", fontSize:'0.85rem', outline:'none', boxShadow: 'inset 0 0 10px rgba(0,212,255,0.05)' }} />
+              style={{ background: 'rgba(17,17,34,0.8)', border: '1px solid #00d4ff44', color: '#e8e8ff', padding: '8px 12px', fontFamily:"'Space Grotesk',sans-serif", fontSize:'0.85rem', outline:'none', boxShadow: 'inset 0 0 10px rgba(0,212,255,0.05)' }} />
           )}
+
           {tab === 'date' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[{l:'近一月',m:1},{l:'近半年',m:6},{l:'近一年',m:12},{l:'近三年',m:36}].map(({l,m}) => (
@@ -129,13 +139,12 @@ export function NeonHome() {
           )}
         </div>
 
-        {/* Right — expedition cards as HUD panels */}
-        <div style={{ overflowY: 'auto', padding: '1rem 1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem', alignContent: 'start' }}>
+        {/* Right — expedition cards */}
+        <div style={{ overflowY: 'auto', padding: '1rem 1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem', alignContent: 'start', background: 'rgba(8,8,16,0.65)', backdropFilter: 'blur(2px)' }}>
           {loading && exps.length === 0 && <div style={{ gridColumn: '1/-1', color: '#00d4ff44', letterSpacing: '0.3em', padding: '3rem', textAlign: 'center', fontSize: '0.7rem' }}>SCANNING DATABASE...</div>}
           {exps.map((e, i) => (
             <Link key={e.id} href={`/expedition/${e.id}`} className="neon-card"
-              style={{ display: 'block', textDecoration: 'none', border: '1px solid #ffffff11', background: '#0d0d1f', padding: '1rem', position: 'relative', overflow: 'hidden', transition: 'all 0.2s', borderLeft: `3px solid ${i % 2 === 0 ? '#00d4ff' : '#ff00a8'}` }}>
-              {/* Corner accent */}
+              style={{ display: 'block', textDecoration: 'none', border: '1px solid #ffffff11', background: 'rgba(13,13,31,0.82)', padding: '1rem', position: 'relative', overflow: 'hidden', transition: 'all 0.2s', borderLeft: `3px solid ${i % 2 === 0 ? '#00d4ff' : '#ff00a8'}` }}>
               <div style={{ position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderBottom: `2px solid ${i%2===0?'#00d4ff':'#ff00a8'}`, borderLeft: `2px solid ${i%2===0?'#00d4ff':'#ff00a8'}` }} />
               <div style={{ fontSize: '0.55rem', letterSpacing: '0.3em', color: i%2===0?'#00d4ff66':'#ff00a866', marginBottom: '6px' }}>
                 EXPEDITION // {e.date_start}
