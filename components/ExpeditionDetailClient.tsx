@@ -1,19 +1,30 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useTheme } from './ThemeProvider'
 
 const LeafletMap = dynamic(() => import('./LeafletMap').then(m => m.LeafletMap), {
   ssr: false,
   loading: () => <div style={{ width: '100%', height: '100%', background: 'var(--bg-alt)' }} />,
 })
 
+const RisoExpeditionDetailClient = dynamic(
+  () => import('./themes/riso/RisoExpeditionDetailClient').then(m => m.RisoExpeditionDetailClient),
+  { ssr: false }
+)
+
 interface Props {
   exp: Record<string, unknown>
   gpxPaths: string[]
+  mapFiles: { file_path: string }[]
   records: { filename: string; content: string }[]
 }
 
-export function ExpeditionDetailClient({ exp, gpxPaths, records }: Props) {
+export function ExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
+  const theme = useTheme()
+  if (theme === 'riso') {
+    return <RisoExpeditionDetailClient exp={exp} gpxPaths={gpxPaths} mapFiles={mapFiles} records={records} />
+  }
   const dateStr = exp.date_end && exp.date_end !== exp.date_start
     ? `${exp.date_start} — ${exp.date_end}`
     : String(exp.date_start ?? '')
