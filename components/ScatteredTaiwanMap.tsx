@@ -125,6 +125,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
   const [hovered, setHovered]             = useState<string | null>(null)
   const [overrides, setOverrides]         = useState<Map<number, Override>>(new Map())
   const [snapCandidate, setSnapCandidate] = useState<{ name: string; idx: number } | null>(null)
+  const [ejectedIdx, setEjectedIdx]       = useState<number | null>(null)
 
   const piecesRef        = useRef<CountyPiece[]>([])
   const overridesRef     = useRef<Map<number, Override>>(new Map())
@@ -245,8 +246,8 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         for (let j = 0; j < piecesRef.current.length; j++) {
           const piece = piecesRef.current[j]
           if (piece.name === d.name || !adj.has(piece.name)) continue
-          if (sel.includes(piece.name)) continue
-          if (sel.length > 0 && !sel.includes(d.name)) continue
+          if (d.isGroupDrag && sel.includes(piece.name)) continue
+          if (!d.isGroupDrag && sel.length > 0 && !sel.includes(piece.name)) continue
           const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
           const snapPx = Math.hypot(
             (newX - pPos.x) / 100 * window.innerWidth,
@@ -274,7 +275,41 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         if (sel.includes(d.name)) {
           const newSel = keepConnected(sel, d.name, adjacencyRef.current)
           onSelectRef.current(newSel)
+
+          const vw = window.innerWidth, vh = window.innerHeight
+          const piece = piecesRef.current[d.idx]
+          const pos = overridesRef.current.get(d.idx) ?? piece
+          let ejectX = pos.x, ejectY = pos.y
+          if (newSel.length >= 1) {
+            let gx = 0, gy = 0
+            newSel.forEach(name => {
+              const j = piecesRef.current.findIndex(p => p.name === name)
+              if (j < 0) return
+              const pj = piecesRef.current[j]; const jPos = overridesRef.current.get(j) ?? pj
+              gx += jPos.x / 100 * vw + pj.displayW / 2
+              gy += jPos.y / 100 * vh + pj.displayH / 2
+            })
+            gx /= newSel.length; gy /= newSel.length
+            const px = pos.x / 100 * vw + piece.displayW / 2
+            const py = pos.y / 100 * vh + piece.displayH / 2
+            const ddx = px - gx || 1; const ddy = py - gy || 0.1
+            const mag = Math.hypot(ddx, ddy)
+            ejectX = Math.max(1, Math.min(safeMaxXRef.current, pos.x + (ddx / mag * 80) / vw * 100))
+            ejectY = Math.max(1, Math.min(89, pos.y + (ddy / mag * 80) / vh * 100))
+          } else {
+            ejectY = Math.min(89, pos.y + 40 / vh * 100)
+          }
+
+          originalPosRef.current.delete(d.idx)
           recalcPush(newSel)
+
+          const ejectOv = new Map(overridesRef.current)
+          ejectOv.set(d.idx, { ...ejectOv.get(d.idx), x: ejectX, y: ejectY })
+          overridesRef.current = ejectOv
+          setOverrides(ejectOv)
+
+          setEjectedIdx(d.idx)
+          setTimeout(() => setEjectedIdx(null), 550)
         } else if (sel.length === 0) {
           onSelectRef.current([d.name])
           recalcPush([d.name])
@@ -482,7 +517,10 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         )
 
         if (variant === 'puzzle') {
-          const scaleXY = isSel ? ' scale(1.1) translateY(-3px)' : isSnap ? ' scale(1.08)' : isHov ? ' scale(1.05) translateY(-2px)' : ''
+          const isEjecting = ejectedIdx === i
+          const scaleXY = isSel ? ' scale(1.1) translateY(-3px)'
+            : isEjecting ? ' scale(1.1) translateY(-3px)'
+            : isSnap ? ' scale(1.08)' : isHov ? ' scale(1.05) translateY(-2px)' : ''
           return (
             <div key={`${p.name}-${i}`}
               style={{
@@ -492,7 +530,10 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
                 cursor: isDragging ? 'grabbing' : 'grab', pointerEvents: 'all',
                 transform: `rotate(${rotation}deg)${scaleXY}`,
                 filter: shadow,
-                transition: isDragging ? 'none' : 'transform 0.2s ease, filter 0.2s ease, left 0.35s ease, top 0.35s ease',
+                transition: isDragging ? 'none'
+                  : isEjecting
+                    ? 'transform 0.2s ease, filter 0.2s ease, left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    : 'transform 0.2s ease, filter 0.2s ease, left 0.35s ease, top 0.35s ease',
                 userSelect: 'none',
               }}
               onMouseDown={e => {
