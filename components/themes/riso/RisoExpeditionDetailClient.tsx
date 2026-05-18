@@ -35,19 +35,19 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
       background: '#fffde7',
       fontFamily: "'Noto Sans TC', sans-serif",
       display: 'flex',
-      flexDirection: 'row',
+      flexDirection: 'column',
       overflow: 'hidden',
     }}>
       <style>{`
         @keyframes risoGrain { 0%,100%{opacity:.06} 50%{opacity:.09} }
         @keyframes bubbleFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-4px) rotate(-0.5deg)} }
         .riso-det-bubble::after {
-          content:''; position:absolute; bottom:-18px; left:20px;
-          border:9px solid transparent; border-top-color:#1a1000;
+          content:''; position:absolute; bottom:-26px; left:28px;
+          border:13px solid transparent; border-top-color:#1a1000;
         }
         .riso-det-bubble::before {
-          content:''; position:absolute; bottom:-14px; left:23px;
-          border:6px solid transparent; border-top-color:#fffde7; z-index:1;
+          content:''; position:absolute; bottom:-20px; left:33px;
+          border:8px solid transparent; border-top-color:#fffde7; z-index:1;
         }
         .riso-det-bubble-open::after { border-top-color: #b84000; }
         .riso-det-bubble-open::before { border-top-color: #e65100; }
@@ -63,36 +63,33 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
         animation: 'risoGrain 6s ease-in-out infinite',
       }} />
 
-      {/* ── LEFT COLUMN: buttons ── */}
+      {/* ── TOP HEADER ROW: buttons (homepage style) ── */}
       <div style={{
-        width: 160, flexShrink: 0,
-        display: 'flex', flexDirection: 'column', gap: '0.45rem',
-        padding: '0.9rem 0.6rem',
-        overflowY: 'auto',
+        padding: '0.9rem 1.5rem 0.5rem',
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.2rem',
+        flexShrink: 0,
         background: 'rgba(255,253,231,0.97)',
-        borderRight: '2px solid rgba(230,81,0,0.18)',
-        zIndex: 2,
+        borderBottom: '2px solid rgba(230,81,0,0.2)',
+        position: 'relative', zIndex: 2,
+        pointerEvents: 'none',
       }}>
         {/* 成大山協 */}
-        <Link href="/" style={{ textDecoration: 'none' }}>
+        <Link href="/" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
           <div style={{
             background: '#e65100', color: '#fffde7',
-            padding: '0.35rem 0.6rem',
-            transform: 'rotate(-1deg)',
+            padding: '0.4rem 1.2rem', transform: 'rotate(-1deg)', display: 'inline-block',
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: '1.35rem', letterSpacing: '0.18em', lineHeight: 1,
-            textAlign: 'center',
+            fontSize: '1.8rem', letterSpacing: '0.2em', lineHeight: 1,
           }}>成大山協</div>
         </Link>
 
         {/* NCKU MTN. */}
         <div style={{
           background: '#0066cc', color: '#fffde7',
-          padding: '0.2rem 0.5rem',
-          transform: 'rotate(1.5deg)',
-          fontSize: '0.6rem', letterSpacing: '0.2em',
+          padding: '0.25rem 0.8rem', transform: 'rotate(1.5deg)',
+          fontSize: '0.7rem', letterSpacing: '0.2em',
           fontFamily: "'Bebas Neue', sans-serif",
-          textAlign: 'center',
+          pointerEvents: 'auto',
         }}>NCKU MTN.</div>
 
         {/* GPX / KML track buttons */}
@@ -106,13 +103,13 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
                 border: '2px solid #e65100',
                 background: isActive ? '#e65100' : 'transparent',
                 color: isActive ? '#fffde7' : '#e65100',
-                padding: '0.25rem 0.4rem',
+                padding: '0.3rem 0.8rem',
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.72rem', letterSpacing: '0.1em',
+                fontSize: '0.85rem', letterSpacing: '0.12em',
                 cursor: 'pointer',
                 transform: `rotate(${GPX_ROTS[i % GPX_ROTS.length]}deg)`,
-                width: '100%',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                pointerEvents: 'auto',
+                maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
               {name}
             </button>
@@ -127,13 +124,13 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
             style={{
               border: '2px solid #e65100',
               background: 'transparent', color: '#e65100',
-              padding: '0.25rem 0.4rem',
+              padding: '0.3rem 0.8rem',
               fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: '0.72rem', letterSpacing: '0.1em',
+              fontSize: '0.85rem', letterSpacing: '0.12em',
               textDecoration: 'none',
-              display: 'block',
-              textAlign: 'center',
+              display: 'inline-block',
               transform: `rotate(${i % 2 === 0 ? -0.8 : 0.8}deg)`,
+              pointerEvents: 'auto',
             }}>
             地圖 .pdf
           </a>
@@ -149,13 +146,13 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
                 border: '2px solid #3a7d44',
                 background: isSelected ? '#3a7d44' : 'transparent',
                 color: isSelected ? '#fffde7' : '#3a7d44',
-                padding: '0.25rem 0.4rem',
+                padding: '0.3rem 0.8rem',
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.72rem', letterSpacing: '0.1em',
+                fontSize: '0.85rem', letterSpacing: '0.12em',
                 cursor: 'pointer',
                 transform: `rotate(${REC_ROTS[i % REC_ROTS.length]}deg)`,
-                width: '100%',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                pointerEvents: 'auto',
+                maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
               {r.filename}
             </button>
@@ -163,78 +160,59 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
         })}
       </div>
 
-      {/* ── CENTER COLUMN: map ── */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', zIndex: 1 }}>
-        <RisoLeafletMap activeGpx={activeGpx} />
+      {/* ── CONTENT ROW: map + right panel ── */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row', position: 'relative' }}>
+
+        {/* Map area */}
+        <div style={{ flex: 1, minWidth: 0, zIndex: 1 }}>
+          <RisoLeafletMap activeGpx={activeGpx} />
+        </div>
+
+        {/* Right panel: one orange quad + one big image (overflows into map) */}
+        <div style={{
+          width: '36%', flexShrink: 0,
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 5,
+        }}>
+          {/* Single orange quadrilateral — transparent, tilted */}
+          <div style={{
+            position: 'absolute', inset: '-4% -8%',
+            background: 'rgba(230,81,0,0.35)',
+            transform: 'rotate(-4deg)',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }} />
+
+          {/* P1 image — 128% wide (50% larger than 85%), extends left into map */}
+          {p1Image && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`/api/preview?file=${encodeURIComponent(p1Image)}`}
+              alt="隊伍資訊"
+              style={{
+                position: 'absolute',
+                top: '8%',
+                right: 8,
+                width: '128%',
+                transform: 'rotate(-3deg)',
+                zIndex: 10,
+                boxShadow: '6px 6px 0 rgba(0,0,0,0.28)',
+                objectFit: 'contain',
+              }}
+            />
+          )}
+        </div>
       </div>
 
-      {/* ── RIGHT COLUMN: P1/P2 images only ── */}
-      <div style={{
-        width: '32%', flexShrink: 0,
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {/* Main orange quadrilateral */}
-        <div style={{
-          position: 'absolute', top: '-6%', left: '-12%',
-          width: '115%', height: '80%',
-          background: 'rgba(230,81,0,0.9)',
-          transform: 'rotate(-2.5deg)',
-          zIndex: 0,
-        }} />
-        {/* Deep orange accent quad */}
-        <div style={{
-          position: 'absolute', top: '25%', right: '-15%',
-          width: '85%', height: '65%',
-          background: 'rgba(175,52,0,0.78)',
-          transform: 'rotate(3.2deg)',
-          zIndex: 1,
-        }} />
-
-        {/* P1 image */}
-        {p1Image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`/api/preview?file=${encodeURIComponent(p1Image)}`}
-            alt="P1"
-            style={{
-              position: 'absolute', top: '5%', left: '3%',
-              width: '85%',
-              transform: 'rotate(-3.5deg)',
-              zIndex: 3,
-              boxShadow: '6px 6px 0 #7a2a00',
-              objectFit: 'contain',
-            }}
-          />
-        )}
-
-        {/* P2 image placeholder area (same image slightly offset for visual depth) */}
-        {p1Image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`/api/preview?file=${encodeURIComponent(p1Image)}`}
-            alt="P2"
-            style={{
-              position: 'absolute', top: '42%', left: '10%',
-              width: '85%',
-              transform: 'rotate(2.5deg)',
-              zIndex: 2,
-              boxShadow: '6px 6px 0 #3a1500',
-              objectFit: 'contain',
-              opacity: 0.92,
-            }}
-          />
-        )}
-      </div>
-
-      {/* ── FIXED: 點我看紀錄 + record panel ── */}
+      {/* ── FIXED: 點我看紀錄 (bottom-left, 50% bigger) + record panel ── */}
       {records.length > 0 && (
         <>
           {/* Record content panel */}
           {showRecord && (
             <div style={{
-              position: 'fixed', bottom: 82, left: 170,
-              width: 432,
-              maxHeight: 510,
+              position: 'fixed', bottom: 110, left: 20,
+              width: 432, maxHeight: 510,
               overflow: 'auto',
               background: '#fffde7',
               border: '3px solid #1a1000',
@@ -258,11 +236,11 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
             </div>
           )}
 
-          {/* 點我看紀錄 trigger button */}
+          {/* 點我看紀錄 trigger (bottom-left, 50% larger) */}
           <div
             onClick={() => setShowRecord(p => !p)}
             style={{
-              position: 'fixed', bottom: 24, left: 170, zIndex: 1100,
+              position: 'fixed', bottom: 28, left: 20, zIndex: 1100,
               pointerEvents: 'auto', cursor: 'pointer',
               animation: 'bubbleFloat 3.5s ease-in-out infinite',
             }}
@@ -272,12 +250,12 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
               style={{
                 background: showRecord ? '#e65100' : '#fffde7',
                 border: `3px solid ${showRecord ? '#b84000' : '#1a1000'}`,
-                padding: '10px 18px',
+                padding: '15px 28px',
                 position: 'relative',
                 fontFamily: "'Noto Sans TC', sans-serif",
-                fontSize: '0.95rem', lineHeight: 1,
+                fontSize: '1.43rem', lineHeight: 1,
                 color: showRecord ? '#fffde7' : '#1a1000',
-                boxShadow: `4px 4px 0 ${showRecord ? '#b84000' : '#1a1000'}`,
+                boxShadow: `6px 6px 0 ${showRecord ? '#b84000' : '#1a1000'}`,
                 transition: 'background 0.2s, color 0.2s, border-color 0.2s',
                 whiteSpace: 'nowrap',
               }}>
