@@ -31,23 +31,23 @@ function filterConnected(sel: string[], adj: Map<string, Set<string>>): string[]
 }
 
 // simulateOnUp mirrors the production onUp handler.
-// Set USE_FIX=true to simulate the fixed version (filterConnected applied to snap).
 function simulateOnUp(params: {
   sel: string[]; d: { name: string; moved: boolean }
   snap: { name: string } | null; adj: Map<string, Set<string>>; elapsed: number
-  useFix?: boolean
 }): string[] {
-  const { sel, d, snap, adj, elapsed, useFix = true } = params
+  const { sel, d, snap, adj, elapsed } = params
   if (!d.moved && elapsed < 1000) {
-    if (!sel.includes(d.name)) return [d.name]
-    if (sel[0] === d.name) return []
-    return keepConnected(sel, d.name, adj)
+    if (sel.includes(d.name)) return keepConnected(sel, d.name, adj)
+    if (sel.length === 0) return [d.name]
+    return sel
   }
   if (d.moved && snap) {
+    const snapValid = sel.length === 0 || sel.includes(d.name) || sel.includes(snap.name)
+    if (!snapValid) return sel
     const rawSel = [...new Set([...sel, d.name, snap.name])]
-    return useFix ? filterConnected(rawSel, adj) : rawSel
+    return filterConnected(rawSel, adj)
   }
-  if (d.moved) return keepConnected(sel, d.name, adj)
+  if (d.moved) return sel
   return sel
 }
 
@@ -102,39 +102,53 @@ test('empty → []',
 
 // ── simulateOnUp ──────────────────────────────────────────────────────────────
 console.log('\n== simulateOnUp ==')
-test('click unselected D when sel=[A,B,C] → [D]',
-  simulateOnUp({ sel:['A','B','C'], d:{name:'D',moved:false}, snap:null, adj:chain, elapsed:200 }), ['D'])
-test('click primary A → []',
-  simulateOnUp({ sel:['A','B','C'], d:{name:'A',moved:false}, snap:null, adj:chain, elapsed:200 }), [])
+// click: unselected when sel active → no-op
+test('click unselected D when sel=[A,B,C] → no-op [A,B,C]',
+  simulateOnUp({ sel:['A','B','C'], d:{name:'D',moved:false}, snap:null, adj:chain, elapsed:200 }), ['A','B','C'])
+test('click unselected D when sel=[B] → no-op [B]',
+  simulateOnUp({ sel:['B'], d:{name:'D',moved:false}, snap:null, adj:chain, elapsed:100 }), ['B'])
+// click: empty sel → select
+test('click unselected D when sel=[] → [D]',
+  simulateOnUp({ sel:[], d:{name:'D',moved:false}, snap:null, adj:chain, elapsed:200 }), ['D'])
+// click: group county → remove (BFS from remaining[0])
+test('click primary A in [A,B,C] → [B,C]',
+  simulateOnUp({ sel:['A','B','C'], d:{name:'A',moved:false}, snap:null, adj:chain, elapsed:200 }), ['B','C'])
 test('click non-primary C in [A,B,C,D] → [A,B]',
   simulateOnUp({ sel:['A','B','C','D'], d:{name:'C',moved:false}, snap:null, adj:chain, elapsed:200 }), ['A','B'])
-test('snap: sel=[A,B], drag C snaps D (chain, connected) → [A,B,C,D]',
-  simulateOnUp({ sel:['A','B'], d:{name:'C',moved:true}, snap:{name:'D'}, adj:chain, elapsed:500 }), ['A','B','C','D'])
-test('snap Bug1 (fix): sel=[A], drag C snaps D (island, disconnected) → [A]',
-  simulateOnUp({ sel:['A'], d:{name:'C',moved:true}, snap:{name:'D'}, adj:island, elapsed:500, useFix:true }), ['A'])
-test('snap Bug1 (no fix): sel=[A], drag C snaps D (island) → [A,C,D] (broken)',
-  simulateOnUp({ sel:['A'], d:{name:'C',moved:true}, snap:{name:'D'}, adj:island, elapsed:500, useFix:false }), ['A','C','D'])
-test('drag-away C from [A,B,C,D] no snap → [A,B]',
-  simulateOnUp({ sel:['A','B','C','D'], d:{name:'C',moved:true}, snap:null, adj:chain, elapsed:500 }), ['A','B'])
+test('click primary A in [A] (sole member) → []',
+  simulateOnUp({ sel:['A'], d:{name:'A',moved:false}, snap:null, adj:chain, elapsed:200 }), [])
+// hold → no-op
 test('hold 1500ms no move → unchanged [A,B,C]',
   simulateOnUp({ sel:['A','B','C'], d:{name:'B',moved:false}, snap:null, adj:chain, elapsed:1500 }), ['A','B','C'])
-test('click unselected D when sel=[B] → [D] (replaces, not adds)',
-  simulateOnUp({ sel:['B'], d:{name:'D',moved:false}, snap:null, adj:chain, elapsed:100 }), ['D'])
-test('snap empty sel: drag C snaps D (chain) → [C,D]',
+// snap: empty sel
+test('empty-sel snap: dragged C is primary → [C,D]',
   simulateOnUp({ sel:[], d:{name:'C',moved:true}, snap:{name:'D'}, adj:chain, elapsed:300 }), ['C','D'])
-// 新規則：sel=[] 時 drag+snap 成立組合，拿取的縣市為 primary
-test('【新規則】empty-sel snap: dragged C is primary, not snap target D',
-  simulateOnUp({ sel:[], d:{name:'C',moved:true}, snap:{name:'D'}, adj:chain, elapsed:300 }), ['C','D'])
-test('【新規則】empty-sel snap reversed: dragged D is primary → [D,C]',
+test('empty-sel snap reversed: dragged D is primary → [D,C]',
   simulateOnUp({ sel:[], d:{name:'D',moved:true}, snap:{name:'C'}, adj:chain, elapsed:300 }), ['D','C'])
-test('【新規則】empty-sel snap star: dragged A snaps B → [A,B]',
+test('empty-sel snap star: dragged A snaps B → [A,B]',
   simulateOnUp({ sel:[], d:{name:'A',moved:true}, snap:{name:'B'}, adj:star, elapsed:300 }), ['A','B'])
-test('【新規則】empty-sel drag away (no snap) → [] (no combination without snap)',
+// snap: extend existing group (dragged is in sel → snap to adjacent unselected)
+test('group drag B (sel=[A,B]) snaps C → [A,B,C]',
+  simulateOnUp({ sel:['A','B'], d:{name:'B',moved:true}, snap:{name:'C'}, adj:chain, elapsed:300 }), ['A','B','C'])
+// snap: unselected drag snaps to sel member (valid extension)
+test('unselected C snaps to selected B (sel=[A,B]) → [A,B,C]',
+  simulateOnUp({ sel:['A','B'], d:{name:'C',moved:true}, snap:{name:'B'}, adj:chain, elapsed:300 }), ['A','B','C'])
+// snap: unselected → unselected when sel active → blocked
+test('snap blocked: sel=[A,B], drag C snaps D (both unselected) → [A,B]',
+  simulateOnUp({ sel:['A','B'], d:{name:'C',moved:true}, snap:{name:'D'}, adj:chain, elapsed:500 }), ['A','B'])
+test('snap blocked: sel=[A], drag C snaps D (island) → [A]',
+  simulateOnUp({ sel:['A'], d:{name:'C',moved:true}, snap:{name:'D'}, adj:island, elapsed:500 }), ['A'])
+// drag away: selection unchanged regardless of who dragged
+test('empty-sel drag away → [] (no snap = no group formed)',
   simulateOnUp({ sel:[], d:{name:'C',moved:true}, snap:null, adj:chain, elapsed:300 }), [])
-test('drag primary A away (no snap) → [B,C,D]',
-  simulateOnUp({ sel:['A','B','C','D'], d:{name:'A',moved:true}, snap:null, adj:chain, elapsed:300 }), ['B','C','D'])
-test('drag non-primary B away → [A] (C,D disconnected)',
-  simulateOnUp({ sel:['A','B','C','D'], d:{name:'B',moved:true}, snap:null, adj:chain, elapsed:300 }), ['A'])
+test('group drag A away (no snap) → sel unchanged [A,B,C,D]',
+  simulateOnUp({ sel:['A','B','C','D'], d:{name:'A',moved:true}, snap:null, adj:chain, elapsed:300 }), ['A','B','C','D'])
+test('group drag B away (no snap) → sel unchanged [A,B,C,D]',
+  simulateOnUp({ sel:['A','B','C','D'], d:{name:'B',moved:true}, snap:null, adj:chain, elapsed:300 }), ['A','B','C','D'])
+test('group drag C away (no snap) → sel unchanged [A,B,C,D]',
+  simulateOnUp({ sel:['A','B','C','D'], d:{name:'C',moved:true}, snap:null, adj:chain, elapsed:500 }), ['A','B','C','D'])
+test('unselected drag away (no snap) → sel unchanged [A,B]',
+  simulateOnUp({ sel:['A','B'], d:{name:'D',moved:true}, snap:null, adj:chain, elapsed:300 }), ['A','B'])
 
 console.log(`\n${'─'.repeat(50)}\nResults: ${passed} passed, ${failed} failed out of ${passed + failed} tests`)
 if (failed > 0) process.exit(1)

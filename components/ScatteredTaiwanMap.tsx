@@ -124,12 +124,13 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
   const [pieces, setPieces]               = useState<CountyPiece[]>([])
   const [hovered, setHovered]             = useState<string | null>(null)
   const [overrides, setOverrides]         = useState<Map<number, Override>>(new Map())
-  const [snapCandidate, setSnapCandidate] = useState<{ name: string; idx: number } | null>(null)
+  const [snapCandidate, setSnapCandidate] = useState<{ name: string; idx: number; snapperIdx: number } | null>(null)
+  const [ejectedIdx, setEjectedIdx]       = useState<number | null>(null)
 
   const piecesRef        = useRef<CountyPiece[]>([])
   const overridesRef     = useRef<Map<number, Override>>(new Map())
   const adjacencyRef     = useRef<Map<string, Set<string>>>(new Map())
-  const snapRef          = useRef<{ name: string; idx: number } | null>(null)
+  const snapRef          = useRef<{ name: string; idx: number; snapperIdx: number } | null>(null)
   const selectedRef      = useRef<string[]>(selected)
   const onSelectRef      = useRef<(c: string[]) => void>(onSelect)
   const globalScaleRef   = useRef<number>(1)
@@ -143,6 +144,8 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
     startX: number; startY: number
     origX: number; origY: number
     moved: boolean
+    isGroupDrag: boolean
+    groupOffsets: Map<number, { dx: number; dy: number }>
   } | null>(null)
 
   useEffect(() => { piecesRef.current = pieces }, [pieces])
@@ -218,24 +221,72 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       if (!d) return
       const dx = (e.clientX - d.startX) / window.innerWidth * 100
       const dy = (e.clientY - d.startY) / window.innerHeight * 100
-      if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) d.moved = true
+      if (Math.abs(e.clientX - d.startX) > 5 || Math.abs(e.clientY - d.startY) > 5) d.moved = true
       const newX = d.origX + dx
       const newY = d.origY + dy
       lastMoveXYRef.current = { idx: d.idx, x: newX, y: newY }
-      setOverrides(prev => new Map(prev).set(d.idx, { ...prev.get(d.idx), x: newX, y: newY }))
 
-      const adj = adjacencyRef.current.get(d.name)
-      let found: { name: string; idx: number } | null = null
-      if (adj && d.moved) {
-        for (let j = 0; j < piecesRef.current.length; j++) {
-          const piece = piecesRef.current[j]
-          if (piece.name === d.name || !adj.has(piece.name)) continue
-          const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
-          const snapPx = Math.hypot(
-            (newX - pPos.x) / 100 * window.innerWidth,
-            (newY - pPos.y) / 100 * window.innerHeight,
-          )
-          if (snapPx < 150) { found = { name: piece.name, idx: j }; break }
+      if (d.isGroupDrag) {
+        setOverrides(prev => {
+          const next = new Map(prev)
+          next.set(d.idx, { ...prev.get(d.idx), x: newX, y: newY })
+          d.groupOffsets.forEach((off, j) => {
+            next.set(j, { ...prev.get(j), x: newX + off.dx, y: newY + off.dy })
+          })
+          return next
+        })
+      } else {
+        setOverrides(prev => new Map(prev).set(d.idx, { ...prev.get(d.idx), x: newX, y: newY }))
+      }
+
+      const sel = selectedRef.current
+      const snapMoved = Math.abs(e.clientX - d.startX) > 1 || Math.abs(e.clientY - d.startY) > 1
+      let found: { name: string; idx: number; snapperIdx: number } | null = null
+
+      if (snapMoved) {
+        if (d.isGroupDrag) {
+          for (let j = 0; j < piecesRef.current.length; j++) {
+            const piece = piecesRef.current[j]
+            if (sel.includes(piece.name)) continue
+            const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
+            let bestSnapperIdx = -1, bestDist = Infinity
+            for (let k = 0; k < piecesRef.current.length; k++) {
+              const gm = piecesRef.current[k]
+              if (!sel.includes(gm.name)) continue
+              if (!adjacencyRef.current.get(gm.name)?.has(piece.name)) continue
+              let gmX: number, gmY: number
+              if (k === d.idx) { gmX = newX; gmY = newY }
+              else {
+                const off = d.groupOffsets.get(k)
+                if (off) { gmX = newX + off.dx; gmY = newY + off.dy }
+                else { const gPos = overridesRef.current.get(k) ?? gm; gmX = gPos.x; gmY = gPos.y }
+              }
+              const dist = Math.hypot(
+                (gmX - pPos.x) / 100 * window.innerWidth,
+                (gmY - pPos.y) / 100 * window.innerHeight,
+              )
+              if (dist < bestDist) { bestDist = dist; bestSnapperIdx = k }
+            }
+            if (bestSnapperIdx >= 0 && bestDist < 150) {
+              found = { name: piece.name, idx: j, snapperIdx: bestSnapperIdx }
+              break
+            }
+          }
+        } else {
+          const adj = adjacencyRef.current.get(d.name)
+          if (adj) {
+            for (let j = 0; j < piecesRef.current.length; j++) {
+              const piece = piecesRef.current[j]
+              if (piece.name === d.name || !adj.has(piece.name)) continue
+              if (sel.length > 0 && !sel.includes(piece.name)) continue
+              const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
+              const dist = Math.hypot(
+                (newX - pPos.x) / 100 * window.innerWidth,
+                (newY - pPos.y) / 100 * window.innerHeight,
+              )
+              if (dist < 150) { found = { name: piece.name, idx: j, snapperIdx: d.idx }; break }
+            }
+          }
         }
       }
       if (found?.name !== snapRef.current?.name) {
@@ -253,59 +304,59 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       const snap = snapRef.current
       const elapsed = Date.now() - mousedownTimeRef.current
 
-      if (!d.moved && elapsed < 1000) {
-        // Quick click (< 1s hold)
-        if (!sel.includes(d.name)) {
-          // Click unselected county → replace entire selection
-          onSelectRef.current([d.name])
-          recalcPush([d.name])
-        } else if (sel[0] === d.name) {
-          // Click the primary county → deselect everything
-          onSelectRef.current([])
-          recalcPush([])
-        } else {
-          // Click non-primary in group → remove + BFS connectivity check
-          const newSel = keepConnected(sel, d.name, adjacencyRef.current)
-          onSelectRef.current(newSel)
-          recalcPush(newSel)
-        }
-      } else if (d.moved && snap) {
-        // Snap: position-align both pieces, accumulate selection
-        const targetPiece  = piecesRef.current[snap.idx]
-        const draggedPiece = piecesRef.current[d.idx]
-        const targetPos = overridesRef.current.get(snap.idx) ?? { x: targetPiece.x, y: targetPiece.y }
-        const [tx0, ty0] = targetPiece.viewBox.split(' ').map(Number)
-        const [dx0, dy0] = draggedPiece.viewBox.split(' ').map(Number)
-        const gs = globalScaleRef.current
-        const newX = targetPos.x + (dx0 - tx0) * gs / window.innerWidth  * 100
-        const newY = targetPos.y + (dy0 - ty0) * gs / window.innerHeight * 100
+      if (snap) {
+        const targetPiece   = piecesRef.current[snap.idx]
+        const targetPos     = overridesRef.current.get(snap.idx) ?? { x: targetPiece.x, y: targetPiece.y }
+        const [tx0, ty0]    = targetPiece.viewBox.split(' ').map(Number)
+        const snapperIdx    = snap.snapperIdx
+        const snapperPiece  = piecesRef.current[snapperIdx]
+        const [sx0, sy0]    = snapperPiece.viewBox.split(' ').map(Number)
+        const gs            = globalScaleRef.current
+        const snapperX      = targetPos.x + (sx0 - tx0) * gs / window.innerWidth  * 100
+        const snapperY      = targetPos.y + (sy0 - ty0) * gs / window.innerHeight * 100
 
-        // Update overridesRef immediately; recalcPush will call setOverrides with combined map
+        let snapX: number, snapY: number
+        if (snapperIdx === d.idx) {
+          snapX = snapperX; snapY = snapperY
+        } else {
+          const snapperOff = d.groupOffsets.get(snapperIdx)!
+          snapX = snapperX - snapperOff.dx
+          snapY = snapperY - snapperOff.dy
+        }
+
         const nextOv = new Map(overridesRef.current)
-        nextOv.set(d.idx,    { x: newX,        y: newY,        rotation: 0 })
-        nextOv.set(snap.idx, { x: targetPos.x, y: targetPos.y, rotation: 0 })
+        nextOv.set(d.idx,    { x: snapX,        y: snapY,        rotation: 0 })
+        nextOv.set(snap.idx, { x: targetPos.x,  y: targetPos.y, rotation: 0 })
+        if (d.isGroupDrag) {
+          d.groupOffsets.forEach((off, j) => {
+            nextOv.set(j, { x: snapX + off.dx, y: snapY + off.dy, rotation: 0 })
+          })
+        }
         overridesRef.current = nextOv
 
         const rawSel = [...new Set([...sel, d.name, snap.name])]
         const newSel = filterConnected(rawSel, adjacencyRef.current)
         onSelectRef.current(newSel)
         recalcPush(newSel)
+      } else if (!d.moved && elapsed < 1000) {
+        if (sel.length === 0) {
+          onSelectRef.current([d.name])
+          recalcPush([d.name])
+        }
+        // clicking any county is no-op when group is active; clear via X button
       } else if (d.moved) {
-        // Drag away (no snap) → remove + BFS connectivity check
-        const newSel = keepConnected(sel, d.name, adjacencyRef.current)
-        onSelectRef.current(newSel)
-
-        // Push dropped piece away from any piece it landed on
-        const last = lastMoveXYRef.current
-        const fallback = overridesRef.current.get(d.idx) ?? piecesRef.current[d.idx]
-        const finalX = last?.idx === d.idx ? last.x : fallback.x
-        const finalY = last?.idx === d.idx ? last.y : fallback.y
-        const resolved = resolveDropOverlap(d.idx, finalX, finalY, overridesRef.current, piecesRef.current, safeMaxXRef.current, window.innerWidth, window.innerHeight)
-        const nextOv = new Map(overridesRef.current)
-        nextOv.set(d.idx, { ...nextOv.get(d.idx), ...resolved })
-        overridesRef.current = nextOv
-
-        recalcPush(newSel)
+        if (d.isGroupDrag) {
+          recalcPush(sel)
+        } else {
+          const last = lastMoveXYRef.current
+          const fallback = overridesRef.current.get(d.idx) ?? piecesRef.current[d.idx]
+          const finalX = last?.idx === d.idx ? last.x : fallback.x
+          const finalY = last?.idx === d.idx ? last.y : fallback.y
+          const resolved = resolveDropOverlap(d.idx, finalX, finalY, overridesRef.current, piecesRef.current, safeMaxXRef.current, window.innerWidth, window.innerHeight)
+          const nextOv = new Map(overridesRef.current)
+          nextOv.set(d.idx, { ...nextOv.get(d.idx), ...resolved })
+          overridesRef.current = nextOv
+        }
       }
       // else: hold ≥ 1s without movement → do nothing
 
@@ -397,11 +448,15 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       let gi = 0
       const result: CountyPiece[] = []
       nameToFeatures.forEach((features, name) => {
-        const f = features[0]
         const i = gi++
-        const bounds = pathGen.bounds(f)
-        const [x0, y0] = bounds[0]; const [x1, y1] = bounds[1]
-        const natW = x1 - x0; const natH = y1 - y0
+        let minBX = Infinity, minBY = Infinity, maxBX = -Infinity, maxBY = -Infinity
+        features.forEach(f => {
+          const b = pathGen.bounds(f)
+          if (b[0][0] < minBX) minBX = b[0][0]; if (b[0][1] < minBY) minBY = b[0][1]
+          if (b[1][0] > maxBX) maxBX = b[1][0]; if (b[1][1] > maxBY) maxBY = b[1][1]
+        })
+        const x0 = minBX, y0 = minBY
+        const natW = maxBX - minBX, natH = maxBY - minBY
         const w = natW * globalScale, h = natH * globalScale
 
         let px = 2 + Math.random() * xRange
@@ -417,7 +472,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
 
         result.push({
           name,
-          pathD: pathGen(f) ?? '',
+          pathD: features.map(f => pathGen(f) ?? '').join(' '),
           viewBox: `${x0} ${y0} ${natW} ${natH}`,
           displayW: w,
           displayH: h,
@@ -471,7 +526,10 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         )
 
         if (variant === 'puzzle') {
-          const scaleXY = isSel ? ' scale(1.1) translateY(-3px)' : isSnap ? ' scale(1.08)' : isHov ? ' scale(1.05) translateY(-2px)' : ''
+          const isEjecting = ejectedIdx === i
+          const scaleXY = isSel ? ' scale(1.1) translateY(-3px)'
+            : isEjecting ? ' scale(1.1) translateY(-3px)'
+            : isSnap ? ' scale(1.08)' : isHov ? ' scale(1.05) translateY(-2px)' : ''
           return (
             <div key={`${p.name}-${i}`}
               style={{
@@ -481,14 +539,26 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
                 cursor: isDragging ? 'grabbing' : 'grab', pointerEvents: 'all',
                 transform: `rotate(${rotation}deg)${scaleXY}`,
                 filter: shadow,
-                transition: isDragging ? 'none' : 'transform 0.2s ease, filter 0.2s ease, left 0.35s ease, top 0.35s ease',
+                transition: isDragging ? 'none'
+                  : isEjecting
+                    ? 'transform 0.2s ease, filter 0.2s ease, left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    : 'transform 0.2s ease, filter 0.2s ease, left 0.35s ease, top 0.35s ease',
                 userSelect: 'none',
               }}
               onMouseDown={e => {
                 e.preventDefault()
                 mousedownTimeRef.current = Date.now()
                 const cur = overrides.get(i) ?? { x: p.x, y: p.y }
-                dragRef.current = { idx: i, name: p.name, startX: e.clientX, startY: e.clientY, origX: cur.x, origY: cur.y, moved: false }
+                const isGroupDrag = selected.includes(p.name)
+                const groupOffsets = new Map<number, { dx: number; dy: number }>()
+                if (isGroupDrag) {
+                  piecesRef.current.forEach((pc, j) => {
+                    if (j === i || !selected.includes(pc.name)) return
+                    const jPos = overridesRef.current.get(j) ?? pc
+                    groupOffsets.set(j, { dx: jPos.x - cur.x, dy: jPos.y - cur.y })
+                  })
+                }
+                dragRef.current = { idx: i, name: p.name, startX: e.clientX, startY: e.clientY, origX: cur.x, origY: cur.y, moved: false, isGroupDrag, groupOffsets }
               }}
               onMouseEnter={() => setHovered(p.name)}
               onMouseLeave={() => setHovered(null)}

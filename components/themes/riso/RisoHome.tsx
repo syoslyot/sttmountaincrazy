@@ -132,9 +132,12 @@ export function RisoHome() {
                 style={{ display: 'block', textDecoration: 'none', background: c.bg, border: `2px solid ${c.accent}`, padding: '0.9rem 1.1rem', marginBottom: '-4px', marginLeft: isOdd ? '16px' : '0', marginRight: isOdd ? '0' : '16px', transform: `rotate(${rot}deg)`, transition: 'transform 0.15s, box-shadow 0.15s, z-index 0s', position: 'relative', zIndex: i % 3 === 0 ? 2 : 1, boxShadow: `3px 3px 0 ${c.accent}44` }}>
                 <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.05rem', letterSpacing: '0.08em', color: c.accent, marginBottom: '2px' }}>{e.name}</div>
                 <div style={{ fontSize: '0.65rem', color: '#5a4a00' }}>
-                  {e.date_start}{e.county ? ` / ${e.county}` : ''}{e.leader ? ` · ${e.leader}` : ''}
+                  {(() => {
+                    const r = e.region; const rx = e.region_exit
+                    const area = r && rx && r !== rx ? `${r} → ${rx}` : (r ?? rx ?? null)
+                    return <>{e.date_start}{area ? ` / ${area}` : ''}{e.leader ? ` · ${e.leader}` : ''}</>
+                  })()}
                 </div>
-                {i % 7 === 0 && <div style={{ position: 'absolute', top: '-10px', right: '8px', background: '#e65100', color: '#fffde7', fontFamily: "'Bebas Neue',sans-serif", fontSize: '0.6rem', padding: '1px 6px', letterSpacing: '0.15em', transform: 'rotate(2deg)' }}>精選</div>}
               </Link>
             )
           })}
