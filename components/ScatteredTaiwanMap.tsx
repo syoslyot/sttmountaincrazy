@@ -44,6 +44,54 @@ function filterConnected(sel: string[], adj: Map<string, Set<string>>): string[]
   return sel.filter(c => visited.has(c))
 }
 
+const PIECE_PAD = 12
+
+function hasNoOverlap(
+  xPx: number, yPx: number, w: number, h: number,
+  placed: ReadonlyArray<{ x: number; y: number; w: number; h: number }>
+): boolean {
+  for (const q of placed) {
+    if (xPx < q.x + q.w + PIECE_PAD && xPx + w + PIECE_PAD > q.x &&
+        yPx < q.y + q.h + PIECE_PAD && yPx + h + PIECE_PAD > q.y) return false
+  }
+  return true
+}
+
+function resolveDropOverlap(
+  droppedIdx: number, xPct: number, yPct: number,
+  ov: Map<number, Override>, ps: CountyPiece[],
+  safeMaxX: number, vw: number, vh: number
+): { x: number; y: number } {
+  const w = ps[droppedIdx].displayW, h = ps[droppedIdx].displayH
+  let x = xPct, y = yPct
+  for (let iter = 0; iter < 20; iter++) {
+    const xPx = x / 100 * vw, yPx = y / 100 * vh
+    let pushed = false
+    for (let j = 0; j < ps.length; j++) {
+      if (j === droppedIdx) continue
+      const pj = ps[j]
+      const jPos = ov.get(j) ?? pj
+      const jx = jPos.x / 100 * vw, jy = jPos.y / 100 * vh
+      if (xPx < jx + pj.displayW + PIECE_PAD && xPx + w + PIECE_PAD > jx &&
+          yPx < jy + pj.displayH + PIECE_PAD && yPx + h + PIECE_PAD > jy) {
+        const cx = (xPx + w / 2) - (jx + pj.displayW / 2) || 1
+        const cy = (yPx + h / 2) - (jy + pj.displayH / 2) || 0.1
+        const mag = Math.hypot(cx, cy)
+        const olvX = Math.min(xPx + w, jx + pj.displayW) - Math.max(xPx, jx) + PIECE_PAD
+        const olvY = Math.min(yPx + h, jy + pj.displayH) - Math.max(yPx, jy) + PIECE_PAD
+        x += (cx / mag * Math.min(olvX, olvY)) / vw * 100
+        y += (cy / mag * Math.min(olvX, olvY)) / vh * 100
+        pushed = true
+      }
+    }
+    if (!pushed) break
+  }
+  return {
+    x: Math.max(1, Math.min(safeMaxX, x)),
+    y: Math.max(1, Math.min(89, y)),
+  }
+}
+
 interface CountyPiece {
   name: string
   pathD: string
@@ -88,6 +136,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
   const safeMaxXRef      = useRef<number>(62)
   const mousedownTimeRef = useRef<number>(0)
   const originalPosRef   = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const lastMoveXYRef    = useRef<{ idx: number; x: number; y: number } | null>(null)
 
   const dragRef = useRef<{
     idx: number; name: string
@@ -172,6 +221,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) d.moved = true
       const newX = d.origX + dx
       const newY = d.origY + dy
+      lastMoveXYRef.current = { idx: d.idx, x: newX, y: newY }
       setOverrides(prev => new Map(prev).set(d.idx, { ...prev.get(d.idx), x: newX, y: newY }))
 
       const adj = adjacencyRef.current.get(d.name)
@@ -244,11 +294,23 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         // Drag away (no snap) → remove + BFS connectivity check
         const newSel = keepConnected(sel, d.name, adjacencyRef.current)
         onSelectRef.current(newSel)
+
+        // Push dropped piece away from any piece it landed on
+        const last = lastMoveXYRef.current
+        const fallback = overridesRef.current.get(d.idx) ?? piecesRef.current[d.idx]
+        const finalX = last?.idx === d.idx ? last.x : fallback.x
+        const finalY = last?.idx === d.idx ? last.y : fallback.y
+        const resolved = resolveDropOverlap(d.idx, finalX, finalY, overridesRef.current, piecesRef.current, safeMaxXRef.current, window.innerWidth, window.innerHeight)
+        const nextOv = new Map(overridesRef.current)
+        nextOv.set(d.idx, { ...nextOv.get(d.idx), ...resolved })
+        overridesRef.current = nextOv
+
         recalcPush(newSel)
       }
       // else: hold ≥ 1s without movement → do nothing
 
       snapRef.current = null
+      lastMoveXYRef.current = null
       setSnapCandidate(null)
     }
 
@@ -329,6 +391,9 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       const yRange   = variant === 'puzzle' ? 80 : 30
       const rotRange = variant === 'puzzle' ? 36 : 24
 
+      const vw = window.innerWidth, vh = window.innerHeight
+      const placed: Array<{ x: number; y: number; w: number; h: number }> = []
+
       let gi = 0
       const result: CountyPiece[] = []
       nameToFeatures.forEach((features, name) => {
@@ -337,15 +402,27 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         const bounds = pathGen.bounds(f)
         const [x0, y0] = bounds[0]; const [x1, y1] = bounds[1]
         const natW = x1 - x0; const natH = y1 - y0
+        const w = natW * globalScale, h = natH * globalScale
+
+        let px = 2 + Math.random() * xRange
+        let py = yBase + Math.random() * yRange
+        for (let att = 0; att < 400; att++) {
+          const tx = 2 + Math.random() * xRange
+          const ty = yBase + Math.random() * yRange
+          if (hasNoOverlap(tx / 100 * vw, ty / 100 * vh, w, h, placed)) {
+            px = tx; py = ty; break
+          }
+        }
+        placed.push({ x: px / 100 * vw, y: py / 100 * vh, w, h })
 
         result.push({
           name,
           pathD: pathGen(f) ?? '',
           viewBox: `${x0} ${y0} ${natW} ${natH}`,
-          displayW: natW * globalScale,
-          displayH: natH * globalScale,
-          x: Math.max(1, Math.min(safeMaxX, 2 + Math.random() * xRange)),
-          y: Math.max(1, Math.min(89, yBase + Math.random() * yRange)),
+          displayW: w,
+          displayH: h,
+          x: Math.max(1, Math.min(safeMaxX, px)),
+          y: Math.max(1, Math.min(89, py)),
           rotation: (Math.random() - 0.5) * rotRange,
           zIndex: 5 + (i % 8),
           fallDuration: 700 + Math.random() * 400,
