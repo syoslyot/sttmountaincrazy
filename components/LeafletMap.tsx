@@ -15,8 +15,10 @@ export function LeafletMap({ gpxPaths }: Props) {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
+    let cancelled = false
 
     import('leaflet').then(L => {
+      if (cancelled || mapRef.current) return
       const map = L.map(containerRef.current!, { zoomControl: true })
       mapRef.current = map
 
@@ -63,6 +65,7 @@ export function LeafletMap({ gpxPaths }: Props) {
     })
 
     return () => {
+      cancelled = true
       mapRef.current?.remove()
       mapRef.current = null
     }
