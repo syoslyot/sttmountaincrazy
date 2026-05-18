@@ -1,10 +1,10 @@
 'use client'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 
-interface ElevPoint { dist: number; ele: number }
+interface ElevPoint { dist: number; ele: number; lat: number; lng: number }
 interface Waypoint { lat: number; lng: number; name: string }
 
 interface Props {
@@ -31,7 +31,7 @@ function parseGpx(text: string): { latlngs: [number, number][]; elevs: ElevPoint
   const elevs: ElevPoint[] = pts.map((p, i) => {
     if (i > 0) cumDist += haversineDist(latlngs[i - 1], latlngs[i])
     const ele = parseFloat(p.querySelector('ele')?.textContent ?? 'NaN')
-    return { dist: cumDist, ele: isNaN(ele) ? 0 : ele }
+    return { dist: cumDist, ele: isNaN(ele) ? 0 : ele, lat: latlngs[i][0], lng: latlngs[i][1] }
   })
   const waypoints: Waypoint[] = Array.from(doc.querySelectorAll('wpt')).map(w => ({
     lat: parseFloat(w.getAttribute('lat') ?? '0'),
@@ -59,17 +59,31 @@ function parseKml(text: string): { latlngs: [number, number][]; elevs: ElevPoint
   let cumDist = 0
   const elevs: ElevPoint[] = latlngs.map((ll, i) => {
     if (i > 0) cumDist += haversineDist(latlngs[i - 1], ll)
-    return { dist: cumDist, ele: eleRaw[i] ?? 0 }
+    return { dist: cumDist, ele: eleRaw[i] ?? 0, lat: ll[0], lng: ll[1] }
   })
   return { latlngs, elevs, waypoints: [] }
 }
 
-function RisoElevationChart({ points }: { points: ElevPoint[] }) {
+function fmtDist(m: number) {
+  return m >= 1000 ? `${(m / 1000).toFixed(1)}k` : `${Math.round(m)}`
+}
+
+function RisoElevationChart({
+  points,
+  onHover,
+  onLeave,
+}: {
+  points: ElevPoint[]
+  onHover?: (pt: ElevPoint) => void
+  onLeave?: () => void
+}) {
+  const [hoverPt, setHoverPt] = useState<ElevPoint | null>(null)
+
   if (points.length < 2) return null
 
   const W = 600
-  const H = 110
-  const PAD = { top: 12, right: 12, bottom: 24, left: 44 }
+  const H = 100
+  const PAD = { top: 10, right: 12, bottom: 22, left: 44 }
   const innerW = W - PAD.left - PAD.right
   const innerH = H - PAD.top - PAD.bottom
 
@@ -85,50 +99,105 @@ function RisoElevationChart({ points }: { points: ElevPoint[] }) {
   const pathD = points.map((p, i) =>
     `${i === 0 ? 'M' : 'L'}${scaleX(p.dist).toFixed(1)},${scaleY(p.ele).toFixed(1)}`
   ).join(' ')
-
   const areaD = `${pathD} L${scaleX(maxDist).toFixed(1)},${(PAD.top + innerH).toFixed(1)} L${PAD.left},${(PAD.top + innerH).toFixed(1)} Z`
+
+  // Stats
+  let gain = 0, loss = 0
+  const THRESH = 5
+  let prevEle = points[0].ele
+  for (let i = 1; i < points.length; i++) {
+    const d = points[i].ele - prevEle
+    if (Math.abs(d) > THRESH) { d > 0 ? gain += d : loss -= d; prevEle = points[i].ele }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const svgX = ((e.clientX - rect.left) / rect.width) * W
+    const targetDist = Math.max(0, Math.min(maxDist, ((svgX - PAD.left) / innerW) * maxDist))
+    let best = points[0], bestDiff = Infinity
+    for (const p of points) {
+      const diff = Math.abs(p.dist - targetDist)
+      if (diff < bestDiff) { bestDiff = diff; best = p }
+    }
+    setHoverPt(best)
+    onHover?.(best)
+  }
+
+  const handleMouseLeave = () => { setHoverPt(null); onLeave?.() }
 
   const yTicks = 3
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H}
-      style={{ display: 'block', background: 'rgba(255,253,231,0.92)', borderTop: '2px solid #e65100' }}>
-      {/* area fill */}
-      <path d={areaD} fill="rgba(230,81,0,0.18)" />
-      {/* line */}
-      <path d={pathD} fill="none" stroke="#e65100" strokeWidth="2" strokeLinejoin="round" />
+    <div style={{ background: 'rgba(255,253,231,0.92)', borderTop: '2px solid #e65100' }}>
+      {/* Stats bar */}
+      <div style={{
+        display: 'flex', gap: '1.4rem', padding: '2px 12px 2px 44px',
+        fontSize: '0.62rem', fontFamily: "'Courier Prime', monospace", color: '#5a4a00',
+        borderBottom: '1px solid rgba(230,81,0,0.18)',
+      }}>
+        <span>↔ {fmtDist(maxDist)}m</span>
+        <span>↑ {Math.round(gain)}m</span>
+        <span>↓ {Math.round(loss)}m</span>
+        <span>▲ {Math.round(maxEle)}m</span>
+      </div>
 
-      {/* y-axis ticks */}
-      {Array.from({ length: yTicks + 1 }, (_, i) => {
-        const e = minEle + (eleRange * i) / yTicks
-        const y = scaleY(e)
-        return (
-          <g key={i}>
-            <line x1={PAD.left} y1={y} x2={PAD.left + innerW} y2={y} stroke="#e6510022" strokeWidth="1" />
-            <text x={PAD.left - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#5a4a00"
-              fontFamily="'Courier Prime', monospace">{Math.round(e)}</text>
-          </g>
-        )
-      })}
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H}
+        style={{ display: 'block', cursor: 'crosshair' }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}>
 
-      {/* x-axis dist labels */}
-      {Array.from({ length: 5 }, (_, i) => {
-        const d = (maxDist * i) / 4
-        const x = scaleX(d)
-        return (
-          <text key={i} x={x} y={H - 4} textAnchor="middle" fontSize="9" fill="#5a4a00"
-            fontFamily="'Courier Prime', monospace">
-            {d >= 1000 ? `${(d / 1000).toFixed(1)}k` : Math.round(d)}m
-          </text>
-        )
-      })}
+        <path d={areaD} fill="rgba(230,81,0,0.18)" />
+        <path d={pathD} fill="none" stroke="#e65100" strokeWidth="2" strokeLinejoin="round" />
 
-      {/* y-axis label */}
-      <text x={8} y={PAD.top + innerH / 2}
-        transform={`rotate(-90,8,${PAD.top + innerH / 2})`}
-        textAnchor="middle" fontSize="9" fill="#e65100"
-        fontFamily="'Bebas Neue', sans-serif" letterSpacing="0.1em">高度m</text>
-    </svg>
+        {Array.from({ length: yTicks + 1 }, (_, i) => {
+          const e = minEle + (eleRange * i) / yTicks
+          const y = scaleY(e)
+          return (
+            <g key={i}>
+              <line x1={PAD.left} y1={y} x2={PAD.left + innerW} y2={y} stroke="#e6510022" strokeWidth="1" />
+              <text x={PAD.left - 4} y={y + 4} textAnchor="end" fontSize="9" fill="#5a4a00"
+                fontFamily="'Courier Prime', monospace">{Math.round(e)}</text>
+            </g>
+          )
+        })}
+
+        {Array.from({ length: 5 }, (_, i) => {
+          const d = (maxDist * i) / 4
+          const x = scaleX(d)
+          return (
+            <text key={i} x={x} y={H - 4} textAnchor="middle" fontSize="9" fill="#5a4a00"
+              fontFamily="'Courier Prime', monospace">
+              {fmtDist(d)}m
+            </text>
+          )
+        })}
+
+        <text x={8} y={PAD.top + innerH / 2}
+          transform={`rotate(-90,8,${PAD.top + innerH / 2})`}
+          textAnchor="middle" fontSize="9" fill="#e65100"
+          fontFamily="'Bebas Neue', sans-serif" letterSpacing="0.1em">高度m</text>
+
+        {/* Hover cursor */}
+        {hoverPt && (() => {
+          const hx = scaleX(hoverPt.dist)
+          const hy = scaleY(hoverPt.ele)
+          const label = `${fmtDist(hoverPt.dist)}m · ${Math.round(hoverPt.ele)}m`
+          const tipW = label.length * 5.5 + 10
+          const tipX = hx + 6 + tipW > W ? hx - tipW - 6 : hx + 6
+          return (
+            <g>
+              <line x1={hx} y1={PAD.top} x2={hx} y2={PAD.top + innerH}
+                stroke="#0066cc" strokeWidth="1" strokeDasharray="3,2" />
+              <circle cx={hx} cy={hy} r={4} fill="#0066cc" stroke="#fff" strokeWidth="1.5" />
+              <rect x={tipX} y={hy - 18} width={tipW} height={14}
+                fill="rgba(255,253,231,0.95)" stroke="#0066cc" strokeWidth="1" rx={2} />
+              <text x={tipX + 5} y={hy - 7} fontSize="9" fill="#0066cc"
+                fontFamily="'Courier Prime', monospace">{label}</text>
+            </g>
+          )
+        })()}
+      </svg>
+    </div>
   )
 }
 
@@ -139,7 +208,6 @@ async function loadTrackOnMap(
   trackLayersRef: React.MutableRefObject<any[]>,
   setElevPoints: (pts: ElevPoint[]) => void
 ) {
-  // Clear previous track layers
   trackLayersRef.current.forEach(l => l.remove())
   trackLayersRef.current = []
   setElevPoints([])
@@ -190,13 +258,35 @@ export function RisoLeafletMap({ activeGpx }: Props) {
   const mapRef = useRef<any>(null)
   const leafletRef = useRef<any>(null)
   const trackLayersRef = useRef<any[]>([])
+  const hoverMarkerRef = useRef<any>(null)
   const activeGpxRef = useRef(activeGpx)
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
 
-  // Keep ref in sync so map init can read the latest value
   activeGpxRef.current = activeGpx
 
-  // Init map once; load initial track after map is ready
+  const handleChartHover = useCallback((pt: ElevPoint) => {
+    if (!mapRef.current || !leafletRef.current) return
+    const L = leafletRef.current
+    if (hoverMarkerRef.current) {
+      hoverMarkerRef.current.setLatLng([pt.lat, pt.lng])
+    } else {
+      hoverMarkerRef.current = L.circleMarker([pt.lat, pt.lng], {
+        radius: 7, color: '#0066cc', fillColor: '#fff', fillOpacity: 1, weight: 2,
+      }).addTo(mapRef.current)
+    }
+  }, [])
+
+  const handleChartLeave = useCallback(() => {
+    hoverMarkerRef.current?.remove()
+    hoverMarkerRef.current = null
+  }, [])
+
+  // Clean up hover marker when track changes
+  useEffect(() => {
+    hoverMarkerRef.current?.remove()
+    hoverMarkerRef.current = null
+  }, [activeGpx])
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
@@ -230,7 +320,6 @@ export function RisoLeafletMap({ activeGpx }: Props) {
       L.control.scale({ metric: true, imperial: false }).addTo(map)
       map.setView([23.5, 121], 7)
 
-      // Load initial track now that map is ready
       if (activeGpxRef.current) {
         loadTrackOnMap(map, L, activeGpxRef.current, trackLayersRef, setElevPoints)
       }
@@ -244,7 +333,6 @@ export function RisoLeafletMap({ activeGpx }: Props) {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reload track when activeGpx changes (after initial mount)
   useEffect(() => {
     if (!activeGpx || !mapRef.current || !leafletRef.current) return
     loadTrackOnMap(mapRef.current, leafletRef.current, activeGpx, trackLayersRef, setElevPoints)
@@ -253,7 +341,13 @@ export function RisoLeafletMap({ activeGpx }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
       <div ref={containerRef} style={{ flex: 1, minHeight: 0 }} />
-      {elevPoints.length >= 2 && <RisoElevationChart points={elevPoints} />}
+      {elevPoints.length >= 2 && (
+        <RisoElevationChart
+          points={elevPoints}
+          onHover={handleChartHover}
+          onLeave={handleChartLeave}
+        />
+      )}
     </div>
   )
 }
