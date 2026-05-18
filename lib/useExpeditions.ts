@@ -9,6 +9,7 @@ export interface Expedition {
   date_end: string | null
   county: string | null
   region: string | null
+  region_exit: string | null
   leader: string | null
 }
 
