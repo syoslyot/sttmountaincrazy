@@ -39,9 +39,10 @@ interface Props {
   stroke: string
   glowColor?: string
   maxPx?: number
+  showLabels?: boolean
 }
 
-export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fillSelected, stroke, glowColor, maxPx = 140 }: Props) {
+export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fillSelected, stroke, glowColor, maxPx = 140, showLabels = false }: Props) {
   const [pieces, setPieces]               = useState<CountyPiece[]>([])
   const [hovered, setHovered]             = useState<string | null>(null)
   const [overrides, setOverrides]         = useState<Map<number, { x: number; y: number }>>(new Map())
@@ -108,7 +109,8 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
 
       const sel = selectedRef.current
       if (!d.moved) {
-        onSelectRef.current(sel.includes(d.name) ? sel.filter(c => c !== d.name) : [...sel, d.name])
+        const isOnly = sel.length === 1 && sel[0] === d.name
+        onSelectRef.current(isOnly ? [] : [d.name])
       } else if (snapRef.current) {
         onSelectRef.current([...new Set([...sel, d.name, snapRef.current])])
       }
@@ -249,9 +251,9 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
             : isHov ? 'drop-shadow(2px 6px 14px rgba(0,0,0,0.38))' : 'drop-shadow(2px 4px 8px rgba(0,0,0,0.2))'
         }
 
-        // Labels hidden by default — revealed only when county is selected
+        // Labels visible only after speech bubble is clicked AND county is selected
         const label = (
-          <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', fontSize: 9, whiteSpace: 'nowrap', color: stroke, opacity: isSel ? 1 : 0, letterSpacing: '0.05em', pointerEvents: 'none', fontFamily: 'monospace', transition: 'opacity 0.2s' }}>
+          <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', fontSize: 9, whiteSpace: 'nowrap', color: stroke, opacity: showLabels && isSel ? 1 : 0, letterSpacing: '0.05em', pointerEvents: 'none', fontFamily: 'monospace', transition: 'opacity 0.2s' }}>
             {p.name}
           </div>
         )
