@@ -339,49 +339,11 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         onSelectRef.current(newSel)
         recalcPush(newSel)
       } else if (!d.moved && elapsed < 1000) {
-        if (sel.includes(d.name)) {
-          const newSel = keepConnected(sel, d.name, adjacencyRef.current)
-          onSelectRef.current(newSel)
-
-          const vw = window.innerWidth, vh = window.innerHeight
-          const piece = piecesRef.current[d.idx]
-          const pos = overridesRef.current.get(d.idx) ?? piece
-          let ejectX = pos.x, ejectY = pos.y
-          if (newSel.length >= 1) {
-            let gx = 0, gy = 0
-            newSel.forEach(name => {
-              const j = piecesRef.current.findIndex(p => p.name === name)
-              if (j < 0) return
-              const pj = piecesRef.current[j]; const jPos = overridesRef.current.get(j) ?? pj
-              gx += jPos.x / 100 * vw + pj.displayW / 2
-              gy += jPos.y / 100 * vh + pj.displayH / 2
-            })
-            gx /= newSel.length; gy /= newSel.length
-            const px = pos.x / 100 * vw + piece.displayW / 2
-            const py = pos.y / 100 * vh + piece.displayH / 2
-            const ddx = px - gx || 1; const ddy = py - gy || 0.1
-            const mag = Math.hypot(ddx, ddy)
-            ejectX = Math.max(1, Math.min(safeMaxXRef.current, pos.x + (ddx / mag * 80) / vw * 100))
-            ejectY = Math.max(1, Math.min(89, pos.y + (ddy / mag * 80) / vh * 100))
-          } else {
-            ejectY = Math.min(89, pos.y + 40 / vh * 100)
-          }
-
-          originalPosRef.current.delete(d.idx)
-          recalcPush(newSel)
-
-          const ejectOv = new Map(overridesRef.current)
-          ejectOv.set(d.idx, { ...ejectOv.get(d.idx), x: ejectX, y: ejectY })
-          overridesRef.current = ejectOv
-          setOverrides(ejectOv)
-
-          setEjectedIdx(d.idx)
-          setTimeout(() => setEjectedIdx(null), 550)
-        } else if (sel.length === 0) {
+        if (sel.length === 0) {
           onSelectRef.current([d.name])
           recalcPush([d.name])
         }
-        // else: sel non-empty, clicked unselected → no-op
+        // clicking any county is no-op when group is active; clear via X button
       } else if (d.moved) {
         if (d.isGroupDrag) {
           recalcPush(sel)
