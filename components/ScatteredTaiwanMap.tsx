@@ -29,6 +29,21 @@ function keepConnected(sel: string[], removed: string, adj: Map<string, Set<stri
   return remaining.filter(c => visited.has(c))
 }
 
+// BFS: keep only counties reachable from sel[0] (used after snap to prevent disconnected groups)
+function filterConnected(sel: string[], adj: Map<string, Set<string>>): string[] {
+  if (sel.length <= 1) return sel
+  const primary = sel[0]
+  const visited = new Set([primary])
+  const q = [primary]
+  while (q.length) {
+    const cur = q.shift()!
+    for (const nb of (adj.get(cur) ?? new Set<string>())) {
+      if (sel.includes(nb) && !visited.has(nb)) { visited.add(nb); q.push(nb) }
+    }
+  }
+  return sel.filter(c => visited.has(c))
+}
+
 interface CountyPiece {
   name: string
   pathD: string
@@ -70,6 +85,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
   const selectedRef      = useRef<string[]>(selected)
   const onSelectRef      = useRef<(c: string[]) => void>(onSelect)
   const globalScaleRef   = useRef<number>(1)
+  const safeMaxXRef      = useRef<number>(62)
   const mousedownTimeRef = useRef<number>(0)
   const originalPosRef   = useRef<Map<number, { x: number; y: number }>>(new Map())
 
@@ -134,7 +150,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
           const pushPx = 200 - dist + 60
           nextOv.set(i, {
             ...nextOv.get(i),
-            x: Math.max(1, Math.min(65, pos.x + (ddx / mag * pushPx) / vw * 100)),
+            x: Math.max(1, Math.min(safeMaxXRef.current, pos.x + (ddx / mag * pushPx) / vw * 100)),
             y: Math.max(1, Math.min(89, pos.y + (ddy / mag * pushPx) / vh * 100)),
           })
           nowPushed.add(i)
@@ -220,7 +236,8 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         nextOv.set(snap.idx, { x: targetPos.x, y: targetPos.y, rotation: 0 })
         overridesRef.current = nextOv
 
-        const newSel = [...new Set([...sel, d.name, snap.name])]
+        const rawSel = [...new Set([...sel, d.name, snap.name])]
+        const newSel = filterConnected(rawSel, adjacencyRef.current)
         onSelectRef.current(newSel)
         recalcPush(newSel)
       } else if (d.moved) {
@@ -305,6 +322,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       const safeMaxX = variant === 'puzzle'
         ? Math.min(62, (window.innerWidth - panelW - maxPx - 20) / window.innerWidth * 100)
         : 85
+      safeMaxXRef.current = safeMaxX
 
       const xRange   = safeMaxX - 2
       const yBase    = variant === 'puzzle' ? 2  : 52
