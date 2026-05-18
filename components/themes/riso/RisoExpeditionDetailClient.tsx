@@ -42,12 +42,12 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
         @keyframes risoGrain { 0%,100%{opacity:.06} 50%{opacity:.09} }
         @keyframes bubbleFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-4px) rotate(-0.5deg)} }
         .riso-det-bubble::after {
-          content:''; position:absolute; bottom:-26px; left:28px;
-          border:13px solid transparent; border-top-color:#1a1000;
+          content:''; position:absolute; bottom:-23px; left:25px;
+          border:12px solid transparent; border-top-color:#1a1000;
         }
         .riso-det-bubble::before {
-          content:''; position:absolute; bottom:-20px; left:33px;
-          border:8px solid transparent; border-top-color:#fffde7; z-index:1;
+          content:''; position:absolute; bottom:-18px; left:30px;
+          border:7px solid transparent; border-top-color:#fffde7; z-index:1;
         }
         .riso-det-bubble-open::after { border-top-color: #b84000; }
         .riso-det-bubble-open::before { border-top-color: #e65100; }
@@ -83,14 +83,14 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
           }}>成大山協</div>
         </Link>
 
-        {/* NCKU MTN. */}
+        {/* Info */}
         <div style={{
           background: '#0066cc', color: '#fffde7',
           padding: '0.25rem 0.8rem', transform: 'rotate(1.5deg)',
           fontSize: '0.7rem', letterSpacing: '0.2em',
           fontFamily: "'Bebas Neue', sans-serif",
           pointerEvents: 'auto',
-        }}>NCKU MTN.</div>
+        }}>Info</div>
 
         {/* GPX / KML track buttons */}
         {gpxPaths.map((p, i) => {
@@ -103,13 +103,12 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
                 border: '2px solid #e65100',
                 background: isActive ? '#e65100' : 'transparent',
                 color: isActive ? '#fffde7' : '#e65100',
-                padding: '0.3rem 0.8rem',
+                padding: '0.32rem 0.84rem',
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.85rem', letterSpacing: '0.12em',
+                fontSize: '0.89rem', letterSpacing: '0.12em',
                 cursor: 'pointer',
                 transform: `rotate(${GPX_ROTS[i % GPX_ROTS.length]}deg)`,
                 pointerEvents: 'auto',
-                maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
               {name}
             </button>
@@ -124,9 +123,9 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
             style={{
               border: '2px solid #e65100',
               background: 'transparent', color: '#e65100',
-              padding: '0.3rem 0.8rem',
+              padding: '0.32rem 0.84rem',
               fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: '0.85rem', letterSpacing: '0.12em',
+              fontSize: '0.89rem', letterSpacing: '0.12em',
               textDecoration: 'none',
               display: 'inline-block',
               transform: `rotate(${i % 2 === 0 ? -0.8 : 0.8}deg)`,
@@ -146,13 +145,12 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
                 border: '2px solid #3a7d44',
                 background: isSelected ? '#3a7d44' : 'transparent',
                 color: isSelected ? '#fffde7' : '#3a7d44',
-                padding: '0.3rem 0.8rem',
+                padding: '0.32rem 0.84rem',
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.85rem', letterSpacing: '0.12em',
+                fontSize: '0.89rem', letterSpacing: '0.12em',
                 cursor: 'pointer',
                 transform: `rotate(${REC_ROTS[i % REC_ROTS.length]}deg)`,
                 pointerEvents: 'auto',
-                maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
               {r.filename}
             </button>
@@ -164,20 +162,22 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row', position: 'relative' }}>
 
         {/* Map area */}
-        <div style={{ flex: 1, minWidth: 0, zIndex: 1 }}>
+        <div style={{ flex: 1, maxWidth: '54%', minWidth: 0, zIndex: 1, paddingBottom: '3%' }}>
           <RisoLeafletMap activeGpx={activeGpx} />
         </div>
 
         {/* Right panel: one orange quad + one big image (overflows into map) */}
         <div style={{
-          width: '36%', flexShrink: 0,
+          width: '36%', flexShrink: 0, marginLeft: 'auto',
           position: 'relative',
           overflow: 'visible',
           zIndex: 5,
         }}>
-          {/* Single orange quadrilateral — transparent, tilted */}
+          {/* Orange quad — smaller, upper-right, offset from image for layering */}
           <div style={{
-            position: 'absolute', inset: '-4% -8%',
+            position: 'absolute',
+            width: '80%', height: '52%',
+            top: '-6%', right: '-6%', left: 'auto', bottom: 'auto',
             background: 'rgba(230,81,0,0.35)',
             transform: 'rotate(-4deg)',
             zIndex: 0,
@@ -192,8 +192,8 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
               alt="隊伍資訊"
               style={{
                 position: 'absolute',
-                top: '8%',
-                right: 8,
+                top: '-3%',
+                right: -30,
                 width: '128%',
                 transform: 'rotate(-3deg)',
                 zIndex: 10,
@@ -240,7 +240,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
           <div
             onClick={() => setShowRecord(p => !p)}
             style={{
-              position: 'fixed', bottom: 28, left: 20, zIndex: 1100,
+              position: 'fixed', bottom: 25, left: 20, zIndex: 1100,
               pointerEvents: 'auto', cursor: 'pointer',
               animation: 'bubbleFloat 3.5s ease-in-out infinite',
             }}
@@ -250,12 +250,12 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
               style={{
                 background: showRecord ? '#e65100' : '#fffde7',
                 border: `3px solid ${showRecord ? '#b84000' : '#1a1000'}`,
-                padding: '15px 28px',
+                padding: '14px 25px',
                 position: 'relative',
                 fontFamily: "'Noto Sans TC', sans-serif",
-                fontSize: '1.43rem', lineHeight: 1,
+                fontSize: '1.29rem', lineHeight: 1,
                 color: showRecord ? '#fffde7' : '#1a1000',
-                boxShadow: `6px 6px 0 ${showRecord ? '#b84000' : '#1a1000'}`,
+                boxShadow: `5px 5px 0 ${showRecord ? '#b84000' : '#1a1000'}`,
                 transition: 'background 0.2s, color 0.2s, border-color 0.2s',
                 whiteSpace: 'nowrap',
               }}>
