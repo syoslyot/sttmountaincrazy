@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 
 interface ElevPoint { dist: number; ele: number }
+interface Waypoint { lat: number; lng: number; name: string }
 
 interface Props {
   activeGpx: string | null
@@ -19,7 +20,7 @@ function haversineDist(a: [number, number], b: [number, number]): number {
   return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s))
 }
 
-function parseGpx(text: string): { latlngs: [number, number][]; elevs: ElevPoint[] } {
+function parseGpx(text: string): { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] } {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const pts = Array.from(doc.querySelectorAll('trkpt'))
   const latlngs: [number, number][] = pts.map(p => [
@@ -32,10 +33,15 @@ function parseGpx(text: string): { latlngs: [number, number][]; elevs: ElevPoint
     const ele = parseFloat(p.querySelector('ele')?.textContent ?? 'NaN')
     return { dist: cumDist, ele: isNaN(ele) ? 0 : ele }
   })
-  return { latlngs, elevs }
+  const waypoints: Waypoint[] = Array.from(doc.querySelectorAll('wpt')).map(w => ({
+    lat: parseFloat(w.getAttribute('lat') ?? '0'),
+    lng: parseFloat(w.getAttribute('lon') ?? '0'),
+    name: w.querySelector('name')?.textContent ?? '',
+  }))
+  return { latlngs, elevs, waypoints }
 }
 
-function parseKml(text: string): { latlngs: [number, number][]; elevs: ElevPoint[] } {
+function parseKml(text: string): { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] } {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const coordNodes = Array.from(doc.querySelectorAll('coordinates'))
   const latlngs: [number, number][] = []
@@ -55,7 +61,7 @@ function parseKml(text: string): { latlngs: [number, number][]; elevs: ElevPoint
     if (i > 0) cumDist += haversineDist(latlngs[i - 1], ll)
     return { dist: cumDist, ele: eleRaw[i] ?? 0 }
   })
-  return { latlngs, elevs }
+  return { latlngs, elevs, waypoints: [] }
 }
 
 function RisoElevationChart({ points }: { points: ElevPoint[] }) {
@@ -147,7 +153,7 @@ async function loadTrackOnMap(
     if (!res.ok) return
     const text = await res.text()
 
-    const { latlngs, elevs } = isKml ? parseKml(text) : parseGpx(text)
+    const { latlngs, elevs, waypoints } = isKml ? parseKml(text) : parseGpx(text)
     if (latlngs.length === 0) return
 
     const line = L.polyline(latlngs, { color: '#e65100', weight: 3.5, opacity: 0.9 })
@@ -163,6 +169,13 @@ async function loadTrackOnMap(
       const end = L.circleMarker(latlngs.at(-1)!, { radius: 6, color: '#fff', fillColor: '#1a1000', fillOpacity: 1, weight: 2 })
       end.addTo(map)
       trackLayersRef.current.push(end)
+    }
+
+    for (const wpt of waypoints) {
+      const marker = L.circleMarker([wpt.lat, wpt.lng], { radius: 5, color: '#0066cc', fillColor: '#fffde7', fillOpacity: 1, weight: 2 })
+      if (wpt.name) marker.bindPopup(wpt.name)
+      marker.addTo(map)
+      trackLayersRef.current.push(marker)
     }
 
     map.fitBounds(latlngs as any, { padding: [24, 24] })
