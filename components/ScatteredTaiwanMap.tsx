@@ -486,11 +486,15 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       let gi = 0
       const result: CountyPiece[] = []
       nameToFeatures.forEach((features, name) => {
-        const f = features[0]
         const i = gi++
-        const bounds = pathGen.bounds(f)
-        const [x0, y0] = bounds[0]; const [x1, y1] = bounds[1]
-        const natW = x1 - x0; const natH = y1 - y0
+        let minBX = Infinity, minBY = Infinity, maxBX = -Infinity, maxBY = -Infinity
+        features.forEach(f => {
+          const b = pathGen.bounds(f)
+          if (b[0][0] < minBX) minBX = b[0][0]; if (b[0][1] < minBY) minBY = b[0][1]
+          if (b[1][0] > maxBX) maxBX = b[1][0]; if (b[1][1] > maxBY) maxBY = b[1][1]
+        })
+        const x0 = minBX, y0 = minBY
+        const natW = maxBX - minBX, natH = maxBY - minBY
         const w = natW * globalScale, h = natH * globalScale
 
         let px = 2 + Math.random() * xRange
@@ -506,7 +510,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
 
         result.push({
           name,
-          pathD: pathGen(f) ?? '',
+          pathD: features.map(f => pathGen(f) ?? '').join(' '),
           viewBox: `${x0} ${y0} ${natW} ${natH}`,
           displayW: w,
           displayH: h,
