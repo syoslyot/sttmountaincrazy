@@ -124,13 +124,13 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
   const [pieces, setPieces]               = useState<CountyPiece[]>([])
   const [hovered, setHovered]             = useState<string | null>(null)
   const [overrides, setOverrides]         = useState<Map<number, Override>>(new Map())
-  const [snapCandidate, setSnapCandidate] = useState<{ name: string; idx: number } | null>(null)
+  const [snapCandidate, setSnapCandidate] = useState<{ name: string; idx: number; snapperIdx: number } | null>(null)
   const [ejectedIdx, setEjectedIdx]       = useState<number | null>(null)
 
   const piecesRef        = useRef<CountyPiece[]>([])
   const overridesRef     = useRef<Map<number, Override>>(new Map())
   const adjacencyRef     = useRef<Map<string, Set<string>>>(new Map())
-  const snapRef          = useRef<{ name: string; idx: number } | null>(null)
+  const snapRef          = useRef<{ name: string; idx: number; snapperIdx: number } | null>(null)
   const selectedRef      = useRef<string[]>(selected)
   const onSelectRef      = useRef<(c: string[]) => void>(onSelect)
   const globalScaleRef   = useRef<number>(1)
@@ -221,7 +221,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       if (!d) return
       const dx = (e.clientX - d.startX) / window.innerWidth * 100
       const dy = (e.clientY - d.startY) / window.innerHeight * 100
-      if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) d.moved = true
+      if (Math.abs(e.clientX - d.startX) > 5 || Math.abs(e.clientY - d.startY) > 5) d.moved = true
       const newX = d.origX + dx
       const newY = d.origY + dy
       lastMoveXYRef.current = { idx: d.idx, x: newX, y: newY }
@@ -239,21 +239,54 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         setOverrides(prev => new Map(prev).set(d.idx, { ...prev.get(d.idx), x: newX, y: newY }))
       }
 
-      const adj = adjacencyRef.current.get(d.name)
       const sel = selectedRef.current
-      let found: { name: string; idx: number } | null = null
-      if (adj && d.moved) {
-        for (let j = 0; j < piecesRef.current.length; j++) {
-          const piece = piecesRef.current[j]
-          if (piece.name === d.name || !adj.has(piece.name)) continue
-          if (d.isGroupDrag && sel.includes(piece.name)) continue
-          if (!d.isGroupDrag && sel.length > 0 && !sel.includes(piece.name)) continue
-          const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
-          const snapPx = Math.hypot(
-            (newX - pPos.x) / 100 * window.innerWidth,
-            (newY - pPos.y) / 100 * window.innerHeight,
-          )
-          if (snapPx < 150) { found = { name: piece.name, idx: j }; break }
+      const snapMoved = Math.abs(e.clientX - d.startX) > 1 || Math.abs(e.clientY - d.startY) > 1
+      let found: { name: string; idx: number; snapperIdx: number } | null = null
+
+      if (snapMoved) {
+        if (d.isGroupDrag) {
+          for (let j = 0; j < piecesRef.current.length; j++) {
+            const piece = piecesRef.current[j]
+            if (sel.includes(piece.name)) continue
+            const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
+            let bestSnapperIdx = -1, bestDist = Infinity
+            for (let k = 0; k < piecesRef.current.length; k++) {
+              const gm = piecesRef.current[k]
+              if (!sel.includes(gm.name)) continue
+              if (!adjacencyRef.current.get(gm.name)?.has(piece.name)) continue
+              let gmX: number, gmY: number
+              if (k === d.idx) { gmX = newX; gmY = newY }
+              else {
+                const off = d.groupOffsets.get(k)
+                if (off) { gmX = newX + off.dx; gmY = newY + off.dy }
+                else { const gPos = overridesRef.current.get(k) ?? gm; gmX = gPos.x; gmY = gPos.y }
+              }
+              const dist = Math.hypot(
+                (gmX - pPos.x) / 100 * window.innerWidth,
+                (gmY - pPos.y) / 100 * window.innerHeight,
+              )
+              if (dist < bestDist) { bestDist = dist; bestSnapperIdx = k }
+            }
+            if (bestSnapperIdx >= 0 && bestDist < 150) {
+              found = { name: piece.name, idx: j, snapperIdx: bestSnapperIdx }
+              break
+            }
+          }
+        } else {
+          const adj = adjacencyRef.current.get(d.name)
+          if (adj) {
+            for (let j = 0; j < piecesRef.current.length; j++) {
+              const piece = piecesRef.current[j]
+              if (piece.name === d.name || !adj.has(piece.name)) continue
+              if (sel.length > 0 && !sel.includes(piece.name)) continue
+              const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
+              const dist = Math.hypot(
+                (newX - pPos.x) / 100 * window.innerWidth,
+                (newY - pPos.y) / 100 * window.innerHeight,
+              )
+              if (dist < 150) { found = { name: piece.name, idx: j, snapperIdx: d.idx }; break }
+            }
+          }
         }
       }
       if (found?.name !== snapRef.current?.name) {
@@ -271,7 +304,41 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       const snap = snapRef.current
       const elapsed = Date.now() - mousedownTimeRef.current
 
-      if (!d.moved && elapsed < 1000) {
+      if (snap) {
+        const targetPiece   = piecesRef.current[snap.idx]
+        const targetPos     = overridesRef.current.get(snap.idx) ?? { x: targetPiece.x, y: targetPiece.y }
+        const [tx0, ty0]    = targetPiece.viewBox.split(' ').map(Number)
+        const snapperIdx    = snap.snapperIdx
+        const snapperPiece  = piecesRef.current[snapperIdx]
+        const [sx0, sy0]    = snapperPiece.viewBox.split(' ').map(Number)
+        const gs            = globalScaleRef.current
+        const snapperX      = targetPos.x + (sx0 - tx0) * gs / window.innerWidth  * 100
+        const snapperY      = targetPos.y + (sy0 - ty0) * gs / window.innerHeight * 100
+
+        let snapX: number, snapY: number
+        if (snapperIdx === d.idx) {
+          snapX = snapperX; snapY = snapperY
+        } else {
+          const snapperOff = d.groupOffsets.get(snapperIdx)!
+          snapX = snapperX - snapperOff.dx
+          snapY = snapperY - snapperOff.dy
+        }
+
+        const nextOv = new Map(overridesRef.current)
+        nextOv.set(d.idx,    { x: snapX,        y: snapY,        rotation: 0 })
+        nextOv.set(snap.idx, { x: targetPos.x,  y: targetPos.y, rotation: 0 })
+        if (d.isGroupDrag) {
+          d.groupOffsets.forEach((off, j) => {
+            nextOv.set(j, { x: snapX + off.dx, y: snapY + off.dy, rotation: 0 })
+          })
+        }
+        overridesRef.current = nextOv
+
+        const rawSel = [...new Set([...sel, d.name, snap.name])]
+        const newSel = filterConnected(rawSel, adjacencyRef.current)
+        onSelectRef.current(newSel)
+        recalcPush(newSel)
+      } else if (!d.moved && elapsed < 1000) {
         if (sel.includes(d.name)) {
           const newSel = keepConnected(sel, d.name, adjacencyRef.current)
           onSelectRef.current(newSel)
@@ -315,30 +382,6 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
           recalcPush([d.name])
         }
         // else: sel non-empty, clicked unselected → no-op
-      } else if (d.moved && snap) {
-        const targetPiece  = piecesRef.current[snap.idx]
-        const draggedPiece = piecesRef.current[d.idx]
-        const targetPos = overridesRef.current.get(snap.idx) ?? { x: targetPiece.x, y: targetPiece.y }
-        const [tx0, ty0] = targetPiece.viewBox.split(' ').map(Number)
-        const [dx0, dy0] = draggedPiece.viewBox.split(' ').map(Number)
-        const gs = globalScaleRef.current
-        const snapX = targetPos.x + (dx0 - tx0) * gs / window.innerWidth  * 100
-        const snapY = targetPos.y + (dy0 - ty0) * gs / window.innerHeight * 100
-
-        const nextOv = new Map(overridesRef.current)
-        nextOv.set(d.idx,    { x: snapX,        y: snapY,        rotation: 0 })
-        nextOv.set(snap.idx, { x: targetPos.x, y: targetPos.y, rotation: 0 })
-        if (d.isGroupDrag) {
-          d.groupOffsets.forEach((off, j) => {
-            nextOv.set(j, { x: snapX + off.dx, y: snapY + off.dy, rotation: 0 })
-          })
-        }
-        overridesRef.current = nextOv
-
-        const rawSel = [...new Set([...sel, d.name, snap.name])]
-        const newSel = filterConnected(rawSel, adjacencyRef.current)
-        onSelectRef.current(newSel)
-        recalcPush(newSel)
       } else if (d.moved) {
         if (d.isGroupDrag) {
           recalcPush(sel)
