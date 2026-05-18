@@ -30,7 +30,7 @@ function genPaths() {
   const r2 = `M ${r(0.2, 0.8) * vw} ${vh + 70} C ${r(0.05, 0.95) * vw} ${r(0.4, 0.8) * vh} ${r(0.05, 0.95) * vw} ${r(0.1, 0.4) * vh} ${r(0.1, 0.9) * vw} -70`
 
   // Rocket 3: left↔right S-curve
-  const fromLeft = Math.random() > 0.5
+  const fromLeft = true
   const sx = fromLeft ? -70 : vw + 70
   const ex = fromLeft ? vw + 70 : -70
   const sy = r(0.15, 0.85) * vh
@@ -75,7 +75,7 @@ export function RocketSystem() {
   useEffect(() => {
     // Rocket 1: horizontal straight line, random direction, random speed
     const fireR1 = () => {
-      const fromLeft = Math.random() > 0.5
+      const fromLeft = true
       const top = 10 + Math.random() * 60
       const y = top / 100 * window.innerHeight
       const vw = window.innerWidth

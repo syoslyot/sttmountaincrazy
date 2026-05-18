@@ -28,12 +28,16 @@ export default async function ExpeditionPage({ params }: Props) {
     'SELECT filename, content FROM records WHERE expedition_id = ?'
   ).all(id) as { filename: string; content: string }[]
 
+  const mapFiles = db.prepare(
+    'SELECT file_path FROM map_files WHERE expedition_id = ?'
+  ).all(id) as { file_path: string }[]
+
   const gpxPaths = ((exp.gpx_paths as string | null) ?? '').split(',').filter(Boolean)
 
   return (
     <>
       <Navbar />
-      <ExpeditionDetailClient exp={exp} gpxPaths={gpxPaths} records={records} />
+      <ExpeditionDetailClient exp={exp} gpxPaths={gpxPaths} mapFiles={mapFiles} records={records} />
     </>
   )
 }
