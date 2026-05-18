@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useTheme, THEME_NAMES } from './ThemeProvider'
 
 export function ThemeBadge() {
@@ -10,10 +11,10 @@ export function ThemeBadge() {
         <span className="theme-badge-dot" />
         {THEME_NAMES[theme]}
       </div>
-      <div className="theme-badge" style={{ position: 'static', cursor: 'default' }}>
-        <span className="theme-badge-dot" style={{ background: '#0066cc' }} />
-        登山夯暴
-      </div>
+      <Link href="/cool" className="theme-badge" style={{ position: 'static', textDecoration: 'none' }}>
+        <span className="theme-badge-dot" style={{ background: '#ff006e' }} />
+        登山夯爆
+      </Link>
     </div>
   )
 }
