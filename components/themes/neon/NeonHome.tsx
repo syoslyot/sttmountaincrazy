@@ -9,7 +9,7 @@ const RainCanvas = dynamic(() => import('./RainCanvas').then(m => m.RainCanvas),
 const ScatteredTaiwanMap = dynamic(() => import('@/components/ScatteredTaiwanMap').then(m => m.ScatteredTaiwanMap), { ssr: false })
 
 export function NeonHome() {
-  const [county, setCounty] = useState<string | null>(null)
+  const [selectedCounties, setSelectedCounties] = useState<string[]>([])
   const [tab, setTab] = useState<'map' | 'date' | 'search'>('map')
   const [query, setQuery] = useState('')
   const [months, setMonths] = useState<number | undefined>()
@@ -17,7 +17,8 @@ export function NeonHome() {
 
   const filter = tab === 'search' && query ? { mode: 'search' as const, query }
     : tab === 'date' && months ? { mode: 'date' as const, months }
-    : county ? { mode: 'county' as const, county }
+    : selectedCounties.length === 1 ? { mode: 'county' as const, county: selectedCounties[0] }
+    : selectedCounties.length > 1 ? { mode: 'counties' as const, counties: selectedCounties }
     : { mode: 'recent' as const }
 
   const { exps, total, loading, loadMore } = useExpeditions(filter)
@@ -43,8 +44,8 @@ export function NeonHome() {
 
       {/* Counties fall behind rain — rendered before RainCanvas so rain paints on top */}
       <ScatteredTaiwanMap
-        selected={county}
-        onSelect={tab === 'map' ? c => setCounty(c) : () => {}}
+        selected={selectedCounties}
+        onSelect={tab === 'map' ? setSelectedCounties : () => {}}
         variant="fall"
         fillNormal="rgba(0,212,255,0.10)"
         fillSelected="rgba(0,212,255,0.50)"
@@ -60,8 +61,13 @@ export function NeonHome() {
       <div style={{ position: 'fixed', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px)', pointerEvents: 'none', zIndex: 2, animation: 'scanline 4s ease-in-out infinite' }} />
 
       {/* HUD corners */}
-      {[['top:0;left:0','border-top:2px solid #00d4ff;border-left:2px solid #00d4ff'],['top:0;right:0','border-top:2px solid #ff00a8;border-right:2px solid #ff00a8'],['bottom:0;left:0','border-bottom:2px solid #ff00a8;border-left:2px solid #ff00a8'],['bottom:0;right:0','border-bottom:2px solid #00d4ff;border-right:2px solid #00d4ff']].map(([pos, bdr], i) => (
-        <div key={i} style={{ position: 'fixed', width: 32, height: 32, ...Object.fromEntries(pos.split(';').map(s => { const [k,v]=s.split(':'); return [k,v] })), ...Object.fromEntries(bdr.split(';').map(s => { const [k,...v]=s.split(':'); return [k,v.join(':')] })), zIndex: 999, pointerEvents: 'none' }} />
+      {([
+        { style: { top: 0, left: 0, borderTop: '2px solid #00d4ff', borderLeft: '2px solid #00d4ff' } },
+        { style: { top: 0, right: 0, borderTop: '2px solid #ff00a8', borderRight: '2px solid #ff00a8' } },
+        { style: { bottom: 0, left: 0, borderBottom: '2px solid #ff00a8', borderLeft: '2px solid #ff00a8' } },
+        { style: { bottom: 0, right: 0, borderBottom: '2px solid #00d4ff', borderRight: '2px solid #00d4ff' } },
+      ] as const).map(({ style }, i) => (
+        <div key={i} style={{ position: 'fixed', width: 32, height: 32, zIndex: 999, pointerEvents: 'none', ...style }} />
       ))}
 
       {/* Status bar */}
@@ -109,10 +115,17 @@ export function NeonHome() {
                 縣市形狀正從上方落下
                 <br />點選形狀篩選出隊紀錄
               </div>
-              {county ? (
-                <div style={{ border: '1px solid #ff00a8', padding: '0.5rem 0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: glow('#ff00a8') }}>
-                  <span style={{ color: '#ff00a8', fontSize: '0.9rem', letterSpacing: '0.1em', textShadow: glow('#ff00a8') }}>{county}</span>
-                  <button onClick={() => setCounty(null)} style={{ background: 'none', border: 'none', color: '#ff00a8', cursor: 'pointer', fontSize: '1rem' }}>×</button>
+              {selectedCounties.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {selectedCounties.map(c => (
+                    <div key={c} style={{ border: '1px solid #ff00a8', padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: glow('#ff00a8') }}>
+                      <span style={{ color: '#ff00a8', fontSize: '0.85rem', letterSpacing: '0.1em', textShadow: glow('#ff00a8') }}>{c}</span>
+                      <button onClick={() => setSelectedCounties(prev => prev.filter(x => x !== c))} style={{ background: 'none', border: 'none', color: '#ff00a8', cursor: 'pointer', fontSize: '1rem' }}>×</button>
+                    </div>
+                  ))}
+                  {selectedCounties.length > 1 && (
+                    <button onClick={() => setSelectedCounties([])} style={{ background: 'none', border: '1px dashed #ff00a844', color: '#ff00a866', cursor: 'pointer', fontSize: '0.6rem', letterSpacing: '0.15em', padding: '4px' }}>CLEAR ALL</button>
+                  )}
                 </div>
               ) : (
                 <div style={{ border: '1px dashed #00d4ff22', padding: '0.5rem 0.75rem', fontSize: '0.65rem', color: '#00d4ff33', letterSpacing: '0.08em' }}>

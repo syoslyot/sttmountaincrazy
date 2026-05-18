@@ -17,12 +17,14 @@ export function GET(req: NextRequest) {
   const db = getDb()
   const { searchParams } = req.nextUrl
 
-  const page  = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
-  const q     = searchParams.get('q')?.trim() ?? ''
-  const county = searchParams.get('county')?.trim() ?? ''
-  const start = searchParams.get('start')?.trim() ?? ''
-  const end   = searchParams.get('end')?.trim() ?? ''
-  const offset = (page - 1) * PAGE_SIZE
+  const page    = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
+  const q       = searchParams.get('q')?.trim() ?? ''
+  const county  = searchParams.get('county')?.trim() ?? ''
+  const countiesRaw = searchParams.get('counties')?.trim() ?? ''
+  const counties = countiesRaw ? countiesRaw.split(',').filter(Boolean) : []
+  const start   = searchParams.get('start')?.trim() ?? ''
+  const end     = searchParams.get('end')?.trim() ?? ''
+  const offset  = (page - 1) * PAGE_SIZE
 
   let where = 'WHERE 1=1'
   const params: unknown[] = []
@@ -34,6 +36,11 @@ export function GET(req: NextRequest) {
   if (county) {
     where += ' AND e.id IN (SELECT expedition_id FROM expedition_counties WHERE county = ?)'
     params.push(county)
+  }
+  if (counties.length > 0) {
+    const placeholders = counties.map(() => '?').join(',')
+    where += ` AND e.id IN (SELECT expedition_id FROM expedition_counties WHERE county IN (${placeholders}))`
+    params.push(...counties)
   }
   if (start) { where += ' AND e.date_start >= ?'; params.push(start) }
   if (end)   { where += ' AND e.date_start <= ?'; params.push(end) }

@@ -12,11 +12,12 @@ export interface Expedition {
   leader: string | null
 }
 
-export type FilterMode = 'recent' | 'county' | 'date' | 'search'
+export type FilterMode = 'recent' | 'county' | 'counties' | 'date' | 'search'
 
 export interface ExpeditionFilter {
   mode: FilterMode
   county?: string
+  counties?: string[]
   query?: string
   months?: number
 }
@@ -26,6 +27,7 @@ const PAGE_SIZE = 20
 function buildParams(filter: ExpeditionFilter, page: number): URLSearchParams {
   const p = new URLSearchParams({ page: String(page) })
   if (filter.mode === 'county' && filter.county) p.set('county', filter.county)
+  if (filter.mode === 'counties' && filter.counties?.length) p.set('counties', filter.counties.join(','))
   if (filter.mode === 'search' && filter.query)  p.set('q', filter.query)
   if (filter.mode === 'date' && filter.months) {
     const d = new Date()
@@ -64,7 +66,8 @@ export function useExpeditions(filter: ExpeditionFilter) {
     setExps([])
     // eslint-disable-next-line react-hooks/exhaustive-deps
     load(true)
-  }, [filter.mode, filter.county, filter.query, filter.months])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter.mode, filter.county, filter.counties?.join(','), filter.query, filter.months])
 
   const loadMore = useCallback(() => {
     if (!loading && exps.length < total) load(false)
