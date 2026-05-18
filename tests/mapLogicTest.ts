@@ -122,6 +122,15 @@ test('click unselected D when sel=[B] → [D] (replaces, not adds)',
   simulateOnUp({ sel:['B'], d:{name:'D',moved:false}, snap:null, adj:chain, elapsed:100 }), ['D'])
 test('snap empty sel: drag C snaps D (chain) → [C,D]',
   simulateOnUp({ sel:[], d:{name:'C',moved:true}, snap:{name:'D'}, adj:chain, elapsed:300 }), ['C','D'])
+// 新規則：sel=[] 時 drag+snap 成立組合，拿取的縣市為 primary
+test('【新規則】empty-sel snap: dragged C is primary, not snap target D',
+  simulateOnUp({ sel:[], d:{name:'C',moved:true}, snap:{name:'D'}, adj:chain, elapsed:300 }), ['C','D'])
+test('【新規則】empty-sel snap reversed: dragged D is primary → [D,C]',
+  simulateOnUp({ sel:[], d:{name:'D',moved:true}, snap:{name:'C'}, adj:chain, elapsed:300 }), ['D','C'])
+test('【新規則】empty-sel snap star: dragged A snaps B → [A,B]',
+  simulateOnUp({ sel:[], d:{name:'A',moved:true}, snap:{name:'B'}, adj:star, elapsed:300 }), ['A','B'])
+test('【新規則】empty-sel drag away (no snap) → [] (no combination without snap)',
+  simulateOnUp({ sel:[], d:{name:'C',moved:true}, snap:null, adj:chain, elapsed:300 }), [])
 test('drag primary A away (no snap) → [B,C,D]',
   simulateOnUp({ sel:['A','B','C','D'], d:{name:'A',moved:true}, snap:null, adj:chain, elapsed:300 }), ['B','C','D'])
 test('drag non-primary B away → [A] (C,D disconnected)',
