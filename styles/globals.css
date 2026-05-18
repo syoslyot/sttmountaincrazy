@@ -196,11 +196,11 @@ html, body {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.45rem 1.05rem;
+  padding: 0.36rem 0.84rem;
   background: var(--bg);
   border: var(--border);
   border-radius: 99px;
-  font-size: 1.08rem;
+  font-size: 0.864rem;
   color: var(--fg-muted);
   z-index: 200;
   box-shadow: var(--card-shadow);
@@ -210,8 +210,8 @@ html, body {
 }
 .theme-badge:hover { opacity: 0.75; }
 .theme-badge-dot {
-  width: 9px;
-  height: 9px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--accent);
 }

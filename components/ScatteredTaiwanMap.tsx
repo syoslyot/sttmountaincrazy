@@ -30,6 +30,8 @@ interface CountyPiece {
   fallDelay: number
 }
 
+interface Override { x: number; y: number; rotation?: number }
+
 interface Props {
   selected: string[]
   onSelect: (counties: string[]) => void
@@ -45,15 +47,17 @@ interface Props {
 export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fillSelected, stroke, glowColor, maxPx = 140, showLabels = false }: Props) {
   const [pieces, setPieces]               = useState<CountyPiece[]>([])
   const [hovered, setHovered]             = useState<string | null>(null)
-  const [overrides, setOverrides]         = useState<Map<number, { x: number; y: number }>>(new Map())
-  const [snapCandidate, setSnapCandidate] = useState<string | null>(null)
+  const [overrides, setOverrides]         = useState<Map<number, Override>>(new Map())
+  const [snapCandidate, setSnapCandidate] = useState<{ name: string; idx: number } | null>(null)
 
-  const piecesRef    = useRef<CountyPiece[]>([])
-  const overridesRef = useRef<Map<number, { x: number; y: number }>>(new Map())
-  const adjacencyRef = useRef<Map<string, Set<string>>>(new Map())
-  const snapRef      = useRef<string | null>(null)
-  const selectedRef  = useRef<string[]>(selected)
-  const onSelectRef  = useRef<(c: string[]) => void>(onSelect)
+  const piecesRef       = useRef<CountyPiece[]>([])
+  const overridesRef    = useRef<Map<number, Override>>(new Map())
+  const adjacencyRef    = useRef<Map<string, Set<string>>>(new Map())
+  const snapRef         = useRef<{ name: string; idx: number } | null>(null)
+  const selectedRef     = useRef<string[]>(selected)
+  const onSelectRef     = useRef<(c: string[]) => void>(onSelect)
+  const globalScaleRef  = useRef<number>(1)
+  const mousedownTimeRef = useRef<number>(0)
 
   const dragRef = useRef<{
     idx: number; name: string
@@ -79,24 +83,23 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       if (Math.abs(dx) > 0.3 || Math.abs(dy) > 0.3) d.moved = true
       const newX = d.origX + dx
       const newY = d.origY + dy
-      setOverrides(prev => new Map(prev).set(d.idx, { x: newX, y: newY }))
+      setOverrides(prev => new Map(prev).set(d.idx, { ...prev.get(d.idx), x: newX, y: newY }))
 
       const adj = adjacencyRef.current.get(d.name)
-      let found: string | null = null
+      let found: { name: string; idx: number } | null = null
       if (adj && d.moved) {
         for (let j = 0; j < piecesRef.current.length; j++) {
           const piece = piecesRef.current[j]
           if (piece.name === d.name || !adj.has(piece.name)) continue
           const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
-          // Convert % to pixels before computing distance for accuracy
           const snapPx = Math.hypot(
             (newX - pPos.x) / 100 * window.innerWidth,
             (newY - pPos.y) / 100 * window.innerHeight,
           )
-          if (snapPx < 150) { found = piece.name; break }
+          if (snapPx < 150) { found = { name: piece.name, idx: j }; break }
         }
       }
-      if (found !== snapRef.current) {
+      if (found?.name !== snapRef.current?.name) {
         snapRef.current = found
         setSnapCandidate(found)
       }
@@ -108,12 +111,37 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       dragRef.current = null
 
       const sel = selectedRef.current
+      const snap = snapRef.current
+
       if (!d.moved) {
-        const isOnly = sel.length === 1 && sel[0] === d.name
-        onSelectRef.current(isOnly ? [] : [d.name])
-      } else if (snapRef.current) {
-        onSelectRef.current([...new Set([...sel, d.name, snapRef.current])])
+        // Only treat as click if mouse was down for < 300ms (not a hold)
+        if (Date.now() - mousedownTimeRef.current < 300) {
+          const isOnly = sel.length === 1 && sel[0] === d.name
+          onSelectRef.current(isOnly ? [] : [d.name])
+        }
+      } else if (snap) {
+        // Align dragged piece to target using projection coordinates
+        const targetPiece = piecesRef.current[snap.idx]
+        const draggedPiece = piecesRef.current[d.idx]
+        const targetPos = overridesRef.current.get(snap.idx) ?? { x: targetPiece.x, y: targetPiece.y }
+
+        const [tx0, ty0] = targetPiece.viewBox.split(' ').map(Number)
+        const [dx0, dy0] = draggedPiece.viewBox.split(' ').map(Number)
+        const gs = globalScaleRef.current
+
+        const newX = targetPos.x + (dx0 - tx0) * gs / window.innerWidth  * 100
+        const newY = targetPos.y + (dy0 - ty0) * gs / window.innerHeight * 100
+
+        // Update ref immediately to keep overridesRef current for next snap calculation
+        const nextOverrides = new Map(overridesRef.current)
+        nextOverrides.set(d.idx,    { x: newX,         y: newY,         rotation: 0 })
+        nextOverrides.set(snap.idx, { x: targetPos.x,  y: targetPos.y,  rotation: 0 })
+        overridesRef.current = nextOverrides
+        setOverrides(nextOverrides)
+
+        onSelectRef.current([...new Set([...sel, d.name, snap.name])])
       }
+
       snapRef.current = null
       setSnapCandidate(null)
     }
@@ -147,6 +175,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       })
       const maxNatDim = Math.max(...allMaxDims)
       const globalScale = maxPx / maxNatDim
+      globalScaleRef.current = globalScale
 
       // Group features by normalized county name
       const nameToFeatures = new Map<string, any[]>()
@@ -207,7 +236,6 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
             viewBox: `${x0} ${y0} ${natW} ${natH}`,
             displayW: natW * globalScale,
             displayH: natH * globalScale,
-            // Positions fully random so layout changes on each load
             x: Math.max(1, Math.min(94, 2 + Math.random() * xRange)),
             y: Math.max(1, Math.min(89, yBase + Math.random() * yRange)),
             rotation: (Math.random() - 0.5) * rotRange,
@@ -236,9 +264,10 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       {pieces.map((p, i) => {
         const isSel = selected.includes(p.name)
         const isHov = hovered === p.name
-        const isSnap = snapCandidate === p.name
+        const isSnap = snapCandidate?.name === p.name
         const isDragging = dragRef.current?.idx === i
         const pos = overrides.get(i) ?? { x: p.x, y: p.y }
+        const rotation = overrides.get(i)?.rotation ?? p.rotation
 
         let shadow: string
         if (glowColor) {
@@ -251,9 +280,9 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
             : isHov ? 'drop-shadow(2px 6px 14px rgba(0,0,0,0.38))' : 'drop-shadow(2px 4px 8px rgba(0,0,0,0.2))'
         }
 
-        // Labels visible only after speech bubble is clicked AND county is selected
+        // Labels hidden until speech bubble is clicked; then all counties show
         const label = (
-          <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', fontSize: 9, whiteSpace: 'nowrap', color: stroke, opacity: showLabels && isSel ? 1 : 0, letterSpacing: '0.05em', pointerEvents: 'none', fontFamily: 'monospace', transition: 'opacity 0.2s' }}>
+          <div style={{ position: 'absolute', bottom: -14, left: '50%', transform: 'translateX(-50%)', fontSize: 9, whiteSpace: 'nowrap', color: stroke, opacity: showLabels ? 1 : 0, letterSpacing: '0.05em', pointerEvents: 'none', fontFamily: 'monospace', transition: 'opacity 0.2s' }}>
             {p.name}
           </div>
         )
@@ -265,16 +294,16 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
               style={{
                 position: 'absolute', left: `${pos.x}%`, top: `${pos.y}%`,
                 width: p.displayW, height: p.displayH,
-                // Selected pieces float high (zIndex 50+) for easy chaining
                 zIndex: p.zIndex + (isDragging ? 60 : isSel ? 50 : isSnap ? 40 : isHov ? 10 : 0),
                 cursor: isDragging ? 'grabbing' : 'grab', pointerEvents: 'all',
-                transform: `rotate(${p.rotation}deg)${scaleXY}`,
+                transform: `rotate(${rotation}deg)${scaleXY}`,
                 filter: shadow,
                 transition: isDragging ? 'none' : 'transform 0.2s ease, filter 0.2s ease',
                 userSelect: 'none',
               }}
               onMouseDown={e => {
                 e.preventDefault()
+                mousedownTimeRef.current = Date.now()
                 const cur = overrides.get(i) ?? { x: p.x, y: p.y }
                 dragRef.current = { idx: i, name: p.name, startX: e.clientX, startY: e.clientY, origX: cur.x, origY: cur.y, moved: false }
               }}
@@ -304,7 +333,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
               onClick={() => onSelectRef.current(isSel ? selectedRef.current.filter(c => c !== p.name) : [...selectedRef.current, p.name])}
               onMouseEnter={() => setHovered(p.name)}
               onMouseLeave={() => setHovered(null)}
-              style={{ position: 'relative', width: p.displayW, height: p.displayH, cursor: 'pointer', pointerEvents: 'all', transform: `rotate(${p.rotation}deg)${innerScale}`, filter: shadow, transition: 'transform 0.2s ease, filter 0.2s ease' }}>
+              style={{ position: 'relative', width: p.displayW, height: p.displayH, cursor: 'pointer', pointerEvents: 'all', transform: `rotate(${rotation}deg)${innerScale}`, filter: shadow, transition: 'transform 0.2s ease, filter 0.2s ease' }}>
               <svg viewBox={p.viewBox} width={p.displayW} height={p.displayH} style={{ display: 'block', overflow: 'visible' }}>
                 <path d={p.pathD} fill={isSel ? fillSelected : fillNormal} stroke={stroke} strokeWidth={isSel ? 1.5 : 0.8} style={{ transition: 'fill 0.15s' }} />
               </svg>

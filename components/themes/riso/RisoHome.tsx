@@ -53,7 +53,7 @@ export function RisoHome() {
       <div style={{ position: 'fixed', inset: 0, backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E\")", pointerEvents: 'none', zIndex: 100, animation: 'risoGrain 6s ease-in-out infinite' }} />
 
       <RocketSystem />
-      <SpeechBubble onReveal={() => setShowLabels(true)} />
+      <SpeechBubble revealed={showLabels} onToggle={() => setShowLabels(p => !p)} />
 
       {/* Color sheets */}
       <div style={{ position: 'fixed', top: '-5%', left: '-8%', width: '55%', height: '65%', background: 'rgba(230,81,0,0.06)', transform: 'rotate(-3deg)', pointerEvents: 'none', zIndex: 0 }} />
