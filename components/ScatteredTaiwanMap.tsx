@@ -143,6 +143,8 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
     startX: number; startY: number
     origX: number; origY: number
     moved: boolean
+    isGroupDrag: boolean
+    groupOffsets: Map<number, { dx: number; dy: number }>
   } | null>(null)
 
   useEffect(() => { piecesRef.current = pieces }, [pieces])
@@ -222,14 +224,29 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       const newX = d.origX + dx
       const newY = d.origY + dy
       lastMoveXYRef.current = { idx: d.idx, x: newX, y: newY }
-      setOverrides(prev => new Map(prev).set(d.idx, { ...prev.get(d.idx), x: newX, y: newY }))
+
+      if (d.isGroupDrag) {
+        setOverrides(prev => {
+          const next = new Map(prev)
+          next.set(d.idx, { ...prev.get(d.idx), x: newX, y: newY })
+          d.groupOffsets.forEach((off, j) => {
+            next.set(j, { ...prev.get(j), x: newX + off.dx, y: newY + off.dy })
+          })
+          return next
+        })
+      } else {
+        setOverrides(prev => new Map(prev).set(d.idx, { ...prev.get(d.idx), x: newX, y: newY }))
+      }
 
       const adj = adjacencyRef.current.get(d.name)
+      const sel = selectedRef.current
       let found: { name: string; idx: number } | null = null
       if (adj && d.moved) {
         for (let j = 0; j < piecesRef.current.length; j++) {
           const piece = piecesRef.current[j]
           if (piece.name === d.name || !adj.has(piece.name)) continue
+          if (sel.includes(piece.name)) continue
+          if (sel.length > 0 && !sel.includes(d.name)) continue
           const pPos = overridesRef.current.get(j) ?? { x: piece.x, y: piece.y }
           const snapPx = Math.hypot(
             (newX - pPos.x) / 100 * window.innerWidth,
@@ -254,36 +271,33 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
       const elapsed = Date.now() - mousedownTimeRef.current
 
       if (!d.moved && elapsed < 1000) {
-        // Quick click (< 1s hold)
-        if (!sel.includes(d.name)) {
-          // Click unselected county → replace entire selection
-          onSelectRef.current([d.name])
-          recalcPush([d.name])
-        } else if (sel[0] === d.name) {
-          // Click the primary county → deselect everything
-          onSelectRef.current([])
-          recalcPush([])
-        } else {
-          // Click non-primary in group → remove + BFS connectivity check
+        if (sel.includes(d.name)) {
           const newSel = keepConnected(sel, d.name, adjacencyRef.current)
           onSelectRef.current(newSel)
           recalcPush(newSel)
+        } else if (sel.length === 0) {
+          onSelectRef.current([d.name])
+          recalcPush([d.name])
         }
+        // else: sel non-empty, clicked unselected → no-op
       } else if (d.moved && snap) {
-        // Snap: position-align both pieces, accumulate selection
         const targetPiece  = piecesRef.current[snap.idx]
         const draggedPiece = piecesRef.current[d.idx]
         const targetPos = overridesRef.current.get(snap.idx) ?? { x: targetPiece.x, y: targetPiece.y }
         const [tx0, ty0] = targetPiece.viewBox.split(' ').map(Number)
         const [dx0, dy0] = draggedPiece.viewBox.split(' ').map(Number)
         const gs = globalScaleRef.current
-        const newX = targetPos.x + (dx0 - tx0) * gs / window.innerWidth  * 100
-        const newY = targetPos.y + (dy0 - ty0) * gs / window.innerHeight * 100
+        const snapX = targetPos.x + (dx0 - tx0) * gs / window.innerWidth  * 100
+        const snapY = targetPos.y + (dy0 - ty0) * gs / window.innerHeight * 100
 
-        // Update overridesRef immediately; recalcPush will call setOverrides with combined map
         const nextOv = new Map(overridesRef.current)
-        nextOv.set(d.idx,    { x: newX,        y: newY,        rotation: 0 })
+        nextOv.set(d.idx,    { x: snapX,        y: snapY,        rotation: 0 })
         nextOv.set(snap.idx, { x: targetPos.x, y: targetPos.y, rotation: 0 })
+        if (d.isGroupDrag) {
+          d.groupOffsets.forEach((off, j) => {
+            nextOv.set(j, { x: snapX + off.dx, y: snapY + off.dy, rotation: 0 })
+          })
+        }
         overridesRef.current = nextOv
 
         const rawSel = [...new Set([...sel, d.name, snap.name])]
@@ -291,21 +305,18 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
         onSelectRef.current(newSel)
         recalcPush(newSel)
       } else if (d.moved) {
-        // Drag away (no snap) → remove + BFS connectivity check
-        const newSel = keepConnected(sel, d.name, adjacencyRef.current)
-        onSelectRef.current(newSel)
-
-        // Push dropped piece away from any piece it landed on
-        const last = lastMoveXYRef.current
-        const fallback = overridesRef.current.get(d.idx) ?? piecesRef.current[d.idx]
-        const finalX = last?.idx === d.idx ? last.x : fallback.x
-        const finalY = last?.idx === d.idx ? last.y : fallback.y
-        const resolved = resolveDropOverlap(d.idx, finalX, finalY, overridesRef.current, piecesRef.current, safeMaxXRef.current, window.innerWidth, window.innerHeight)
-        const nextOv = new Map(overridesRef.current)
-        nextOv.set(d.idx, { ...nextOv.get(d.idx), ...resolved })
-        overridesRef.current = nextOv
-
-        recalcPush(newSel)
+        if (d.isGroupDrag) {
+          recalcPush(sel)
+        } else {
+          const last = lastMoveXYRef.current
+          const fallback = overridesRef.current.get(d.idx) ?? piecesRef.current[d.idx]
+          const finalX = last?.idx === d.idx ? last.x : fallback.x
+          const finalY = last?.idx === d.idx ? last.y : fallback.y
+          const resolved = resolveDropOverlap(d.idx, finalX, finalY, overridesRef.current, piecesRef.current, safeMaxXRef.current, window.innerWidth, window.innerHeight)
+          const nextOv = new Map(overridesRef.current)
+          nextOv.set(d.idx, { ...nextOv.get(d.idx), ...resolved })
+          overridesRef.current = nextOv
+        }
       }
       // else: hold ≥ 1s without movement → do nothing
 
@@ -488,7 +499,16 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
                 e.preventDefault()
                 mousedownTimeRef.current = Date.now()
                 const cur = overrides.get(i) ?? { x: p.x, y: p.y }
-                dragRef.current = { idx: i, name: p.name, startX: e.clientX, startY: e.clientY, origX: cur.x, origY: cur.y, moved: false }
+                const isGroupDrag = selected.includes(p.name)
+                const groupOffsets = new Map<number, { dx: number; dy: number }>()
+                if (isGroupDrag) {
+                  piecesRef.current.forEach((pc, j) => {
+                    if (j === i || !selected.includes(pc.name)) return
+                    const jPos = overridesRef.current.get(j) ?? pc
+                    groupOffsets.set(j, { dx: jPos.x - cur.x, dy: jPos.y - cur.y })
+                  })
+                }
+                dragRef.current = { idx: i, name: p.name, startX: e.clientX, startY: e.clientY, origX: cur.x, origY: cur.y, moved: false, isGroupDrag, groupOffsets }
               }}
               onMouseEnter={() => setHovered(p.name)}
               onMouseLeave={() => setHovered(null)}
