@@ -270,9 +270,23 @@ const REC_SHAPES = ['rs-square','rs-rect','rs-circle','rs-ellipse','rs-blob','rs
 export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   const [openRec, setOpenRec]     = useState<number | null>(null)
   const [activeGpxIdx, setActiveGpxIdx] = useState(0)
-  const mapSectionRef = useRef<HTMLDivElement>(null)
+  const [gpxOpen, setGpxOpen]     = useState(false)
+  const [pdfOpen, setPdfOpen]     = useState(false)
+  const mapSectionRef  = useRef<HTMLDivElement>(null)
+  const actionsDropRef = useRef<HTMLDivElement>(null)
 
   const activeGpxPath = gpxPaths[activeGpxIdx]?.split('/').pop() ?? ''
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (actionsDropRef.current && !actionsDropRef.current.contains(e.target as Node)) {
+        setGpxOpen(false)
+        setPdfOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   const openRecord = (i: number) => {
     setOpenRec(i)
@@ -300,7 +314,7 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
         {/* Hero */}
         <header className="d-hero">
           <div className="d-hero-bg">{exp.name}</div>
-          <Link href="/cool" className="d-back">◀ 回去看更多</Link>
+          <Link href="/hangbao" className="d-back">◀ 回去看更多</Link>
           <h1 className="d-title">
             {exp.name.split('').map((ch, i) => (
               <span key={i} style={{ transform: `rotate(${TITLE_ROTS[i % TITLE_ROTS.length]}deg)` }}>{ch}</span>
@@ -320,29 +334,85 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
             <HangbaoMap activePath={activeGpxPath} />
           </div>
           <div className="d-map-corner">山協 siak-phānn</div>
-          <div className="d-map-actions">
-            {gpxPaths.map((p, i) => {
-              const fname = p.split('/').pop() ?? p
-              return (
+          <div className="d-map-actions" ref={actionsDropRef}>
+            {/* GPX dropdown */}
+            {gpxPaths.length > 0 && (
+              <div style={{ position: 'relative' }}>
                 <button
-                  key={i}
-                  className={`d-dl-btn ${i === activeGpxIdx ? 'b1' : 'b2'}`}
-                  onClick={() => setActiveGpxIdx(i)}
+                  className="d-dl-btn b2"
+                  onClick={() => { setGpxOpen(o => !o); setPdfOpen(false) }}
                 >
-                  <span className="big">{fname}</span>
+                  <span className="big">{activeGpxPath || 'GPX'} {gpxOpen ? '▲' : '▼'}</span>
                 </button>
-              )
-            })}
-            {mapFiles.filter(f => /\.pdf$/i.test(f.file_path)).map(f => {
-              const fname = f.file_path.split('/').pop() ?? ''
+                {gpxOpen && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, zIndex: 50,
+                    background: 'var(--bg)', border: '4px solid var(--bg)',
+                    boxShadow: '6px 6px 0 var(--hot)', minWidth: '100%',
+                  }}>
+                    {gpxPaths.map((p, i) => {
+                      const fname = p.split('/').pop() ?? p
+                      return (
+                        <button key={i}
+                          style={{
+                            display: 'block', width: '100%', padding: '10px 16px',
+                            background: i === activeGpxIdx ? 'var(--hot)' : 'var(--yellow)',
+                            color: 'var(--bg)', border: 'none', cursor: 'pointer',
+                            fontWeight: 900, fontSize: '14px', textAlign: 'left',
+                          }}
+                          onClick={() => { setActiveGpxIdx(i); setGpxOpen(false) }}
+                        >
+                          {fname}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PDF dropdown */}
+            {(() => {
+              const pdfFiles = mapFiles.filter(f => /\.pdf$/i.test(f.file_path))
+              if (pdfFiles.length === 0) return null
               return (
-                <a key={fname} href={`/api/pdf?file=${encodeURIComponent(fname)}`}
-                   target="_blank" rel="noreferrer" className="d-dl-btn b3">
-                  <span className="big">{fname.replace(/\.pdf$/i, '')}</span>
-                  <span className="ext">PDF</span>
-                </a>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    className="d-dl-btn b3"
+                    onClick={() => { setPdfOpen(o => !o); setGpxOpen(false) }}
+                  >
+                    <span className="big">PDF {pdfOpen ? '▲' : '▼'}</span>
+                  </button>
+                  {pdfOpen && (
+                    <div style={{
+                      position: 'absolute', top: '100%', left: 0, zIndex: 50,
+                      background: 'var(--bg)', border: '4px solid var(--bg)',
+                      boxShadow: '6px 6px 0 var(--cyan)', minWidth: '100%',
+                    }}>
+                      {pdfFiles.map((f, i) => {
+                        const fname = f.file_path.split('/').pop() ?? ''
+                        return (
+                          <button key={i}
+                            style={{
+                              display: 'block', width: '100%', padding: '10px 16px',
+                              background: 'var(--cyan)', color: 'var(--bg)',
+                              border: 'none', cursor: 'pointer',
+                              fontWeight: 900, fontSize: '14px', textAlign: 'left',
+                            }}
+                            onClick={() => {
+                              window.open(`/api/pdf?file=${encodeURIComponent(f.file_path)}`, '_blank')
+                              setPdfOpen(false)
+                            }}
+                          >
+                            {fname.replace(/\.pdf$/i, '')} .pdf
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               )
-            })}
+            })()}
           </div>
         </section>
 

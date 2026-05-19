@@ -1,20 +1,31 @@
 'use client'
 
 import Link from 'next/link'
-import { useTheme, THEME_NAMES } from './ThemeProvider'
+import { usePathname } from 'next/navigation'
 
-export function ThemeBadge() {
-  const theme = useTheme()
+const BADGE_LINKS = [
+  { href: '/', label: '火箭羊羊', dotStyle: undefined as React.CSSProperties | undefined, extraClass: '' },
+  { href: '/hangbao', label: '登山夯爆', dotStyle: { background: '#ff006e' } as React.CSSProperties, extraClass: 'hangbao-badge-link' },
+]
+
+export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSProperties } = {}) {
+  const pathname = usePathname()
+  if (pathname === '/' && !containerStyle) return null
+
+  const defaultStyle: React.CSSProperties = {
+    position: 'fixed', bottom: '1rem', right: '1rem',
+    display: 'flex', gap: '0.5rem', zIndex: 9001,
+  }
   return (
-    <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 200 }}>
-      <Link href="/" className="theme-badge" style={{ position: 'static', textDecoration: 'none' }}>
-        <span className="theme-badge-dot" />
-        {THEME_NAMES[theme]}
-      </Link>
-      <Link href="/hangbao" className="theme-badge hangbao-badge-link" style={{ position: 'static', textDecoration: 'none' }}>
-        <span className="theme-badge-dot" style={{ background: '#ff006e' }} />
-        登山夯爆
-      </Link>
+    <div style={containerStyle ?? defaultStyle}>
+      {BADGE_LINKS.map(t => (
+        <Link key={t.href} href={t.href}
+          className={`theme-badge${t.extraClass ? ` ${t.extraClass}` : ''}`}
+          style={{ position: 'static', textDecoration: 'none' }}>
+          <span className="theme-badge-dot" style={t.dotStyle} />
+          {t.label}
+        </Link>
+      ))}
     </div>
   )
 }

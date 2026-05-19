@@ -229,19 +229,34 @@ async function loadTrackOnMap(
     trackLayersRef.current.push(line)
 
     if (latlngs[0]) {
-      const start = L.circleMarker(latlngs[0], { radius: 6, color: '#fff', fillColor: '#3a7d44', fillOpacity: 1, weight: 2 })
+      const startIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:#3a7d44;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">起</div>',
+        iconSize: [30, 26], iconAnchor: [15, 13],
+      })
+      const start = L.marker(latlngs[0], { icon: startIcon })
       start.addTo(map)
       trackLayersRef.current.push(start)
     }
     if (latlngs.at(-1)) {
-      const end = L.circleMarker(latlngs.at(-1)!, { radius: 6, color: '#fff', fillColor: '#1a1000', fillOpacity: 1, weight: 2 })
+      const endIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:#1a1000;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
+        iconSize: [30, 26], iconAnchor: [15, 13],
+      })
+      const end = L.marker(latlngs.at(-1)!, { icon: endIcon })
       end.addTo(map)
       trackLayersRef.current.push(end)
     }
 
     for (const wpt of waypoints) {
-      const marker = L.circleMarker([wpt.lat, wpt.lng], { radius: 5, color: '#0066cc', fillColor: '#fffde7', fillOpacity: 1, weight: 2 })
-      if (wpt.name) marker.bindPopup(wpt.name)
+      if (!wpt.name) continue
+      const wptIcon = L.divIcon({
+        className: '',
+        html: `<div style="background:#fffde7;color:#1a1000;padding:3px 8px;font-weight:700;font-size:12px;font-family:'Noto Sans TC',sans-serif;border:2px solid #e65100;white-space:nowrap">▲ ${wpt.name}</div>`,
+        iconSize: [80, 24], iconAnchor: [40, 12],
+      })
+      const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
       marker.addTo(map)
       trackLayersRef.current.push(marker)
     }

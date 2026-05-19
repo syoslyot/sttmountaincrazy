@@ -10,7 +10,7 @@ const THEME_NAMES: Record<Theme, string> = {
   brutal: '暴力美學',
   showa:  '昭和登山',
   neon:   '台式霓虹',
-  riso:   '火箭小羊',
+  riso:   '火箭羊羊',
   topo:   '等高線圖',
 }
 

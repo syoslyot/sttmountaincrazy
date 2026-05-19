@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useExpeditions } from '@/lib/useExpeditions'
+import { ThemeBadge } from '@/components/ThemeBadge'
 
 const RocketSystem = dynamic(() => import('./RocketSystem').then(m => m.RocketSystem), { ssr: false })
 const SpeechBubble = dynamic(() => import('./SpeechBubble').then(m => m.SpeechBubble), { ssr: false })
@@ -114,10 +115,11 @@ export function RisoHome() {
         {tab === 'map' && selectedCounties.length === 0 && (
           <span style={{ fontFamily: "'Noto Sans TC',sans-serif", fontSize: '0.7rem', color: '#e65100', opacity: 0.6, transform: 'rotate(-0.5deg)', display: 'inline-block' }}>← 點選或拖曳縣市形狀篩選，拼合相鄰縣市可複選</span>
         )}
+        <ThemeBadge containerStyle={{ position: 'absolute', bottom: 12, right: 12, display: 'flex', gap: '0.5rem', zIndex: 20 }} />
       </div>
 
       {/* Expedition cards — fixed right panel so left/center counties remain clickable */}
-      <div style={{ position: 'fixed', right: 0, top: 130, width: 380, height: 'calc(100vh - 130px)', overflowY: 'auto', zIndex: 10, padding: '0.5rem 1rem 6rem', background: 'rgba(255,253,231,0.88)', backdropFilter: 'blur(4px)', borderLeft: '3px solid #e65100' }}>
+      <div style={{ position: 'fixed', right: 0, top: 130, width: 494, height: 'calc(100vh - 130px)', overflowY: 'auto', zIndex: 10, padding: '0.5rem 1rem 8px', background: 'rgba(255,253,231,0.88)', backdropFilter: 'blur(4px)', borderLeft: '3px solid #e65100' }}>
         {loading && exps.length === 0 && (
           <div style={{ padding: '3rem', textAlign: 'center', fontFamily: "'Bebas Neue',sans-serif", letterSpacing: '0.3em', color: '#e65100', fontSize: '1rem' }}>LOADING...</div>
         )}
