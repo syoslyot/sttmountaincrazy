@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# sttmountcrazy
 
-## Getting Started
+成大山協出隊紀錄系統。進入時隨機顯示兩種風格之一。
 
-First, run the development server:
+## 風格
+
+| 名稱 | 路由 | 說明 |
+|------|------|------|
+| 火箭羊羊 | `/` | Risograph 拼貼風，地圖互動篩選出隊紀錄 |
+| 登山夯爆 | `/` 或 `/hangbao` | 台式霓虹風，關鍵字＋縣市＋日期篩選 |
+
+每次進入 `/` 隨機分配風格；`/hangbao` 為登山夯爆的固定入口。
+
+## 技術棧
+
+- Next.js 15 (App Router)
+- SQLite（better-sqlite3）
+- Leaflet（GPX 軌跡地圖）
+- Tailwind CSS
+
+## 本地開發
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+開啟 [http://localhost:3000](http://localhost:3000)。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 資料庫
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+SQLite 資料庫路徑由環境變數 `DB_PATH` 指定（預設 `./data/expeditions.db`）。
 
-## Learn More
+## 型別檢查
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx tsc --noEmit
+```

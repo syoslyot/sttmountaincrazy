@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getDb } from '@/lib/db'
 import { Navbar } from '@/components/Navbar'
 import { ExpeditionDetailClient } from '@/components/ExpeditionDetailClient'
+import { SetTheme } from '@/components/SetTheme'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -36,6 +37,7 @@ export default async function ExpeditionPage({ params }: Props) {
 
   return (
     <>
+      <SetTheme theme="rocket" />
       <Navbar />
       <ExpeditionDetailClient exp={exp} gpxPaths={gpxPaths} mapFiles={mapFiles} records={records} />
     </>

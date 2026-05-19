@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { ThemeProvider } from '@/components/ThemeProvider'
 import { ThemeBadge } from '@/components/ThemeBadge'
 import '@/styles/globals.css'
 
@@ -29,10 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href={FONT_URL} rel="stylesheet" />
       </head>
       <body>
-        <ThemeProvider>
-          {children}
-          <ThemeBadge />
-        </ThemeProvider>
+        {children}
+        <ThemeBadge />
       </body>
     </html>
   )
