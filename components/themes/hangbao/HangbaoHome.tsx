@@ -145,9 +145,9 @@ export function HangbaoHome() {
       <div className="neon-marquee">
         <div className="track">
           <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
-          <span>成大山協</span><span>領隊靠這個記</span><span>下山平安</span>
+          <span>成大山協</span><span>爬過得山老多了</span><span>下山平安</span>
           <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
-          <span>成大山協</span><span>領隊靠這個記</span><span>下山平安</span>
+          <span>成大山協</span><span>爬過得山老多了</span><span>下山平安</span>
         </div>
       </div>
 

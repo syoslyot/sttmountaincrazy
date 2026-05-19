@@ -139,7 +139,8 @@ export function RocketHome() {
                   {(() => {
                     const r = e.region; const rx = e.region_exit
                     const area = r && rx && r !== rx ? `${r} → ${rx}` : (r ?? rx ?? null)
-                    return <>{e.date_start}{area ? ` / ${area}` : ''}{e.leader ? ` · ${e.leader}` : ''}</>
+                    const loc = [e.county, area].filter(Boolean).join(' ')
+                    return <>{e.date_start}{loc ? ` / ${loc}` : ''}{e.leader ? ` · ${e.leader}` : ''}</>
                   })()}
                 </div>
               </Link>
