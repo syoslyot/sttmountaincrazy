@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const GPX_DIR = path.resolve(process.cwd(), '../sttmountain/app/static/gpx')
+const GPX_DIR = process.env.STATIC_DIR
+  ? path.join(process.env.STATIC_DIR, 'gpx')
+  : path.resolve(process.cwd(), '../sttmountain/app/static/gpx')
 
 export function GET(req: NextRequest) {
   const filename = req.nextUrl.searchParams.get('file')
