@@ -134,11 +134,13 @@
   padding: 8px 28px; font-weight: 900; font-size: 22px;
   border: 4px solid var(--bg); box-shadow: 6px 6px 0 var(--hot);
   z-index: 10; letter-spacing: 0.15em;
+  pointer-events: none;
 }
 .neon-search::after {
   content: "敲下去！"; position: absolute; top: 30px; right: 8vw;
   font-size: 32px; font-weight: 900; color: var(--yellow);
   font-family: "Microsoft JhengHei", sans-serif;
+  pointer-events: none;
   text-shadow: 3px 3px 0 var(--hot), 6px 6px 0 var(--cyan);
   transform: rotate(8deg);
 }
@@ -636,10 +638,11 @@
   margin-top: 32px; margin-left: 8%;
   flex-wrap: wrap; position: relative; z-index: 5;
 }
-.d-dl-btn {
+#hangbao-root .d-dl-btn {
   background: white; color: var(--bg);
   padding: 14px 22px; font-weight: 900;
   font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  letter-spacing: 0.04em;
   border: 4px solid var(--bg);
   box-shadow: 6px 6px 0 var(--hot);
   display: flex; flex-direction: column; align-items: flex-start;
@@ -647,12 +650,12 @@
   transition: transform 0.15s;
   cursor: pointer;
 }
-.d-dl-btn .big { font-size: 23px; }
-.d-dl-btn .ext { font-family: "Courier New", monospace; font-size: 12px; letter-spacing: 0.15em; opacity: 0.8; }
-.d-dl-btn.b1 { transform: rotate(-2deg); background: var(--hot); color: white; box-shadow: 6px 6px 0 var(--yellow); }
-.d-dl-btn.b2 { transform: rotate(1.5deg); background: var(--cyan); box-shadow: 6px 6px 0 var(--hot); }
-.d-dl-btn.b3 { transform: rotate(-1deg); background: var(--yellow); box-shadow: 6px 6px 0 var(--cyan); }
-.d-dl-btn:hover { transform: rotate(0) translate(-3px,-3px); }
+#hangbao-root .d-dl-btn .big { font-size: 23px; }
+#hangbao-root .d-dl-btn .ext { font-family: "Courier New", monospace; font-size: 12px; letter-spacing: 0.15em; opacity: 0.8; }
+#hangbao-root .d-dl-btn.b1 { transform: rotate(-2deg); background: var(--hot); color: white; box-shadow: 6px 6px 0 var(--yellow); }
+#hangbao-root .d-dl-btn.b2 { transform: rotate(1.5deg); background: var(--cyan); box-shadow: 6px 6px 0 var(--hot); }
+#hangbao-root .d-dl-btn.b3 { transform: rotate(-1deg); background: var(--yellow); box-shadow: 6px 6px 0 var(--cyan); }
+#hangbao-root .d-dl-btn:hover { transform: rotate(0) translate(-3px,-3px); }
 #hangbao-root .d-dl-item {
   font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   font-weight: 900;

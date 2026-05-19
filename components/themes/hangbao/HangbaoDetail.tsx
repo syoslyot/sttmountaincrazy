@@ -35,17 +35,17 @@ function fmtDate(d: string | null | undefined): string {
 
 function regionLabel(exp: ExpData): string {
   const r = exp.region, rx = exp.region_exit
-  const entryCounty = exp.county ?? ''
-  let exitCounty = entryCounty
+  const entryC = exp.county ?? ''
+  let exitC = entryC
   if (exp.all_counties) {
-    const others = exp.all_counties.split(',').filter(c => c && c !== entryCounty)
-    if (others.length === 1) exitCounty = others[0]
+    const others = exp.all_counties.split(',').filter(c => c && c !== entryC)
+    if (others.length === 1) exitC = others[0]
   }
   if (!r && !rx) return ''
-  if (!rx || r === rx) return entryCounty ? `${entryCounty}${r ?? ''}` : (r ?? '')
-  const from = entryCounty ? `${entryCounty}${r}` : (r ?? '')
-  const to   = exitCounty  ? `${exitCounty}${rx}` : rx
-  return `${from} → ${to}`
+  if (!rx || r === rx) return entryC && r ? `${entryC}・${r}` : (entryC || r || '')
+  const from = entryC && r ? `${entryC}・${r}` : (entryC || r || '')
+  const to   = exitC  && rx ? `${exitC}・${rx}` : (exitC || rx || '')
+  return `${from}→${to}`
 }
 
 function parseGpxHangbao(text: string): { latlngs: [number, number][]; waypoints: { lat: number; lng: number; name: string }[] } {

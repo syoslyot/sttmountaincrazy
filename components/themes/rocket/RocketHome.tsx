@@ -138,8 +138,15 @@ export function RocketHome() {
                 <div style={{ fontSize: '0.65rem', color: '#5a4a00' }}>
                   {(() => {
                     const r = e.region; const rx = e.region_exit
-                    const area = r && rx && r !== rx ? `${r} → ${rx}` : (r ?? rx ?? null)
-                    const loc = [e.county, area].filter(Boolean).join(' ')
+                    const entryC = e.county ?? ''
+                    let exitC = entryC
+                    if (e.all_counties) {
+                      const others = e.all_counties.split(',').filter(c => c && c !== entryC)
+                      if (others.length === 1) exitC = others[0]
+                    }
+                    const from = [entryC, r].filter(Boolean).join(' ')
+                    const to   = rx && rx !== r ? [exitC, rx].filter(Boolean).join(' ') : null
+                    const loc  = from && to ? `${from} → ${to}` : (from || null)
                     return <>{e.date_start}{loc ? ` / ${loc}` : ''}{e.leader ? ` · ${e.leader}` : ''}</>
                   })()}
                 </div>

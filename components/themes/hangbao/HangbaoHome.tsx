@@ -15,21 +15,26 @@ interface Exp {
   name: string
   date_start: string
   date_end: string | null
+  county: string | null
+  all_counties: string | null
   region: string | null
   region_exit: string | null
   leader: string | null
-  all_counties: string | null
 }
 
 function regionLabel(e: Exp): string {
-  const counties = e.all_counties ? e.all_counties.split(',').join('・') : ''
-  const r  = e.region
-  const rx = e.region_exit
-  const regionPart = !r && !rx ? '' : (!rx || r === rx) ? (r ?? rx ?? '') : `${r} → ${rx}`
-  if (!counties && !regionPart) return ''
-  if (!counties) return regionPart
-  if (!regionPart) return counties
-  return `${counties}・${regionPart}`
+  const r = e.region, rx = e.region_exit
+  const entryC = e.county ?? ''
+  let exitC = entryC
+  if (e.all_counties) {
+    const others = e.all_counties.split(',').filter(c => c && c !== entryC)
+    if (others.length === 1) exitC = others[0]
+  }
+  if (!r && !rx) return ''
+  if (!rx || r === rx) return entryC && r ? `${entryC}・${r}` : (entryC || r || '')
+  const from = entryC && r ? `${entryC}・${r}` : (entryC || r || '')
+  const to   = exitC  && rx ? `${exitC}・${rx}` : (exitC || rx || '')
+  return `${from}→${to}`
 }
 
 function fmtDate(d: string | null | undefined): string {
@@ -144,10 +149,10 @@ export function HangbaoHome() {
     <div id="hangbao-root">
       <div className="neon-marquee">
         <div className="track">
-          <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
-          <span>成大山協</span><span>爬過得山老多了</span><span>下山平安</span>
-          <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
-          <span>成大山協</span><span>爬過得山老多了</span><span>下山平安</span>
+          <span>來爬山阿</span><span>山協資料組夯爆系統</span><span>下山慶功宴吃什麼</span>
+          <span>成大山協</span><span>爬過的山老多了</span><span>安全第ㄧ</span>
+          <span>來阿，一起快樂爬山</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
+          <span>超 ㄅ一ㄤˋ 的啦</span><span>爬過的山老多了</span><span>下山平安</span>
         </div>
       </div>
 
@@ -157,10 +162,11 @@ export function HangbaoHome() {
           <span className="w2">山</span>
           <span className="w3">夯</span>
           <span className="w4">爆</span>
+          <span className="w4">了</span>
         </h1>
         <div className="subtitle-row">
           <span className="sub-tag">★ 成大山協 ★</span>
-          <span className="sub-tag">歷年出隊</span>
+          <span className="sub-tag">歷年出隊資料</span>
           <span className="sub-tag">夯爆資料庫</span>
         </div>
       </header>
@@ -222,7 +228,7 @@ export function HangbaoHome() {
 
       <section className="neon-results">
         <div className="neon-results-header">
-          <h2>★ 結果出爐 ★</h2>
+          <h2>★ 登登登！ 結果出爐 ★★★</h2>
           <span className="count">{total} 筆</span>
         </div>
 
