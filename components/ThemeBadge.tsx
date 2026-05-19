@@ -11,7 +11,7 @@ export function ThemeBadge() {
         <span className="theme-badge-dot" />
         {THEME_NAMES[theme]}
       </Link>
-      <Link href="/cool" className="theme-badge" style={{ position: 'static', textDecoration: 'none' }}>
+      <Link href="/cool" className="theme-badge cool-badge-link" style={{ position: 'static', textDecoration: 'none' }}>
         <span className="theme-badge-dot" style={{ background: '#ff006e' }} />
         登山夯爆
       </Link>

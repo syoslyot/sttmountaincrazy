@@ -115,10 +115,10 @@ function CoolMap({ activePath }: { activePath: string }) {
   // Load track whenever activePath changes
   useEffect(() => {
     if (!activePath) return
-    const map = mapRef.current
     const isKml = activePath.toLowerCase().endsWith('.kml')
 
     const doLoad = async () => {
+      const map = mapRef.current
       if (!map) return
       // Clear previous track layers
       trackLayersRef.current.forEach(layer => { try { layer.remove() } catch (_) {} })
@@ -254,7 +254,8 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
 }
 
 const IMG_ROTS = [-1.5, 1.2, -2, 0.8, -1, 1.8]
-const REC_SHAPES = ['rs-rect','rs-square','rs-circle','rs-ellipse','rs-blob','rs-skew','rs-tall','rs-wide']
+const TITLE_ROTS = [-4, 3, -6, 2, -3, 5, -2, 4, -5, 2]
+const REC_SHAPES = ['rs-square','rs-rect','rs-circle','rs-ellipse','rs-blob','rs-skew','rs-tall','rs-wide']
 
 export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   const [peaks, setPeaks]         = useState<string[]>([])
@@ -302,9 +303,12 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
       <div className="neon-detail">
         {/* Hero */}
         <header className="d-hero">
+          <div className="d-hero-bg">{exp.name}</div>
           <Link href="/cool" className="d-back">◀ 回去看更多</Link>
           <h1 className="d-title">
-            {exp.name.split('').map((ch, i) => <span key={i}>{ch}</span>)}
+            {exp.name.split('').map((ch, i) => (
+              <span key={i} style={{ transform: `rotate(${TITLE_ROTS[i % TITLE_ROTS.length]}deg)` }}>{ch}</span>
+            ))}
           </h1>
           <div className="d-hero-chips">
             <span className="chip c1">★ {fmtDate(exp.date_start)}{exp.date_end ? ` — ${fmtDate(exp.date_end)}` : ''}</span>
@@ -329,17 +333,20 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                   className={`d-dl-btn ${i === activeGpxIdx ? 'b1' : 'b2'}`}
                   onClick={() => setActiveGpxIdx(i)}
                 >
-                  <span className="big">▶ 航跡</span>
-                  <span className="ext">{fname}</span>
+                  <span className="big">{fname}</span>
                 </button>
               )
             })}
-            {activeGpxPath && (
-              <a href={`/api/gpx?file=${encodeURIComponent(activeGpxPath)}`} className="d-dl-btn b3" download={activeGpxPath}>
-                <span className="big">↓ 下載</span>
-                <span className="ext">GPX</span>
-              </a>
-            )}
+            {mapFiles.filter(f => /\.pdf$/i.test(f.file_path)).map(f => {
+              const fname = f.file_path.split('/').pop() ?? ''
+              return (
+                <a key={fname} href={`/api/pdf?file=${encodeURIComponent(fname)}`}
+                   target="_blank" rel="noreferrer" className="d-dl-btn b3">
+                  <span className="big">{fname.replace(/\.pdf$/i, '')}</span>
+                  <span className="ext">PDF</span>
+                </a>
+              )
+            })}
           </div>
         </section>
 
