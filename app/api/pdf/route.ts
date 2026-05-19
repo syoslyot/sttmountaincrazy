@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const MAPS_DIR = path.resolve(process.cwd(), '../sttmount/app/static/maps')
+const MAPS_DIR = path.resolve(process.cwd(), '../sttmountain/app/static/maps')
 
 export function GET(req: NextRequest) {
   const filename = req.nextUrl.searchParams.get('file')

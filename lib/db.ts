@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3'
 import path from 'path'
 
-const _dbName = (process.env.DB_ENV ?? process.env.NODE_ENV) === 'production' ? 'sttmount.db' : 'sttmount_dev.db'
-const DB_PATH = path.resolve(process.cwd(), `../sttmount/db/${_dbName}`)
+const _dbName = (process.env.DB_ENV ?? process.env.NODE_ENV) === 'production' ? 'sttmountain.db' : 'sttmountain_dev.db'
+const DB_PATH = path.resolve(process.cwd(), `../sttmountain/db/${_dbName}`)
 
 let _db: Database.Database | null = null
 
