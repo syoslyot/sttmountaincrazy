@@ -4,13 +4,15 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import 'leaflet/dist/leaflet.css'
-import './cool.css'
+import './hangbao.css'
 
 interface ExpData {
   id: number
   name: string
   date_start: string
   date_end: string | null
+  county: string | null
+  all_counties: string | null
   region: string | null
   region_exit: string | null
   leader: string | null
@@ -33,12 +35,20 @@ function fmtDate(d: string | null | undefined): string {
 
 function regionLabel(exp: ExpData): string {
   const r = exp.region, rx = exp.region_exit
+  const entryCounty = exp.county ?? ''
+  let exitCounty = entryCounty
+  if (exp.all_counties) {
+    const others = exp.all_counties.split(',').filter(c => c && c !== entryCounty)
+    if (others.length === 1) exitCounty = others[0]
+  }
   if (!r && !rx) return ''
-  if (!rx || r === rx) return r ?? ''
-  return `${r} → ${rx}`
+  if (!rx || r === rx) return entryCounty ? `${entryCounty}${r ?? ''}` : (r ?? '')
+  const from = entryCounty ? `${entryCounty}${r}` : (r ?? '')
+  const to   = exitCounty  ? `${exitCounty}${rx}` : rx
+  return `${from} → ${to}`
 }
 
-function parseGpxCool(text: string): { latlngs: [number, number][]; waypoints: { lat: number; lng: number; name: string }[] } {
+function parseGpxHangbao(text: string): { latlngs: [number, number][]; waypoints: { lat: number; lng: number; name: string }[] } {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const pts = Array.from(doc.querySelectorAll('trkpt'))
   const latlngs: [number, number][] = pts.map(p => [
@@ -53,7 +63,7 @@ function parseGpxCool(text: string): { latlngs: [number, number][]; waypoints: {
   return { latlngs, waypoints }
 }
 
-function parseKmlCool(text: string): { latlngs: [number, number][]; waypoints: { lat: number; lng: number; name: string }[] } {
+function parseKmlHangbao(text: string): { latlngs: [number, number][]; waypoints: { lat: number; lng: number; name: string }[] } {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const coordNodes = Array.from(doc.querySelectorAll('coordinates'))
   const latlngs: [number, number][] = []
@@ -66,7 +76,7 @@ function parseKmlCool(text: string): { latlngs: [number, number][]; waypoints: {
   return { latlngs, waypoints: [] }
 }
 
-function CoolMap({ activePath }: { activePath: string }) {
+function HangbaoMap({ activePath }: { activePath: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef       = useRef<any>(null)
   const trackLayersRef = useRef<any[]>([])
@@ -84,11 +94,11 @@ function CoolMap({ activePath }: { activePath: string }) {
       const carto = L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
         { maxZoom: 18, attribution: '© OpenStreetMap contributors, © CARTO' }
-      ).addTo(map)
+      )
       const openTopo = L.tileLayer(
         'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
         { maxZoom: 17, attribution: '© OpenStreetMap, © OpenTopoMap' }
-      )
+      ).addTo(map)
       const nlscEmap = L.tileLayer(
         'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}',
         { maxZoom: 20, attribution: '© 國土測繪中心' }
@@ -98,7 +108,7 @@ function CoolMap({ activePath }: { activePath: string }) {
         { maxZoom: 20, opacity: 0.6, attribution: '© 國土測繪中心' }
       )
       L.control.layers(
-        { 'CartoDB Voyager': carto, 'OpenTopoMap（等高線）': openTopo, 'NLSC 通用電子地圖': nlscEmap },
+        { 'OpenTopoMap（等高線）': openTopo, 'CartoDB Voyager': carto, 'NLSC 通用電子地圖': nlscEmap },
         { 'NLSC 等高線 Overlay': nlscContour }
       ).addTo(map)
       L.control.scale({ metric: true, imperial: false }).addTo(map)
@@ -133,7 +143,7 @@ function CoolMap({ activePath }: { activePath: string }) {
         const res = await fetch(`/api/gpx?file=${encodeURIComponent(activePath)}`)
         if (!res.ok) return
         const text = await res.text()
-        const { latlngs, waypoints } = isKml ? parseKmlCool(text) : parseGpxCool(text)
+        const { latlngs, waypoints } = isKml ? parseKmlHangbao(text) : parseGpxHangbao(text)
         if (latlngs.length === 0) return
 
         const track = L.polyline(latlngs, { color: '#ff006e', weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(map)
@@ -257,26 +267,12 @@ const IMG_ROTS = [-1.5, 1.2, -2, 0.8, -1, 1.8]
 const TITLE_ROTS = [-4, 3, -6, 2, -3, 5, -2, 4, -5, 2]
 const REC_SHAPES = ['rs-square','rs-rect','rs-circle','rs-ellipse','rs-blob','rs-skew','rs-tall','rs-wide']
 
-export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
-  const [peaks, setPeaks]         = useState<string[]>([])
+export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   const [openRec, setOpenRec]     = useState<number | null>(null)
   const [activeGpxIdx, setActiveGpxIdx] = useState(0)
   const mapSectionRef = useRef<HTMLDivElement>(null)
 
   const activeGpxPath = gpxPaths[activeGpxIdx]?.split('/').pop() ?? ''
-
-  useEffect(() => {
-    if (!activeGpxPath) return
-    const isKml = activeGpxPath.toLowerCase().endsWith('.kml')
-    fetch(`/api/gpx?file=${encodeURIComponent(activeGpxPath)}`)
-      .then(r => r.ok ? r.text() : null)
-      .then(text => {
-        if (!text) return
-        const { waypoints } = isKml ? parseKmlCool(text) : parseGpxCool(text)
-        setPeaks(waypoints.map(w => w.name))
-      })
-      .catch(() => {})
-  }, [activeGpxPath])
 
   const openRecord = (i: number) => {
     setOpenRec(i)
@@ -299,7 +295,7 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
     })
 
   return (
-    <div id="cool-root">
+    <div id="hangbao-root">
       <div className="neon-detail">
         {/* Hero */}
         <header className="d-hero">
@@ -321,9 +317,9 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
         <section className="d-map-section" ref={mapSectionRef}>
           <div className="d-map-label">★ 地圖 MAP ★</div>
           <div className="d-map-wrap">
-            <CoolMap activePath={activeGpxPath} />
+            <HangbaoMap activePath={activeGpxPath} />
           </div>
-          {peaks[0] && <div className="d-map-corner">{peaks[0]}</div>}
+          <div className="d-map-corner">山協 siak-phānn</div>
           <div className="d-map-actions">
             {gpxPaths.map((p, i) => {
               const fname = p.split('/').pop() ?? p
@@ -389,7 +385,7 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
               {records.length === 0 ? (
                 <div className="d-empty">◢◤ 此次無附加紀錄 ◢◤</div>
               ) : (
-                <div className="d-rec-grid" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="d-rec-grid" style={{ gridTemplateColumns: '1fr', marginLeft: '20%' }}>
                   {records.map((r, i) => {
                     const ext = r.filename.split('.').pop() ?? 'txt'
                     const name = r.filename.replace(/\.(docx|txt|pdf)$/, '')

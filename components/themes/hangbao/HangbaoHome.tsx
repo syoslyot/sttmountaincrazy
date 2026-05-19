@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import './cool.css'
+import './hangbao.css'
 
 const SHAPES = [
   'shape-rect','shape-square','shape-circle','shape-triangle','shape-tall',
@@ -36,12 +36,13 @@ function fmtDate(d: string | null | undefined): string {
   return d ? d.replace(/-/g, '.') : ''
 }
 
-export function CoolHome() {
+export function HangbaoHome() {
   const [selectedCounties, setSelectedCounties] = useState<string[]>([])
   const [countyOpen, setCountyOpen]             = useState(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo]     = useState('')
   const [query, setQuery]       = useState('')
+  const [activeRange, setActiveRange] = useState<number | null>(null)
   const [exps, setExps]         = useState<Exp[]>([])
   const [total, setTotal]       = useState(0)
   const [loading, setLoading]   = useState(false)
@@ -117,6 +118,7 @@ export function CoolHome() {
   }, [])
 
   const setQuickRange = (months: number) => {
+    setActiveRange(months)
     const end = new Date(), start = new Date()
     start.setMonth(start.getMonth() - months)
     const fmt = (d: Date) => d.toISOString().slice(0, 10)
@@ -135,15 +137,16 @@ export function CoolHome() {
     setDateFrom('')
     setDateTo('')
     setQuery('')
+    setActiveRange(null)
   }
 
   return (
-    <div id="cool-root">
+    <div id="hangbao-root">
       <div className="neon-marquee">
         <div className="track">
-          <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>全台百岳紀錄這裡找</span>
+          <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
           <span>成大山協</span><span>領隊靠這個記</span><span>下山平安</span>
-          <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>全台百岳紀錄這裡找</span>
+          <span>歡迎光臨</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
           <span>成大山協</span><span>領隊靠這個記</span><span>下山平安</span>
         </div>
       </div>
@@ -194,14 +197,14 @@ export function CoolHome() {
         <div className="neon-card">
           <h2><span className="badge">2</span>挑日期</h2>
           <div className="row">
-            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setActiveRange(null) }} />
+            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setActiveRange(null) }} />
           </div>
           <div className="quick-btns">
-            <button className="quick-btn" onClick={() => setQuickRange(1)}>最近一月</button>
-            <button className="quick-btn" onClick={() => setQuickRange(6)}>最近半年</button>
-            <button className="quick-btn" onClick={() => setQuickRange(12)}>最近一年</button>
-            <button className="quick-btn" onClick={() => setQuickRange(36)}>最近三年</button>
+            <button className={`quick-btn${activeRange === 1 ? ' active' : ''}`} onClick={() => setQuickRange(1)}>最近一月</button>
+            <button className={`quick-btn${activeRange === 6 ? ' active' : ''}`} onClick={() => setQuickRange(6)}>最近半年</button>
+            <button className={`quick-btn${activeRange === 12 ? ' active' : ''}`} onClick={() => setQuickRange(12)}>最近一年</button>
+            <button className={`quick-btn${activeRange === 36 ? ' active' : ''}`} onClick={() => setQuickRange(36)}>最近三年</button>
           </div>
         </div>
 
@@ -237,7 +240,7 @@ export function CoolHome() {
               const shape = SHAPES[i % SHAPES.length]
               const region = regionLabel(e)
               return (
-                <Link key={e.id} href={`/cool/${e.id}`} className={`neon-trip ${shape}`}>
+                <Link key={e.id} href={`/hangbao/${e.id}`} className={`neon-trip ${shape}`}>
                   <span className="trip-num">NO.{String(i + 1).padStart(2, '0')}</span>
                   <span className="trip-date">
                     {fmtDate(e.date_start)}{e.date_end ? ` — ${fmtDate(e.date_end)}` : ''}
