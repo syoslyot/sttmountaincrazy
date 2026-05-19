@@ -632,6 +632,13 @@
 .d-dl-btn.b2 { transform: rotate(1.5deg); background: var(--cyan); box-shadow: 6px 6px 0 var(--hot); }
 .d-dl-btn.b3 { transform: rotate(-1deg); background: var(--yellow); box-shadow: 6px 6px 0 var(--cyan); }
 .d-dl-btn:hover { transform: rotate(0) translate(-3px,-3px); }
+#hangbao-root .d-dl-item {
+  font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+}
+#hangbao-root .d-dl-item:hover { filter: brightness(0.85); }
 
 .d-docs-section {
   position: relative;
@@ -958,20 +965,4 @@
   padding: 20px 32px;
 }
 
-/* ============== 登山夯爆 theme badge ============== */
-.hangbao-badge-link {
-  background: #ff006e;
-  color: white;
-  font-weight: 900;
-  font-size: 15px;
-  padding: 8px 18px;
-  border: 3px solid #1a0030;
-  border-radius: 0;
-  box-shadow: 4px 4px 0 #ffd60a, 8px 8px 0 #1a0030;
-  transform: rotate(-2deg);
-  letter-spacing: 0.08em;
-  opacity: 1 !important;
-  transition: transform 0.15s;
-}
-.hangbao-badge-link .theme-badge-dot { display: none; }
-.hangbao-badge-link:hover { transform: rotate(0deg) translate(-2px, -2px); opacity: 1 !important; }
+/* .hangbao-badge-link moved to globals.css for global availability */

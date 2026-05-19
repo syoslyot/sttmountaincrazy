@@ -354,11 +354,12 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                       const fname = p.split('/').pop() ?? p
                       return (
                         <button key={i}
+                          className="d-dl-item"
                           style={{
                             display: 'block', width: '100%', padding: '10px 16px',
                             background: i === activeGpxIdx ? 'var(--hot)' : 'var(--yellow)',
                             color: 'var(--bg)', border: 'none', cursor: 'pointer',
-                            fontWeight: 900, fontSize: '14px', textAlign: 'left',
+                            textAlign: 'left',
                           }}
                           onClick={() => { setActiveGpxIdx(i); setGpxOpen(false) }}
                         >
@@ -393,11 +394,11 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                         const fname = f.file_path.split('/').pop() ?? ''
                         return (
                           <button key={i}
+                            className="d-dl-item"
                             style={{
                               display: 'block', width: '100%', padding: '10px 16px',
                               background: 'var(--cyan)', color: 'var(--bg)',
-                              border: 'none', cursor: 'pointer',
-                              fontWeight: 900, fontSize: '14px', textAlign: 'left',
+                              border: 'none', cursor: 'pointer', textAlign: 'left',
                             }}
                             onClick={() => {
                               window.open(`/api/pdf?file=${encodeURIComponent(f.file_path)}`, '_blank')
