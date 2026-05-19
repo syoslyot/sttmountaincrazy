@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { ThemeBadge } from '@/components/ThemeBadge'
 
-const RisoLeafletMap = dynamic(
-  () => import('@/components/RisoLeafletMap').then(m => m.RisoLeafletMap),
+const RocketLeafletMap = dynamic(
+  () => import('@/components/RocketLeafletMap').then(m => m.RocketLeafletMap),
   { ssr: false, loading: () => <div style={{ width: '100%', height: '100%', background: '#fffde7' }} /> }
 )
 
-const GPX_ROTS = [-1.2, 1.5, -0.8, 1.0, -1.5, 0.6]
 const REC_ROTS = [-0.5, 1.2, -1.0, 0.8]
 
 interface Props {
@@ -19,15 +19,86 @@ interface Props {
   records: { filename: string; content: string }[]
 }
 
-export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
+interface DropdownProps {
+  label: string
+  options: string[]
+  onSelect: (i: number) => void
+  color: string
+  open: boolean
+  onToggle: () => void
+  rot?: number
+  isActive?: boolean
+}
+
+function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false }: DropdownProps) {
+  const filled = open || isActive
+  return (
+    <div style={{ position: 'relative', pointerEvents: 'auto' }}>
+      <button
+        onClick={onToggle}
+        style={{
+          border: `2px solid ${color}`,
+          background: filled ? color : 'transparent',
+          color: filled ? '#fffde7' : color,
+          padding: '0.32rem 0.84rem',
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: '0.89rem', letterSpacing: '0.12em',
+          cursor: 'pointer',
+          transform: `rotate(${rot}deg)`,
+        }}>
+        {label} {open ? '▲' : '▼'}
+      </button>
+      {open && options.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+          background: '#fffde7', border: `2px solid ${color}`, minWidth: '100%',
+          boxShadow: `3px 3px 0 ${color}`,
+        }}>
+          {options.map((opt, i) => (
+            <button key={i} onClick={() => { onSelect(i); onToggle() }}
+              style={{
+                display: 'block', width: '100%', padding: '0.25rem 0.6rem',
+                fontFamily: "'Bebas Neue', sans-serif", fontSize: '0.89rem',
+                border: 'none', background: 'transparent', color, cursor: 'pointer',
+                textAlign: 'left', letterSpacing: '0.08em',
+              }}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
   const [activeGpx, setActiveGpx] = useState<string | null>(gpxPaths[0] ?? null)
   const [selectedRecord, setSelectedRecord] = useState<number>(0)
   const [showRecord, setShowRecord] = useState(true)
+  const [gpxOpen, setGpxOpen] = useState(false)
+  const [pdfOpen, setPdfOpen] = useState(false)
+  const [recOpen, setRecOpen] = useState(false)
+  const dropdownsRef = useRef<HTMLDivElement>(null)
 
   const pdfFiles = mapFiles.filter(f => f.file_path.toLowerCase().endsWith('.pdf'))
   const p1Image = exp.preview_image
     ? (String(exp.preview_image).split('/').pop() ?? null)
     : null
+
+  const activeGpxName = activeGpx ? (activeGpx.split('/').pop() ?? activeGpx) : 'GPX'
+  const activeRecName = records[selectedRecord]?.filename ?? '紀錄'
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownsRef.current && !dropdownsRef.current.contains(e.target as Node)) {
+        setGpxOpen(false)
+        setPdfOpen(false)
+        setRecOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   return (
     <div style={{
@@ -51,8 +122,6 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
         }
         .riso-det-bubble-open::after { border-top-color: #b84000; }
         .riso-det-bubble-open::before { border-top-color: #e65100; }
-        .riso-btn-gpx { transition: background 0.15s, color 0.15s; }
-        .riso-btn-rec { transition: background 0.15s, color 0.15s; }
       `}</style>
 
       {/* Grain overlay */}
@@ -63,7 +132,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
         animation: 'risoGrain 6s ease-in-out infinite',
       }} />
 
-      {/* ── TOP HEADER ROW: buttons (homepage style) ── */}
+      {/* ── TOP HEADER ROW ── */}
       <div style={{
         padding: '0.9rem 1.5rem 0.5rem',
         display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.2rem',
@@ -92,70 +161,49 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
           pointerEvents: 'auto',
         }}>Info</div>
 
-        {/* GPX / KML track buttons */}
-        {gpxPaths.map((p, i) => {
-          const name = p.split('/').pop() ?? p
-          const isActive = activeGpx === p
-          return (
-            <button key={p} onClick={() => setActiveGpx(p)}
-              className="riso-btn-gpx"
-              style={{
-                border: '2px solid #e65100',
-                background: isActive ? '#e65100' : 'transparent',
-                color: isActive ? '#fffde7' : '#e65100',
-                padding: '0.32rem 0.84rem',
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.89rem', letterSpacing: '0.12em',
-                cursor: 'pointer',
-                transform: `rotate(${GPX_ROTS[i % GPX_ROTS.length]}deg)`,
-                pointerEvents: 'auto',
-              }}>
-              {name}
-            </button>
-          )
-        })}
+        {/* Dropdown group — outside-click handled by dropdownsRef */}
+        <div ref={dropdownsRef} style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap', pointerEvents: 'auto' }}>
+          {/* GPX dropdown */}
+          {gpxPaths.length > 0 && (
+            <RisoDropdown
+              label={activeGpxName}
+              options={gpxPaths.map(p => p.split('/').pop() ?? p)}
+              color="#e65100"
+              open={gpxOpen}
+              onToggle={() => { setGpxOpen(o => !o); setPdfOpen(false); setRecOpen(false) }}
+              onSelect={i => setActiveGpx(gpxPaths[i])}
+              rot={-1.2}
+              isActive={gpxPaths.length > 0}
+            />
+          )}
 
-        {/* PDF map buttons */}
-        {pdfFiles.map((f, i) => (
-          <a key={f.file_path}
-            href={`/api/pdf?file=${encodeURIComponent(f.file_path)}`}
-            target="_blank" rel="noopener noreferrer"
-            style={{
-              border: '2px solid #e65100',
-              background: 'transparent', color: '#e65100',
-              padding: '0.32rem 0.84rem',
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: '0.89rem', letterSpacing: '0.12em',
-              textDecoration: 'none',
-              display: 'inline-block',
-              transform: `rotate(${i % 2 === 0 ? -0.8 : 0.8}deg)`,
-              pointerEvents: 'auto',
-            }}>
-            地圖 .pdf
-          </a>
-        ))}
+          {/* PDF dropdown */}
+          {pdfFiles.length > 0 && (
+            <RisoDropdown
+              label="地圖 PDF"
+              options={pdfFiles.map(f => f.file_path.split('/').pop() ?? f.file_path)}
+              color="#e65100"
+              open={pdfOpen}
+              onToggle={() => { setPdfOpen(o => !o); setGpxOpen(false); setRecOpen(false) }}
+              onSelect={i => window.open(`/api/pdf?file=${encodeURIComponent(pdfFiles[i].file_path)}`, '_blank')}
+              rot={0.8}
+            />
+          )}
 
-        {/* Record selector buttons */}
-        {records.map((r, i) => {
-          const isSelected = selectedRecord === i
-          return (
-            <button key={r.filename} onClick={() => setSelectedRecord(i)}
-              className="riso-btn-rec"
-              style={{
-                border: '2px solid #3a7d44',
-                background: isSelected ? '#3a7d44' : 'transparent',
-                color: isSelected ? '#fffde7' : '#3a7d44',
-                padding: '0.32rem 0.84rem',
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.89rem', letterSpacing: '0.12em',
-                cursor: 'pointer',
-                transform: `rotate(${REC_ROTS[i % REC_ROTS.length]}deg)`,
-                pointerEvents: 'auto',
-              }}>
-              {r.filename}
-            </button>
-          )
-        })}
+          {/* Records dropdown */}
+          {records.length > 0 && (
+            <RisoDropdown
+              label={activeRecName}
+              options={records.map(r => r.filename)}
+              color="#3a7d44"
+              open={recOpen}
+              onToggle={() => { setRecOpen(o => !o); setGpxOpen(false); setPdfOpen(false) }}
+              onSelect={i => setSelectedRecord(i)}
+              rot={-0.5}
+              isActive={records.length > 0}
+            />
+          )}
+        </div>
       </div>
 
       {/* ── CONTENT ROW: map + right panel ── */}
@@ -163,7 +211,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
 
         {/* Map area */}
         <div style={{ flex: 1, maxWidth: '55%', minWidth: 0, zIndex: 1, marginTop: '10px', marginLeft: '180px' }}>
-          <RisoLeafletMap activeGpx={activeGpx} />
+          <RocketLeafletMap activeGpx={activeGpx} />
         </div>
 
         {/* Right panel: one orange quad + one big image (overflows into map) */}
@@ -173,7 +221,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
           overflow: 'visible',
           zIndex: 5,
         }}>
-          {/* Orange quad — smaller, upper-right, offset from image for layering */}
+          {/* Orange quad */}
           <div style={{
             position: 'absolute',
             width: '80%', height: '52%',
@@ -184,7 +232,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
             pointerEvents: 'none',
           }} />
 
-          {/* P1 image — 128% wide (50% larger than 85%), extends left into map */}
+          {/* P1 image */}
           {p1Image && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -206,10 +254,9 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
         </div>
       </div>
 
-      {/* ── FIXED: 點我看紀錄 (bottom-left, 50% bigger) + record panel ── */}
+      {/* ── FIXED: 點我看紀錄 + record panel ── */}
       {records.length > 0 && (
         <>
-          {/* Record content panel */}
           {showRecord && (
             <div style={{
               position: 'fixed', bottom: 110, left: 20,
@@ -237,7 +284,6 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
             </div>
           )}
 
-          {/* 點我看紀錄 trigger (bottom-left, 50% larger) */}
           <div
             onClick={() => setShowRecord(p => !p)}
             style={{
@@ -265,6 +311,9 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
           </div>
         </>
       )}
+
+      {/* ThemeBadge: containerStyle bypasses layout suppression for /expedition routes */}
+      <ThemeBadge containerStyle={{ position: 'fixed', bottom: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 9001 }} />
     </div>
   )
 }
