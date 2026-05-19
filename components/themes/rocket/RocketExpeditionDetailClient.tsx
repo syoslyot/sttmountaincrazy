@@ -312,8 +312,8 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
         </>
       )}
 
-      {/* Item 8: ThemeBadge visible above overlay (zIndex 9001 > 1000) */}
-      <ThemeBadge />
+      {/* ThemeBadge: containerStyle bypasses layout suppression for /expedition routes */}
+      <ThemeBadge containerStyle={{ position: 'fixed', bottom: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 9001 }} />
     </div>
   )
 }
