@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const PREVIEW_DIR = path.resolve(process.cwd(), '../sttmountain/app/static/previews')
-const MAPS_DIR    = path.resolve(process.cwd(), '../sttmountain/app/static/maps')
+const PREVIEW_DIR = process.env.STATIC_DIR
+  ? path.join(process.env.STATIC_DIR, 'previews')
+  : path.resolve(process.cwd(), '../sttmountain/app/static/previews')
+const MAPS_DIR = process.env.STATIC_DIR
+  ? path.join(process.env.STATIC_DIR, 'maps')
+  : path.resolve(process.cwd(), '../sttmountain/app/static/maps')
 
 export function GET(req: NextRequest) {
   const filename = req.nextUrl.searchParams.get('file')
