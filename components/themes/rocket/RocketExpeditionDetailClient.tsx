@@ -5,8 +5,8 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ThemeBadge } from '@/components/ThemeBadge'
 
-const RisoLeafletMap = dynamic(
-  () => import('@/components/RisoLeafletMap').then(m => m.RisoLeafletMap),
+const RocketLeafletMap = dynamic(
+  () => import('@/components/RocketLeafletMap').then(m => m.RocketLeafletMap),
   { ssr: false, loading: () => <div style={{ width: '100%', height: '100%', background: '#fffde7' }} /> }
 )
 
@@ -71,7 +71,7 @@ function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0
   )
 }
 
-export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
+export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
   const [activeGpx, setActiveGpx] = useState<string | null>(gpxPaths[0] ?? null)
   const [selectedRecord, setSelectedRecord] = useState<number>(0)
   const [showRecord, setShowRecord] = useState(true)
@@ -211,7 +211,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
 
         {/* Map area */}
         <div style={{ flex: 1, maxWidth: '55%', minWidth: 0, zIndex: 1, marginTop: '10px', marginLeft: '180px' }}>
-          <RisoLeafletMap activeGpx={activeGpx} />
+          <RocketLeafletMap activeGpx={activeGpx} />
         </div>
 
         {/* Right panel: one orange quad + one big image (overflows into map) */}

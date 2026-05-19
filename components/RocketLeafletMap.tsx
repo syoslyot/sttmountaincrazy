@@ -68,7 +68,7 @@ function fmtDist(m: number) {
   return m >= 1000 ? `${(m / 1000).toFixed(1)}k` : `${Math.round(m)}`
 }
 
-function RisoElevationChart({
+function RocketElevationChart({
   points,
   onHover,
   onLeave,
@@ -268,7 +268,7 @@ async function loadTrackOnMap(
   }
 }
 
-export function RisoLeafletMap({ activeGpx }: Props) {
+export function RocketLeafletMap({ activeGpx }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const leafletRef = useRef<any>(null)
@@ -357,7 +357,7 @@ export function RisoLeafletMap({ activeGpx }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
       <div ref={containerRef} style={{ flex: 1, minHeight: 0 }} />
       {elevPoints.length >= 2 && (
-        <RisoElevationChart
+        <RocketElevationChart
           points={elevPoints}
           onHover={handleChartHover}
           onLeave={handleChartLeave}

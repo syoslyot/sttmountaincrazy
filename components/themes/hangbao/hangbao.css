@@ -209,6 +209,8 @@
   margin-bottom: 0;
   letter-spacing: 0.05em;
   cursor: pointer;
+  color-scheme: dark;
+  accent-color: var(--hot);
 }
 .neon-card .row input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(2) sepia(1) saturate(10) hue-rotate(310deg);

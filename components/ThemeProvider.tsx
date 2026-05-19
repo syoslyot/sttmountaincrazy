@@ -2,15 +2,15 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
-export type Theme = 'brutal' | 'showa' | 'neon' | 'riso' | 'topo'
+export type Theme = 'brutal' | 'showa' | 'neon' | 'rocket' | 'topo'
 
-const THEMES: Theme[] = ['riso']
+const THEMES: Theme[] = ['rocket']
 
 const THEME_NAMES: Record<Theme, string> = {
   brutal: '暴力美學',
   showa:  '昭和登山',
   neon:   '台式霓虹',
-  riso:   '火箭羊羊',
+  rocket: '火箭羊羊',
   topo:   '等高線圖',
 }
 
@@ -38,7 +38,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const nextThemeRef              = useRef<Theme>('brutal')
 
   useEffect(() => {
-    const picked: Theme = 'riso'
+    const picked: Theme = 'rocket'
     sessionStorage.setItem('stt-theme', picked)
     document.documentElement.dataset.theme = picked
     setTheme(picked)

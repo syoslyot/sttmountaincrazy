@@ -19,7 +19,7 @@ const COLORS = [
   { bg: 'rgba(230,81,0,0.12)', accent: '#e65100' },
 ]
 
-export function RisoHome() {
+export function RocketHome() {
   const [selectedCounties, setSelectedCounties] = useState<string[]>([])
   const [tab, setTab] = useState<'map' | 'search'>('map')
   const [query, setQuery] = useState('')
