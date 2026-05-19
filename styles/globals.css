@@ -1,9 +1,5 @@
 @import "tailwindcss";
-@import "./theme-brutal.css";
-@import "./theme-showa.css";
-@import "./theme-neon.css";
 @import "./theme-rocket.css";
-@import "./theme-topo.css";
 
 /* ── 預設 CSS 變數（fallback） ── */
 :root {
@@ -231,6 +227,14 @@ html, body {
   border-radius: 50%;
   background: var(--accent);
 }
+.rocket-badge-link {
+  border: 2px solid #e65100;
+  font-weight: 700;
+  transform: rotate(-1deg);
+  transition: transform 0.15s, opacity 0.15s;
+}
+.rocket-badge-link:hover { transform: rotate(0deg) translate(-2px, -2px); opacity: 1; }
+.rocket-badge-link .theme-badge-dot { background: #0066cc; }
 
 /* 出隊詳細 */
 .detail-layout {
