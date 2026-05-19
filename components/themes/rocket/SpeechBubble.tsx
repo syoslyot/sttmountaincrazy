@@ -32,7 +32,7 @@ export function SpeechBubble({ revealed, onToggle }: { revealed: boolean; onTogg
           boxShadow: `4px 4px 0 ${revealed ? '#b84000' : '#1a1000'}`,
           transition: 'background 0.25s, color 0.25s, border-color 0.25s',
         }}>
-          {revealed ? '✓ 揭曉！（再點一次隱藏）' : '什麼？不知道縣市的形狀嗎？我跟你說答案吧！'}
+          {revealed ? '✓ 揭曉！（再點一次隱藏）' : '試著把地圖拼圖拼起來選擇地區！什麼？不知道縣市的形狀嗎？我跟你說答案吧！'}
         </div>
       </div>
     </>

@@ -8,8 +8,8 @@ const LeafletMap = dynamic(() => import('./LeafletMap').then(m => m.LeafletMap),
   loading: () => <div style={{ width: '100%', height: '100%', background: 'var(--bg-alt)' }} />,
 })
 
-const RisoExpeditionDetailClient = dynamic(
-  () => import('./themes/riso/RisoExpeditionDetailClient').then(m => m.RisoExpeditionDetailClient),
+const RocketExpeditionDetailClient = dynamic(
+  () => import('./themes/rocket/RocketExpeditionDetailClient').then(m => m.RocketExpeditionDetailClient),
   { ssr: false }
 )
 
@@ -22,8 +22,8 @@ interface Props {
 
 export function ExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
   const theme = useTheme()
-  if (theme === 'riso') {
-    return <RisoExpeditionDetailClient exp={exp} gpxPaths={gpxPaths} mapFiles={mapFiles} records={records} />
+  if (theme === 'rocket') {
+    return <RocketExpeditionDetailClient exp={exp} gpxPaths={gpxPaths} mapFiles={mapFiles} records={records} />
   }
   const dateStr = exp.date_end && exp.date_end !== exp.date_start
     ? `${exp.date_start} — ${exp.date_end}`

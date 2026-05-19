@@ -2,7 +2,7 @@
 @import "./theme-brutal.css";
 @import "./theme-showa.css";
 @import "./theme-neon.css";
-@import "./theme-riso.css";
+@import "./theme-rocket.css";
 @import "./theme-topo.css";
 
 /* ── 預設 CSS 變數（fallback） ── */
@@ -209,6 +209,22 @@ html, body {
   transition: opacity 0.15s;
 }
 .theme-badge:hover { opacity: 0.75; }
+.hangbao-badge-link {
+  background: #ff006e;
+  color: white;
+  font-weight: 900;
+  font-size: 15px;
+  padding: 8px 18px;
+  border: 3px solid #1a0030;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 #ffd60a, 8px 8px 0 #1a0030;
+  transform: rotate(-2deg);
+  letter-spacing: 0.08em;
+  opacity: 1 !important;
+  transition: transform 0.15s;
+}
+.hangbao-badge-link .theme-badge-dot { display: none; }
+.hangbao-badge-link:hover { transform: rotate(0deg) translate(-2px, -2px); opacity: 1 !important; }
 .theme-badge-dot {
   width: 7px;
   height: 7px;
