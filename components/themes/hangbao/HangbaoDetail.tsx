@@ -301,12 +301,6 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
     const name = String(exp.preview_image).split('/').pop() ?? ''
     if (name) screenshots.push(name)
   }
-  mapFiles
-    .filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f.file_path))
-    .forEach(f => {
-      const name = f.file_path.split('/').pop() ?? ''
-      if (name && !screenshots.includes(name)) screenshots.push(name)
-    })
 
   return (
     <div id="hangbao-root">
@@ -374,15 +368,15 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
 
             {/* PDF dropdown */}
             {(() => {
-              const pdfFiles = mapFiles.filter(f => /\.pdf$/i.test(f.file_path))
-              if (pdfFiles.length === 0) return null
+              const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.file_path))
+              if (mapFileItems.length === 0) return null
               return (
                 <div style={{ position: 'relative' }}>
                   <button
                     className="d-dl-btn b3"
                     onClick={() => { setPdfOpen(o => !o); setGpxOpen(false) }}
                   >
-                    <span className="big">PDF {pdfOpen ? '▲' : '▼'}</span>
+                    <span className="big">地圖 {pdfOpen ? '▲' : '▼'}</span>
                   </button>
                   {pdfOpen && (
                     <div style={{
@@ -390,8 +384,12 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                       background: 'var(--bg)', border: '4px solid var(--bg)',
                       boxShadow: '6px 6px 0 var(--cyan)', minWidth: '100%',
                     }}>
-                      {pdfFiles.map((f, i) => {
+                      {mapFileItems.map((f, i) => {
                         const fname = f.file_path.split('/').pop() ?? ''
+                        const isPdf = /\.pdf$/i.test(fname)
+                        const url = isPdf
+                          ? `/api/pdf?file=${encodeURIComponent(f.file_path)}`
+                          : `/api/preview?file=${encodeURIComponent(fname)}`
                         return (
                           <button key={i}
                             className="d-dl-item"
@@ -400,12 +398,9 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                               background: 'var(--cyan)', color: 'var(--bg)',
                               border: 'none', cursor: 'pointer', textAlign: 'left',
                             }}
-                            onClick={() => {
-                              window.open(`/api/pdf?file=${encodeURIComponent(f.file_path)}`, '_blank')
-                              setPdfOpen(false)
-                            }}
+                            onClick={() => { window.open(url, '_blank'); setPdfOpen(false) }}
                           >
-                            {fname.replace(/\.pdf$/i, '')} .pdf
+                            {fname}
                           </button>
                         )
                       })}
