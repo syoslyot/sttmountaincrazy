@@ -108,14 +108,16 @@ export function RisoHome() {
                 <button onClick={() => setSelectedCounties(prev => prev.filter(x => x !== c))} style={{ background: 'none', border: 'none', color: '#e65100', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', lineHeight: 1 }}>×</button>
               </div>
             ))}
-            <button onClick={() => setSelectedCounties([])} style={{ border: '2px dashed #e65100', background: 'transparent', color: '#e65100', padding: '0.25rem 0.6rem', fontFamily: "'Bebas Neue',sans-serif", fontSize: '0.75rem', cursor: 'pointer', letterSpacing: '0.1em' }}>清除</button>
+            {selectedCounties.length < 17 && (
+              <button onClick={() => setSelectedCounties([])} style={{ border: '2px dashed #e65100', background: 'transparent', color: '#e65100', padding: '0.25rem 0.6rem', fontFamily: "'Bebas Neue',sans-serif", fontSize: '0.75rem', cursor: 'pointer', letterSpacing: '0.1em' }}>清除</button>
+            )}
           </div>
         )}
 
         {tab === 'map' && selectedCounties.length === 0 && (
           <span style={{ fontFamily: "'Noto Sans TC',sans-serif", fontSize: '0.7rem', color: '#e65100', opacity: 0.6, transform: 'rotate(-0.5deg)', display: 'inline-block' }}>← 點選或拖曳縣市形狀篩選，拼合相鄰縣市可複選</span>
         )}
-        <ThemeBadge containerStyle={{ position: 'absolute', bottom: 12, right: 12, display: 'flex', gap: '0.5rem', zIndex: 20 }} />
+        <ThemeBadge containerStyle={{ position: 'fixed', bottom: 12, right: 506, display: 'flex', gap: '0.5rem', zIndex: 20, pointerEvents: 'auto' }} />
       </div>
 
       {/* Expedition cards — fixed right panel so left/center counties remain clickable */}

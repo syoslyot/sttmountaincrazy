@@ -27,17 +27,19 @@ interface DropdownProps {
   open: boolean
   onToggle: () => void
   rot?: number
+  isActive?: boolean
 }
 
-function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0 }: DropdownProps) {
+function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false }: DropdownProps) {
+  const filled = open || isActive
   return (
     <div style={{ position: 'relative', pointerEvents: 'auto' }}>
       <button
         onClick={onToggle}
         style={{
           border: `2px solid ${color}`,
-          background: open ? color : 'transparent',
-          color: open ? '#fffde7' : color,
+          background: filled ? color : 'transparent',
+          color: filled ? '#fffde7' : color,
           padding: '0.32rem 0.84rem',
           fontFamily: "'Bebas Neue', sans-serif",
           fontSize: '0.89rem', letterSpacing: '0.12em',
@@ -171,6 +173,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
               onToggle={() => { setGpxOpen(o => !o); setPdfOpen(false); setRecOpen(false) }}
               onSelect={i => setActiveGpx(gpxPaths[i])}
               rot={-1.2}
+              isActive={gpxPaths.length > 0}
             />
           )}
 
@@ -197,6 +200,7 @@ export function RisoExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }:
               onToggle={() => { setRecOpen(o => !o); setGpxOpen(false); setPdfOpen(false) }}
               onSelect={i => setSelectedRecord(i)}
               rot={-0.5}
+              isActive={records.length > 0}
             />
           )}
         </div>

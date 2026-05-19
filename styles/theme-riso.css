@@ -109,6 +109,11 @@
   border: 2px solid #e65100;
   transform: rotate(-1deg);
   font-weight: 700;
+  transition: transform 0.15s, opacity 0.15s;
+}
+[data-theme="riso"] .theme-badge:hover {
+  transform: rotate(0deg) translate(-2px, -2px);
+  opacity: 1;
 }
 [data-theme="riso"] .theme-badge-dot {
   background: #0066cc;
