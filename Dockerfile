@@ -1,4 +1,5 @@
 FROM ghcr.io/syoslyot/sttmountain:latest AS data-source
+RUN mkdir -p /app/app/static/gpx /app/app/static/maps /app/app/static/previews
 
 FROM node:22-alpine AS builder
 RUN apk add --no-cache python3 make g++
