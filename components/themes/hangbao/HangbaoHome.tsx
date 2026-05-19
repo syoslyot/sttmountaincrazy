@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import './hangbao.css'
+import { HangbaoDatePicker } from './HangbaoDatePicker'
 
 const SHAPES = [
   'shape-rect','shape-square','shape-circle','shape-triangle','shape-tall',
@@ -203,8 +204,16 @@ export function HangbaoHome() {
         <div className="neon-card">
           <h2><span className="badge">2</span>挑日期</h2>
           <div className="row">
-            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setActiveRange(null) }} />
-            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setActiveRange(null) }} />
+            <HangbaoDatePicker
+              value={dateFrom}
+              onChange={v => { setDateFrom(v); setActiveRange(null) }}
+              placeholder="開始日期"
+            />
+            <HangbaoDatePicker
+              value={dateTo}
+              onChange={v => { setDateTo(v); setActiveRange(null) }}
+              placeholder="結束日期"
+            />
           </div>
           <div className="quick-btns">
             <button className={`quick-btn${activeRange === 1 ? ' active' : ''}`} onClick={() => setQuickRange(1)}>最近一月</button>

@@ -219,12 +219,12 @@
   cursor: pointer;
   width: 20px; height: 20px;
 }
-.neon-card .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.neon-card .quick-btn {
+.neon-card .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
+#hangbao-root .neon-card .quick-btn {
   padding: 6px 12px; font-weight: 900; font-size: 17px;
-  background: var(--bg); color: var(--yellow); border: 2px solid var(--bg);
+  background: transparent; color: var(--bg); border: 2px solid var(--bg);
 }
-.neon-card:nth-child(3) .quick-btn { background: white; color: var(--hot); border-color: white; }
+#hangbao-root .neon-card:nth-child(3) .quick-btn { background: white; color: var(--hot); border-color: white; }
 #hangbao-root .neon-card .quick-btn.active {
   background: var(--hot);
   color: white;
@@ -990,3 +990,127 @@
 }
 
 /* .hangbao-badge-link moved to globals.css for global availability */
+
+/* ============== CUSTOM DATE PICKER ============== */
+#hangbao-root .hb-datepicker {
+  position: relative;
+  flex: 1;
+}
+#hangbao-root .hb-datepicker-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #1a0030;
+  color: #ffd60a;
+  border: 3px solid #ff006e;
+  box-shadow: 4px 4px 0 #00f5d4;
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  text-align: left;
+}
+#hangbao-root .hb-datepicker-btn.has-value {
+  color: #ffd60a;
+}
+#hangbao-root .hb-datepicker-btn:not(.has-value) {
+  color: rgba(255, 214, 10, 0.5);
+}
+#hangbao-root .hb-datepicker-arrow {
+  font-size: 12px;
+  flex-shrink: 0;
+  color: #ff006e;
+}
+#hangbao-root .hb-cal {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  min-width: 240px;
+  background: #1a0030;
+  border: 3px solid #ff006e;
+  box-shadow: 6px 6px 0 #00f5d4, 12px 12px 0 rgba(255,0,110,0.3);
+}
+#hangbao-root .hb-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ff006e;
+  padding: 8px 10px;
+}
+#hangbao-root .hb-cal-title {
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: white;
+}
+#hangbao-root .hb-cal-nav {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 2px 8px;
+  line-height: 1;
+}
+#hangbao-root .hb-cal-nav:hover {
+  color: #ffd60a;
+}
+#hangbao-root .hb-cal-daynames {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: rgba(255, 214, 10, 0.12);
+  border-bottom: 2px solid #ff006e;
+}
+#hangbao-root .hb-cal-daynames span {
+  text-align: center;
+  padding: 6px 2px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #ffd60a;
+  letter-spacing: 0.05em;
+}
+#hangbao-root .hb-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 4px;
+  gap: 2px;
+}
+#hangbao-root .hb-cal-day {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.12s;
+}
+#hangbao-root .hb-cal-day:hover {
+  background: rgba(0, 245, 212, 0.3);
+  color: #00f5d4;
+}
+#hangbao-root .hb-cal-day.selected {
+  background: #ff006e;
+  color: white;
+  box-shadow: 2px 2px 0 #ffd60a;
+}
+#hangbao-root .hb-cal-day.today {
+  outline: 2px solid #ffd60a;
+  outline-offset: -2px;
+}
+#hangbao-root .hb-cal-day.today.selected {
+  outline-color: white;
+}
+#hangbao-root .hb-cal-day.empty {
+  background: none;
+  cursor: default;
+  pointer-events: none;
+}
