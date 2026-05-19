@@ -21,7 +21,7 @@
 }
 #cool-root button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 #cool-root input, #cool-root select, #cool-root textarea { font: inherit; }
-#cool-root a { color: inherit; text-decoration: none; }
+#cool-root a:not(.neon-trip) { color: inherit; text-decoration: none; }
 
 /* Leaflet container reset — must stay global */
 .leaflet-container { background: #1a1a1a; }
@@ -199,7 +199,7 @@
 .neon-card .row > * { flex: 1; }
 .neon-card .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .neon-card .quick-btn {
-  padding: 6px 12px; font-weight: 900; font-size: 13px;
+  padding: 6px 12px; font-weight: 900; font-size: 17px;
   background: var(--bg); color: var(--yellow); border: 2px solid var(--bg);
 }
 .neon-card:nth-child(3) .quick-btn { background: white; color: var(--hot); border-color: white; }
@@ -318,10 +318,24 @@
   background: rgba(26, 0, 48, 0.1);
   border: 2px solid rgba(26, 0, 48, 0.35);
 }
+.neon-trip .trip-leader {
+  font-size: 22px; font-weight: 900;
+  background: var(--bg); color: var(--yellow);
+  padding: 4px 10px; align-self: flex-start;
+  border: 2px solid var(--yellow);
+  letter-spacing: 0.04em;
+}
+.neon-trip.shape-tall .trip-leader { background: white; color: var(--bg); border-color: var(--bg); }
+.neon-trip.shape-blob .trip-leader { background: white; color: var(--bg); border-color: var(--bg); }
+.neon-trip.shape-triangle .trip-leader { display: none; }
+.neon-trip.shape-star .trip-leader { display: none; }
+.neon-trip.shape-hex .trip-leader { display: none; }
+.neon-trip.shape-circle .trip-leader { display: none; }
+
 .neon-trip .trip-region {
   align-self: flex-start;
   background: var(--cyan); color: var(--bg);
-  padding: 4px 12px; font-weight: 900; font-size: 13px;
+  padding: 4px 12px; font-weight: 900; font-size: 20px;
   border: 3px solid var(--bg);
   margin-top: auto;
 }
@@ -719,7 +733,6 @@
 }
 .d-rec-card {
   position: relative;
-  background: white; color: var(--bg);
   padding: 24px 20px; min-height: 170px;
   border: 5px solid var(--bg);
   box-shadow: 8px 8px 0 var(--hot);
@@ -727,10 +740,12 @@
   text-align: left; cursor: pointer;
   transition: transform 0.15s;
 }
-.d-rec-card.rc0 { transform: rotate(-2deg); background: var(--yellow); }
-.d-rec-card.rc1 { transform: rotate(1.5deg); background: var(--cyan); box-shadow: 8px 8px 0 var(--yellow); }
-.d-rec-card.rc2 { transform: rotate(-1deg); background: var(--lime); box-shadow: 8px 8px 0 var(--cyan); }
-.d-rec-card.rc3 { transform: rotate(2deg); background: var(--hot); color: white; box-shadow: 8px 8px 0 var(--yellow); border-color: white; }
+/* Override #cool-root button { background/color } with higher specificity */
+#cool-root .d-rec-card       { background: white;        color: var(--bg); }
+#cool-root .d-rec-card.rc0   { background: var(--yellow); transform: rotate(-2deg); }
+#cool-root .d-rec-card.rc1   { background: var(--cyan);   transform: rotate(1.5deg); box-shadow: 8px 8px 0 var(--yellow); }
+#cool-root .d-rec-card.rc2   { background: var(--lime);   transform: rotate(-1deg);  box-shadow: 8px 8px 0 var(--cyan); }
+#cool-root .d-rec-card.rc3   { background: var(--hot); color: white; transform: rotate(2deg); box-shadow: 8px 8px 0 var(--yellow); border-color: white; }
 .d-rec-card:hover { transform: rotate(0) translate(-4px,-4px); box-shadow: 14px 14px 0 var(--hot); z-index: 3; }
 .d-rec-card .d-rec-ext {
   position: absolute; top: -12px; right: -12px;
@@ -743,7 +758,7 @@
   letter-spacing: 0.1em;
 }
 .d-rec-card .d-rec-name {
-  font-size: 19px; font-weight: 900; line-height: 1.3;
+  font-size: 26px; font-weight: 900; line-height: 1.3;
   flex: 1;
 }
 .d-rec-card .d-rec-cta {
@@ -865,4 +880,73 @@
   background: repeating-linear-gradient(180deg, transparent 0 26px, rgba(255,0,110,0.08) 26px 27px);
   padding: 8px 4px;
   user-select: text;
+}
+
+/* ============== 縣市複選 ============== */
+.county-select {
+  position: relative;
+  margin-bottom: 8px;
+}
+.county-trigger {
+  width: 100%; padding: 12px; text-align: left;
+  background: var(--bg); color: var(--yellow);
+  border: 3px solid var(--bg); font-weight: 900; font-size: 16px;
+  letter-spacing: 0.05em;
+  box-shadow: 4px 4px 0 var(--hot);
+  transition: transform 0.15s;
+}
+.county-trigger:hover { transform: translate(-2px, -2px); }
+.county-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  z-index: 200;
+  background: var(--bg); border: 4px solid var(--yellow);
+  box-shadow: 8px 8px 0 var(--hot);
+  padding: 12px;
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+#cool-root .county-chip {
+  padding: 6px 14px; font-weight: 900; font-size: 14px;
+  background: rgba(255,255,255,0.1); color: white;
+  border: 2px solid rgba(255,255,255,0.4);
+  letter-spacing: 0.05em;
+  transition: background 0.12s, transform 0.12s;
+}
+#cool-root .county-chip:hover { background: rgba(255,214,10,0.2); border-color: var(--yellow); }
+#cool-root .county-chip.active {
+  background: var(--hot); color: white; border-color: white;
+  box-shadow: 3px 3px 0 var(--yellow);
+  transform: translate(-1px, -1px);
+}
+
+/* ============== 紀錄卡片形狀 ============== */
+.d-rec-card.rs-rect  { /* default — rectangle, no change */ }
+.d-rec-card.rs-square { aspect-ratio: 1; }
+.d-rec-card.rs-circle {
+  border-radius: 50%; aspect-ratio: 1;
+  align-items: center; text-align: center;
+  padding: 40px 30px;
+}
+.d-rec-card.rs-circle .d-rec-ext { top: 10%; right: 10%; }
+.d-rec-card.rs-ellipse {
+  border-radius: 50%; aspect-ratio: 2 / 1;
+  align-items: center; text-align: center;
+  padding: 28px 40px;
+}
+.d-rec-card.rs-ellipse .d-rec-ext { top: 8px; right: 10px; }
+.d-rec-card.rs-blob {
+  border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+  padding: 48px 36px;
+  align-items: center; text-align: center;
+}
+.d-rec-card.rs-skew {
+  transform: skewX(-8deg) rotate(-1deg);
+}
+.d-rec-card.rs-skew:hover { transform: skewX(0) rotate(0) translate(-4px,-4px); }
+.d-rec-card.rs-skew > * { transform: skewX(8deg); }
+.d-rec-card.rs-tall { aspect-ratio: 0.6; }
+.d-rec-card.rs-wide {
+  /* span 2 columns when grid has multiple columns */
+  grid-column: 1 / -1;
+  flex-direction: row; align-items: center; gap: 24px;
+  padding: 20px 32px;
 }

@@ -38,12 +38,6 @@ function regionLabel(exp: ExpData): string {
   return `${r} → ${rx}`
 }
 
-function daysSpan(dateStart: string, dateEnd: string | null): number {
-  if (!dateEnd) return 1
-  const diff = new Date(dateEnd).getTime() - new Date(dateStart).getTime()
-  return Math.max(1, Math.round(diff / 86400000) + 1)
-}
-
 function parseGpxCool(text: string): { latlngs: [number, number][]; waypoints: { lat: number; lng: number; name: string }[] } {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const pts = Array.from(doc.querySelectorAll('trkpt'))
@@ -72,67 +66,43 @@ function parseKmlCool(text: string): { latlngs: [number, number][]; waypoints: {
   return { latlngs, waypoints: [] }
 }
 
-function CoolMap({ gpxPaths }: { gpxPaths: string[] }) {
+function CoolMap({ activePath }: { activePath: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<any>(null)
+  const mapRef       = useRef<any>(null)
+  const trackLayersRef = useRef<any[]>([])
 
+  // Init map once
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
 
-    import('leaflet').then(async L => {
+    import('leaflet').then(L => {
       if (cancelled || !containerRef.current) return
       const map = L.map(containerRef.current, { zoomControl: true })
       mapRef.current = map
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors, © CARTO',
-      }).addTo(map)
-
-      if (gpxPaths.length > 0) {
-        const filename = gpxPaths[0].split('/').pop() ?? gpxPaths[0]
-        const isKml = filename.toLowerCase().endsWith('.kml')
-        try {
-          const res = await fetch(`/api/gpx?file=${encodeURIComponent(filename)}`)
-          if (!res.ok || cancelled) { map.setView([23.5, 121], 7); return }
-          const text = await res.text()
-          if (cancelled) return
-
-          const { latlngs, waypoints } = isKml ? parseKmlCool(text) : parseGpxCool(text)
-          if (latlngs.length === 0) { map.setView([23.5, 121], 7); return }
-
-          const track = L.polyline(latlngs, { color: '#ff006e', weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(map)
-
-          const mkStart = L.divIcon({
-            className: '',
-            html: '<div style="background:#ff006e;color:white;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">起</div>',
-            iconSize: [40, 30], iconAnchor: [20, 15],
-          })
-          const mkEnd = L.divIcon({
-            className: '',
-            html: '<div style="background:#1a0030;color:#ffd60a;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">終</div>',
-            iconSize: [40, 30], iconAnchor: [20, 15],
-          })
-          L.marker(latlngs[0], { icon: mkStart }).addTo(map)
-          L.marker(latlngs[latlngs.length - 1], { icon: mkEnd }).addTo(map)
-
-          waypoints.forEach(w => {
-            const icon = L.divIcon({
-              className: '',
-              html: `<div style="background:white;color:#1a0030;padding:3px 8px;font-weight:700;font-size:12px;border:2px solid #ff006e;white-space:nowrap;">▲ ${w.name}</div>`,
-              iconSize: [80, 24], iconAnchor: [40, 12],
-            })
-            L.marker([w.lat, w.lng], { icon }).addTo(map)
-          })
-
-          map.fitBounds(track.getBounds(), { padding: [40, 40] })
-        } catch {
-          map.setView([23.5, 121], 7)
-        }
-      } else {
-        map.setView([23.5, 121], 7)
-      }
+      const carto = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        { maxZoom: 18, attribution: '© OpenStreetMap contributors, © CARTO' }
+      ).addTo(map)
+      const openTopo = L.tileLayer(
+        'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        { maxZoom: 17, attribution: '© OpenStreetMap, © OpenTopoMap' }
+      )
+      const nlscEmap = L.tileLayer(
+        'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}',
+        { maxZoom: 20, attribution: '© 國土測繪中心' }
+      )
+      const nlscContour = L.tileLayer(
+        'https://wmts.nlsc.gov.tw/wmts/CONTOUR/default/GoogleMapsCompatible/{z}/{y}/{x}',
+        { maxZoom: 20, opacity: 0.6, attribution: '© 國土測繪中心' }
+      )
+      L.control.layers(
+        { 'CartoDB Voyager': carto, 'OpenTopoMap（等高線）': openTopo, 'NLSC 通用電子地圖': nlscEmap },
+        { 'NLSC 等高線 Overlay': nlscContour }
+      ).addTo(map)
+      L.control.scale({ metric: true, imperial: false }).addTo(map)
+      map.setView([23.5, 121], 7)
     })
 
     return () => {
@@ -140,7 +110,71 @@ function CoolMap({ gpxPaths }: { gpxPaths: string[] }) {
       mapRef.current?.remove()
       mapRef.current = null
     }
-  }, [gpxPaths])
+  }, [])
+
+  // Load track whenever activePath changes
+  useEffect(() => {
+    if (!activePath) return
+    const map = mapRef.current
+    const isKml = activePath.toLowerCase().endsWith('.kml')
+
+    const doLoad = async () => {
+      if (!map) return
+      // Clear previous track layers
+      trackLayersRef.current.forEach(layer => { try { layer.remove() } catch (_) {} })
+      trackLayersRef.current = []
+
+      let L: any
+      try {
+        L = (await import('leaflet')).default ?? await import('leaflet')
+      } catch { return }
+
+      try {
+        const res = await fetch(`/api/gpx?file=${encodeURIComponent(activePath)}`)
+        if (!res.ok) return
+        const text = await res.text()
+        const { latlngs, waypoints } = isKml ? parseKmlCool(text) : parseGpxCool(text)
+        if (latlngs.length === 0) return
+
+        const track = L.polyline(latlngs, { color: '#ff006e', weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(map)
+        trackLayersRef.current.push(track)
+
+        const mkStart = L.divIcon({
+          className: '',
+          html: '<div style="background:#ff006e;color:white;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">起</div>',
+          iconSize: [40, 30], iconAnchor: [20, 15],
+        })
+        const mkEnd = L.divIcon({
+          className: '',
+          html: '<div style="background:#1a0030;color:#ffd60a;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">終</div>',
+          iconSize: [40, 30], iconAnchor: [20, 15],
+        })
+        const mStart = L.marker(latlngs[0], { icon: mkStart }).addTo(map)
+        const mEnd   = L.marker(latlngs[latlngs.length - 1], { icon: mkEnd }).addTo(map)
+        trackLayersRef.current.push(mStart, mEnd)
+
+        waypoints.forEach(w => {
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="background:white;color:#1a0030;padding:3px 8px;font-weight:700;font-size:12px;border:2px solid #ff006e;white-space:nowrap;">▲ ${w.name}</div>`,
+            iconSize: [80, 24], iconAnchor: [40, 12],
+          })
+          const wm = L.marker([w.lat, w.lng], { icon }).addTo(map)
+          trackLayersRef.current.push(wm)
+        })
+
+        map.fitBounds(track.getBounds(), { padding: [40, 40] })
+      } catch { /* leave at default view */ }
+    }
+
+    // Wait briefly if map isn't ready yet (first render)
+    if (mapRef.current) {
+      doLoad()
+    } else {
+      const t = setTimeout(doLoad, 600)
+      return () => clearTimeout(t)
+    }
+  }, [activePath])
 
   return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
 }
@@ -161,7 +195,7 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
   })
   const [minimized, setMinimized] = useState(false)
   const dragRef = useRef({ active: false, dx: 0, dy: 0 })
-  const winRef = useRef<HTMLDivElement>(null)
+  const winRef  = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -220,17 +254,20 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
 }
 
 const IMG_ROTS = [-1.5, 1.2, -2, 0.8, -1, 1.8]
+const REC_SHAPES = ['rs-rect','rs-square','rs-circle','rs-ellipse','rs-blob','rs-skew','rs-tall','rs-wide']
 
 export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
-  const [peaks, setPeaks]     = useState<string[]>([])
-  const [openRec, setOpenRec] = useState<number | null>(null)
+  const [peaks, setPeaks]         = useState<string[]>([])
+  const [openRec, setOpenRec]     = useState<number | null>(null)
+  const [activeGpxIdx, setActiveGpxIdx] = useState(0)
   const mapSectionRef = useRef<HTMLDivElement>(null)
 
+  const activeGpxPath = gpxPaths[activeGpxIdx]?.split('/').pop() ?? ''
+
   useEffect(() => {
-    if (gpxPaths.length === 0) return
-    const filename = gpxPaths[0].split('/').pop() ?? gpxPaths[0]
-    const isKml = filename.toLowerCase().endsWith('.kml')
-    fetch(`/api/gpx?file=${encodeURIComponent(filename)}`)
+    if (!activeGpxPath) return
+    const isKml = activeGpxPath.toLowerCase().endsWith('.kml')
+    fetch(`/api/gpx?file=${encodeURIComponent(activeGpxPath)}`)
       .then(r => r.ok ? r.text() : null)
       .then(text => {
         if (!text) return
@@ -238,7 +275,7 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
         setPeaks(waypoints.map(w => w.name))
       })
       .catch(() => {})
-  }, [gpxPaths])
+  }, [activeGpxPath])
 
   const openRecord = (i: number) => {
     setOpenRec(i)
@@ -246,8 +283,6 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
       window.scrollTo({ top: mapSectionRef.current.getBoundingClientRect().top + window.scrollY - 20, behavior: 'smooth' })
     }
   }
-
-  const gpxFilename = gpxPaths[0]?.split('/').pop() ?? gpxPaths[0]
 
   // Collect screenshot images: preview_image first, then image map_files
   const screenshots: string[] = []
@@ -265,11 +300,13 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   return (
     <div id="cool-root">
       <div className="neon-detail">
-        {/* Hero — 只保留隊伍基本資訊 */}
-        <header className="d-hero" style={{ minHeight: 'auto', paddingBottom: '40px' }}>
+        {/* Hero */}
+        <header className="d-hero">
           <Link href="/cool" className="d-back">◀ 回去看更多</Link>
-          <div className="d-hero-chips" style={{ marginTop: '28px' }}>
-            <span className="chip c2" style={{ fontSize: '18px', fontWeight: 900 }}>{exp.name}</span>
+          <h1 className="d-title">
+            {exp.name.split('').map((ch, i) => <span key={i}>{ch}</span>)}
+          </h1>
+          <div className="d-hero-chips">
             <span className="chip c1">★ {fmtDate(exp.date_start)}{exp.date_end ? ` — ${fmtDate(exp.date_end)}` : ''}</span>
             {exp.leader    && <span className="chip c3">領隊 {exp.leader}</span>}
             {regionLabel(exp) && <span className="chip c5">{regionLabel(exp)}</span>}
@@ -280,13 +317,27 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
         <section className="d-map-section" ref={mapSectionRef}>
           <div className="d-map-label">★ 地圖 MAP ★</div>
           <div className="d-map-wrap">
-            <CoolMap gpxPaths={gpxPaths} />
+            <CoolMap activePath={activeGpxPath} />
           </div>
           {peaks[0] && <div className="d-map-corner">{peaks[0]}</div>}
           <div className="d-map-actions">
-            {gpxFilename && (
-              <a href={`/api/gpx?file=${encodeURIComponent(gpxFilename)}`} className="d-dl-btn b2" download={gpxFilename}>
-                <span className="big">↓ 軌跡</span><span className="ext">GPX</span>
+            {gpxPaths.map((p, i) => {
+              const fname = p.split('/').pop() ?? p
+              return (
+                <button
+                  key={i}
+                  className={`d-dl-btn ${i === activeGpxIdx ? 'b1' : 'b2'}`}
+                  onClick={() => setActiveGpxIdx(i)}
+                >
+                  <span className="big">▶ 航跡</span>
+                  <span className="ext">{fname}</span>
+                </button>
+              )
+            })}
+            {activeGpxPath && (
+              <a href={`/api/gpx?file=${encodeURIComponent(activeGpxPath)}`} className="d-dl-btn b3" download={activeGpxPath}>
+                <span className="big">↓ 下載</span>
+                <span className="ext">GPX</span>
               </a>
             )}
           </div>
@@ -336,7 +387,11 @@ export function CoolDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                     const ext = r.filename.split('.').pop() ?? 'txt'
                     const name = r.filename.replace(/\.(docx|txt|pdf)$/, '')
                     return (
-                      <button key={i} className={`d-rec-card rc${i % 4}`} onClick={() => openRecord(i)}>
+                      <button
+                        key={i}
+                        className={`d-rec-card rc${i % 4} ${REC_SHAPES[i % REC_SHAPES.length]}`}
+                        onClick={() => openRecord(i)}
+                      >
                         <div className="d-rec-ext">.{ext}</div>
                         <div className="d-rec-name">{name}</div>
                         <div className="d-rec-cta">點我看 →</div>

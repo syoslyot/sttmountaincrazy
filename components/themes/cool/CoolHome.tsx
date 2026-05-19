@@ -18,13 +18,18 @@ interface Exp {
   region: string | null
   region_exit: string | null
   leader: string | null
+  all_counties: string | null
 }
 
 function regionLabel(e: Exp): string {
-  const r = e.region, rx = e.region_exit
-  if (!r && !rx) return ''
-  if (!rx || r === rx) return r ?? rx ?? ''
-  return `${r} → ${rx}`
+  const counties = e.all_counties ? e.all_counties.split(',').join('・') : ''
+  const r  = e.region
+  const rx = e.region_exit
+  const regionPart = !r && !rx ? '' : (!rx || r === rx) ? (r ?? rx ?? '') : `${r} → ${rx}`
+  if (!counties && !regionPart) return ''
+  if (!counties) return regionPart
+  if (!regionPart) return counties
+  return `${counties}・${regionPart}`
 }
 
 function fmtDate(d: string | null | undefined): string {
@@ -32,27 +37,40 @@ function fmtDate(d: string | null | undefined): string {
 }
 
 export function CoolHome() {
-  const [region, setRegion]     = useState('')
+  const [selectedCounties, setSelectedCounties] = useState<string[]>([])
+  const [countyOpen, setCountyOpen]             = useState(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo]     = useState('')
   const [query, setQuery]       = useState('')
   const [exps, setExps]         = useState<Exp[]>([])
   const [total, setTotal]       = useState(0)
   const [loading, setLoading]   = useState(false)
-  const pageRef    = useRef(1)
-  const loadingRef = useRef(false)
-  const filterRef  = useRef({ region, dateFrom, dateTo, query })
+  const pageRef     = useRef(1)
+  const loadingRef  = useRef(false)
+  const filterRef   = useRef({ selectedCounties, dateFrom, dateTo, query })
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const countyPanelRef = useRef<HTMLDivElement>(null)
+
+  // Fetch date range once on mount for defaults
+  useEffect(() => {
+    fetch('/api/expeditions/dates')
+      .then(r => r.json())
+      .then(({ min_date, max_date }: { min_date: string; max_date: string }) => {
+        if (min_date) setDateFrom(min_date)
+        if (max_date) setDateTo(max_date)
+      })
+      .catch(() => {})
+  }, [])
 
   const load = useCallback(async (reset: boolean) => {
     if (loadingRef.current) return
     loadingRef.current = true
     setLoading(true)
     const page = reset ? 1 : pageRef.current
-    const { region, dateFrom, dateTo, query } = filterRef.current
+    const { selectedCounties, dateFrom, dateTo, query } = filterRef.current
     try {
       const p = new URLSearchParams({ page: String(page) })
-      if (region)       p.set('county', region)
+      if (selectedCounties.length > 0) p.set('counties', selectedCounties.join(','))
       if (dateFrom)     p.set('start', dateFrom)
       if (dateTo)       p.set('end', dateTo)
       if (query.trim()) p.set('q', query.trim())
@@ -68,12 +86,12 @@ export function CoolHome() {
   }, [])
 
   useEffect(() => {
-    filterRef.current = { region, dateFrom, dateTo, query }
+    filterRef.current = { selectedCounties, dateFrom, dateTo, query }
     pageRef.current = 1
     setExps([])
     load(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [region, dateFrom, dateTo, query])
+  }, [selectedCounties, dateFrom, dateTo, query])
 
   const loadMore = useCallback(() => {
     if (!loadingRef.current) load(false)
@@ -87,6 +105,17 @@ export function CoolHome() {
     return () => obs.disconnect()
   }, [loadMore])
 
+  // Close county panel on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (countyPanelRef.current && !countyPanelRef.current.contains(e.target as Node)) {
+        setCountyOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
   const setQuickRange = (months: number) => {
     const end = new Date(), start = new Date()
     start.setMonth(start.getMonth() - months)
@@ -95,7 +124,18 @@ export function CoolHome() {
     setDateTo(fmt(end))
   }
 
-  const reset = () => { setRegion(''); setDateFrom(''); setDateTo(''); setQuery('') }
+  const toggleCounty = (c: string) => {
+    setSelectedCounties(prev =>
+      prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+    )
+  }
+
+  const reset = () => {
+    setSelectedCounties([])
+    setDateFrom('')
+    setDateTo('')
+    setQuery('')
+  }
 
   return (
     <div id="cool-root">
@@ -125,11 +165,30 @@ export function CoolHome() {
       <section className="neon-search">
         <div className="neon-card">
           <h2><span className="badge">1</span>選地區</h2>
-          <select value={region} onChange={e => setRegion(e.target.value)}>
-            <option value="">★ 全台灣 都來 ★</option>
-            {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <button className="search-btn" onClick={() => setRegion('')}>不挑了全部都看</button>
+          <div className="county-select" ref={countyPanelRef}>
+            <button
+              className="county-trigger"
+              onClick={() => setCountyOpen(o => !o)}
+            >
+              {selectedCounties.length === 0
+                ? '★ 全台灣 都來 ★'
+                : `已選 ${selectedCounties.length} 個縣市 ▼`}
+            </button>
+            {countyOpen && (
+              <div className="county-panel">
+                {COUNTIES.map(c => (
+                  <button
+                    key={c}
+                    className={`county-chip${selectedCounties.includes(c) ? ' active' : ''}`}
+                    onClick={() => toggleCounty(c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button className="search-btn" onClick={() => setSelectedCounties([])}>不挑了全部都看</button>
         </div>
 
         <div className="neon-card">
@@ -139,10 +198,10 @@ export function CoolHome() {
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
           </div>
           <div className="quick-btns">
-            <button className="quick-btn" onClick={() => setQuickRange(1)}>近1月</button>
-            <button className="quick-btn" onClick={() => setQuickRange(6)}>半年</button>
-            <button className="quick-btn" onClick={() => setQuickRange(12)}>1年</button>
-            <button className="quick-btn" onClick={() => setQuickRange(36)}>3年</button>
+            <button className="quick-btn" onClick={() => setQuickRange(1)}>最近一月</button>
+            <button className="quick-btn" onClick={() => setQuickRange(6)}>最近半年</button>
+            <button className="quick-btn" onClick={() => setQuickRange(12)}>最近一年</button>
+            <button className="quick-btn" onClick={() => setQuickRange(36)}>最近三年</button>
           </div>
         </div>
 
@@ -184,9 +243,7 @@ export function CoolHome() {
                     {fmtDate(e.date_start)}{e.date_end ? ` — ${fmtDate(e.date_end)}` : ''}
                   </span>
                   <h3 className="trip-title">{e.name}</h3>
-                  <div className="trip-info">
-                    {e.leader && <span>領隊·{e.leader}</span>}
-                  </div>
+                  {e.leader && <div className="trip-leader">領隊 {e.leader}</div>}
                   {region && <div className="trip-region">{region}</div>}
                 </Link>
               )
