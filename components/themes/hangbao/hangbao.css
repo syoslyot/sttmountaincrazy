@@ -137,7 +137,7 @@
   pointer-events: none;
 }
 .neon-search::after {
-  content: "敲下去！"; position: absolute; top: 30px; right: 8vw;
+  content: "撐下去！"; position: absolute; top: 30px; right: 8vw;
   font-size: 32px; font-weight: 900; color: var(--yellow);
   font-family: "Microsoft JhengHei", sans-serif;
   pointer-events: none;
@@ -1113,4 +1113,39 @@
   background: none;
   cursor: default;
   pointer-events: none;
+}
+
+/* ============== MAP: WAYPOINT + FULLSCREEN ============== */
+.hangbao-wpt-dot {
+  width: 16px; height: 16px;
+  background: #ff006e;
+  border: 2px solid #ffd60a;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px #ff006e, 0 0 2px #ffd60a;
+  cursor: pointer;
+}
+.hangbao-wpt-tip {
+  background: #1a0030 !important;
+  color: #ffd60a !important;
+  border: 2px solid #ff006e !important;
+  border-radius: 0 !important;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px !important;
+  box-shadow: 4px 4px 0 #ff006e !important;
+  white-space: nowrap;
+}
+.hangbao-wpt-tip::before {
+  border-top-color: #ff006e !important;
+}
+.hangbao-fullscreen-btn {
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+  cursor: pointer;
+  line-height: 1 !important;
+  background: white;
+  border: none;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
 }
