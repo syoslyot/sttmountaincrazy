@@ -197,6 +197,23 @@
 .neon-card:nth-child(3) input::placeholder { color: rgba(255,255,255,0.7); }
 .neon-card .row { display: flex; gap: 8px; }
 .neon-card .row > * { flex: 1; }
+.neon-card .row input[type="date"] {
+  background: var(--bg);
+  color: var(--yellow);
+  border: 3px solid var(--hot);
+  box-shadow: 4px 4px 0 var(--cyan);
+  font-weight: 900;
+  font-size: 16px;
+  padding: 12px;
+  width: 100%;
+  margin-bottom: 0;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.neon-card .row input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2) sepia(1) saturate(10) hue-rotate(310deg);
+  cursor: pointer;
+}
 .neon-card .quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .neon-card .quick-btn {
   padding: 6px 12px; font-weight: 900; font-size: 17px;
