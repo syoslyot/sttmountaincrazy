@@ -56,9 +56,27 @@ SQLite 資料庫路徑由環境變數 `DB_PATH` 指定（預設 `./data/expediti
 npx tsc --noEmit
 ```
 
+## CI 驗證
+
+每個 PR 到 `main` 都會自動跑以下驗證，全部通過才能 merge：
+
+| 驗證 | 指令 | 抓什麼問題 |
+|------|------|-----------|
+| TypeScript 型別檢查 | `npx tsc --noEmit` | 型別不符（`string` 傳給 `number`、`undefined` 存取等）、import 路徑錯誤 |
+| ESLint | `npm run lint` | 程式碼風格、潛在 bug（未使用變數、`==` 代替 `===`）、React Hooks 規則 |
+
+merge 進 `main` 後另外跑（不屬於 PR 驗證）：
+
+| 步驟 | 說明 |
+|------|------|
+| Docker build + push | 確認 `Dockerfile` 語法正確、`npm run build` 可完成 Production build |
+| Watchtower | 部署伺服器偵測新 image 後自動重啟容器 |
+
+> 未來可新增的驗證：E2E 測試（Playwright）、bundle size 分析（`@next/bundle-analyzer`）
+
 ## 開發流程
 
-`main` 和 `develop` 受 GitHub branch ruleset 保護（設定日期：2025-05-20）：不可直接 push，必須走 PR，CI 須通過。
+`main` 和 `develop` 受 GitHub branch ruleset 保護（設定日期：2025-05-20）：不可直接 push，必須走 PR；`main` 另要求 `lint-and-type-check` job 通過。
 
 ```
 feature/<scope>-<desc>  →  develop  →  main
