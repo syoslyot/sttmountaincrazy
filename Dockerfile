@@ -1,13 +1,6 @@
-FROM ghcr.io/syoslyot/sttmountain:latest AS data-source
-RUN mkdir -p /app/db /app/app/static/gpx /app/app/static/maps /app/app/static/previews
-
 FROM node:22-alpine AS builder
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
-COPY --from=data-source /app/db/sttmountain.db ./data/sttmountain.db
-COPY --from=data-source /app/app/static/gpx ./data/static/gpx
-COPY --from=data-source /app/app/static/maps ./data/static/maps
-COPY --from=data-source /app/app/static/previews ./data/static/previews
 COPY package*.json ./
 RUN npm ci
 COPY . .
@@ -20,10 +13,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/data ./data
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DB_PATH=/app/data/sttmountain.db
+ENV DB_PATH=/app/data/db/sttmountain.db
 ENV STATIC_BASE=/app/data/static
 EXPOSE 3000
 CMD ["npm", "start"]
