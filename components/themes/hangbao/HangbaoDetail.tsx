@@ -166,11 +166,12 @@ function HangbaoMap({ activePath }: { activePath: string }) {
         waypoints.forEach(w => {
           const icon = L.divIcon({
             className: '',
-            html: '<div style="color:#ff006e;font-size:14px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5))">◆</div>',
-            iconSize: [14, 14], iconAnchor: [7, 7],
+            html: '<div class="hangbao-wpt-dot"></div>',
+            iconSize: [16, 16], iconAnchor: [8, 8],
           })
-          const wm = L.marker([w.lat, w.lng], { icon }).addTo(map)
-          wm.bindTooltip(w.name, { permanent: false, direction: 'top', offset: [0, -7] })
+          const wm = L.marker([w.lat, w.lng], { icon })
+            .bindTooltip(w.name, { direction: 'top', offset: [0, -10], className: 'hangbao-wpt-tip' })
+            .addTo(map)
           trackLayersRef.current.push(wm)
         })
 
