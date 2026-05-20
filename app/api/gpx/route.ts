@@ -1,27 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 
-const GPX_DIR = process.env.STATIC_BASE
-  ? path.join(process.env.STATIC_BASE, 'gpx')
-  : path.resolve(process.cwd(), '../sttmountain/app/static/gpx')
+const STORAGE_BASE = `${process.env.SUPABASE_URL}/storage/v1/object/public`
 
-export function GET(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const filename = req.nextUrl.searchParams.get('file')
   if (!filename) return NextResponse.json({ error: 'missing file' }, { status: 400 })
-
-  // Allow {exp_id}/{filename} (new) or plain {filename} (backward compat)
-  const subpathMatch = filename.match(/^(\d+)\/([^/\\]+)$/)
-  const abs = subpathMatch
-    ? path.join(GPX_DIR, subpathMatch[1], subpathMatch[2])
-    : path.join(GPX_DIR, path.basename(filename))
-
-  if (!fs.existsSync(abs)) {
-    return NextResponse.json({ error: 'not found' }, { status: 404 })
+  if (filename.includes('..') || filename.startsWith('/')) {
+    return NextResponse.json({ error: 'invalid path' }, { status: 400 })
   }
-
-  const content = fs.readFileSync(abs, 'utf-8')
-  return new NextResponse(content, {
-    headers: { 'Content-Type': 'application/gpx+xml' },
-  })
+  return NextResponse.redirect(`${STORAGE_BASE}/gpx/${filename}`)
 }
