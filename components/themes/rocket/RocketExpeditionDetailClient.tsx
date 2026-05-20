@@ -244,10 +244,12 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
                 right: 30,
                 width: '95%',
                 maxWidth: 'none',
+                maxHeight: '80vh',
                 transform: 'rotate(-3deg)',
                 zIndex: 10,
                 boxShadow: '6px 6px 0 rgba(0,0,0,0.28)',
                 objectFit: 'contain',
+                objectPosition: 'top',
               }}
             />
           )}

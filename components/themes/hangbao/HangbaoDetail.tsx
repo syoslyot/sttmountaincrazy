@@ -442,7 +442,7 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                       <img
                         src={`/api/preview?file=${encodeURIComponent(name)}`}
                         alt={`出隊資料 ${i + 1}`}
-                        style={{ display: 'block', width: '100%', height: 'auto' }}
+                        style={{ display: 'block', width: '100%', maxHeight: '80vh', objectFit: 'contain', objectPosition: 'top' }}
                       />
                     </div>
                   ))}
