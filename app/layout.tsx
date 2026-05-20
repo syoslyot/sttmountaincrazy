@@ -3,8 +3,8 @@ import { ThemeBadge } from '@/components/ThemeBadge'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
-  title: '成大山協出隊紀錄',
-  description: 'NCKU 山協 — 出隊地圖與紀錄',
+  title: '成大山協',
+  description: 'NCKU',
 }
 
 const FONT_URL = [

@@ -252,11 +252,14 @@ async function loadTrackOnMap(
       if (!wpt.name) continue
       const wptIcon = L.divIcon({
         className: '',
-        html: `<div style="background:#e65100;color:#fffde7;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;border-radius:50%;border:2px solid #fffde7;box-shadow:0 1px 4px rgba(0,0,0,0.4)">▲</div>`,
-        iconSize: [18, 18], iconAnchor: [9, 9],
+        html: '<div style="width:12px;height:12px;background:#e65100;border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>',
+        iconSize: [12, 12], iconAnchor: [6, 6],
       })
       const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
-      marker.bindTooltip(wpt.name, { permanent: false, direction: 'top', offset: [0, -9] })
+        .bindTooltip(wpt.name, {
+          direction: 'top', offset: [0, -8],
+          className: 'rocket-wpt-tip',
+        })
       marker.addTo(map)
       trackLayersRef.current.push(marker)
     }
@@ -319,9 +322,17 @@ export function RocketLeafletMap({ activeGpx }: Props) {
         'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}',
         { attribution: '© 國土測繪中心', maxZoom: 20 }
       )
+      const nlscSatellite = L.tileLayer(
+        'https://wmts.nlsc.gov.tw/wmts/PHOTO_MIX/default/GoogleMapsCompatible/{z}/{y}/{x}',
+        { attribution: '© 國土測繪中心', maxZoom: 20 }
+      )
       const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap', maxZoom: 19,
       })
+      const carto = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        { attribution: '© OpenStreetMap contributors, © CARTO', maxZoom: 18 }
+      )
       const nlscContour = L.tileLayer(
         'https://wmts.nlsc.gov.tw/wmts/CONTOUR/default/GoogleMapsCompatible/{z}/{y}/{x}',
         { attribution: '© 國土測繪中心', maxZoom: 20, opacity: 0.6 }
@@ -329,10 +340,42 @@ export function RocketLeafletMap({ activeGpx }: Props) {
 
       openTopo.addTo(map)
       L.control.layers(
-        { 'OpenTopoMap（等高線）': openTopo, 'NLSC 通用電子地圖': nlscEmap, 'OpenStreetMap': osm },
+        {
+          'OpenTopoMap（等高線）': openTopo,
+          'NLSC 通用電子地圖': nlscEmap,
+          'NLSC 正射影像（衛星）': nlscSatellite,
+          'OpenStreetMap': osm,
+          'CartoDB Voyager': carto,
+        },
         { 'NLSC 等高線 Overlay': nlscContour }
       ).addTo(map)
       L.control.scale({ metric: true, imperial: false }).addTo(map)
+
+      const FullscreenCtrl = L.Control.extend({
+        options: { position: 'topleft' as const },
+        onAdd() {
+          const btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control')
+          btn.innerHTML = '⛶'
+          btn.title = '全螢幕'
+          btn.style.cssText = 'font-size:16px;padding:4px 8px;cursor:pointer;background:white;border:none;line-height:1;display:flex;align-items:center;justify-content:center;font-family:sans-serif'
+          L.DomEvent.on(btn, 'click', () => {
+            const el = map.getContainer()
+            if (!document.fullscreenElement) el.requestFullscreen()
+            else document.exitFullscreen()
+          })
+          return btn
+        },
+      })
+      new FullscreenCtrl().addTo(map)
+
+      // Inject waypoint tooltip styles once
+      if (!document.getElementById('rocket-wpt-style')) {
+        const s = document.createElement('style')
+        s.id = 'rocket-wpt-style'
+        s.textContent = `.rocket-wpt-tip{background:#fffde7!important;color:#1a1000!important;border:2px solid #e65100!important;border-radius:0!important;font-family:'Bebas Neue',sans-serif!important;font-size:13px!important;letter-spacing:.08em!important;padding:3px 10px!important;box-shadow:3px 3px 0 #e65100!important;white-space:nowrap}.rocket-wpt-tip::before{border-top-color:#e65100!important}`
+        document.head.appendChild(s)
+      }
+
       map.setView([23.5, 121], 7)
 
       if (activeGpxRef.current) {

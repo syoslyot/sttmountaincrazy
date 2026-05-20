@@ -151,9 +151,9 @@ export function HangbaoHome() {
       <div className="neon-marquee">
         <div className="track">
           <span>來爬山阿</span><span>山協資料組夯爆系統</span><span>下山慶功宴吃什麼</span>
-          <span>成大山協</span><span>爬過的山老多了</span><span>安全第ㄧ</span>
-          <span>來阿，一起快樂爬山</span><span>登山資料夯爆系統</span><span>小甜甜為你展示出隊資料</span>
-          <span>超 ㄅ一ㄤˋ 的啦</span><span>爬過的山老多了</span><span>下山平安</span>
+          <span>成大山協</span><span>爬過的山老多了</span><span>安全第ㄧ•管理風險</span>
+          <span>來阿，一起快樂爬山</span><span>成大山社夯爆系統</span><span>小甜甜為你展示出隊資料</span>
+          <span>超 ㄅ一ㄤˋ 的啦</span><span>爬過的山老多了</span><span>平安下山</span>
         </div>
       </div>
 

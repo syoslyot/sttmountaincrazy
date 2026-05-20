@@ -87,7 +87,7 @@ export function RocketHome() {
       </div>
 
       {/* Filter bar */}
-      <div style={{ position: 'relative', zIndex: 10, padding: '0.5rem 2rem', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', pointerEvents: 'none' }}>
+      <div style={{ position: 'relative', zIndex: 10, padding: '0.5rem 2rem', paddingRight: '510px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', pointerEvents: 'none' }}>
         {(['map', 'search'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             style={{ border: `2px solid ${t === 'map' ? '#e65100' : '#0066cc'}`, background: tab === t ? (t === 'map' ? '#e65100' : '#0066cc') : 'transparent', color: tab === t ? '#fffde7' : (t === 'map' ? '#e65100' : '#0066cc'), padding: '0.3rem 0.9rem', fontFamily: "'Bebas Neue',sans-serif", fontSize: '0.9rem', letterSpacing: '0.15em', cursor: 'pointer', transform: t === 'map' ? 'rotate(-1deg)' : 'rotate(0.5deg)', pointerEvents: 'auto' }}>
@@ -108,9 +108,7 @@ export function RocketHome() {
                 <button onClick={() => setSelectedCounties(prev => prev.filter(x => x !== c))} style={{ background: 'none', border: 'none', color: '#e65100', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', lineHeight: 1 }}>×</button>
               </div>
             ))}
-            {selectedCounties.length < 17 && (
-              <button onClick={() => setSelectedCounties([])} style={{ border: '2px dashed #e65100', background: 'transparent', color: '#e65100', padding: '0.25rem 0.6rem', fontFamily: "'Bebas Neue',sans-serif", fontSize: '0.75rem', cursor: 'pointer', letterSpacing: '0.1em' }}>清除</button>
-            )}
+            <button onClick={() => setSelectedCounties([])} style={{ border: '2px dashed #e65100', background: 'transparent', color: '#e65100', padding: '0.25rem 0.6rem', fontFamily: "'Bebas Neue',sans-serif", fontSize: '0.75rem', cursor: 'pointer', letterSpacing: '0.1em' }}>清除</button>
           </div>
         )}
 

@@ -1,22 +1,22 @@
 # sttmountcrazy
 
-成大山協出隊紀錄系統。進入時隨機顯示兩種風格之一。
+成大山協出隊紀錄系統 `v2.0.0`。進入時隨機跳轉至兩種風格之一。
 
 ## 風格
 
-| 名稱 | 路由 | 說明 |
-|------|------|------|
-| 火箭羊羊 | `/` | Risograph 拼貼風，地圖互動篩選出隊紀錄 |
-| 登山夯爆 | `/` 或 `/hangbao` | 台式霓虹風，關鍵字＋縣市＋日期篩選 |
+| 名稱 | 固定入口 | 詳細頁 | 說明 |
+|------|---------|--------|------|
+| 火箭羊羊 | `/rocket` | `/expedition/[id]` | Risograph 拼貼風，地圖互動 + GPX 軌跡 |
+| 登山夯爆 | `/hangbao` | `/hangbao/[id]` | 台式霓虹風，關鍵字＋縣市＋日期篩選 |
 
-每次進入 `/` 隨機分配風格；`/hangbao` 為登山夯爆的固定入口。
+`/` 隨機跳轉至其中一種風格；兩種風格右下角均有切換按鈕。
 
 ## 技術棧
 
-- Next.js 15 (App Router)
+- Next.js 16 (App Router, Turbopack)
 - SQLite（better-sqlite3）
 - Leaflet（GPX 軌跡地圖）
-- Tailwind CSS
+- Tailwind CSS v4
 
 ## 本地開發
 
