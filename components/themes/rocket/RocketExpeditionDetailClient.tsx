@@ -12,10 +12,12 @@ const RocketLeafletMap = dynamic(
 
 const REC_ROTS = [-0.5, 1.2, -1.0, 0.8]
 
+interface GpxFile { file_path: string; filename: string }
+
 interface Props {
   exp: Record<string, unknown>
-  gpxPaths: string[]
-  mapFiles: { file_path: string }[]
+  gpxFiles: GpxFile[]
+  mapFiles: { file_path: string; filename: string }[]
   records: { filename: string; content: string }[]
 }
 
@@ -73,8 +75,8 @@ function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0
   )
 }
 
-export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
-  const [activeGpx, setActiveGpx] = useState<string | null>(gpxPaths[0] ?? null)
+export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records }: Props) {
+  const [activeGpx, setActiveGpx] = useState<string | null>(gpxFiles[0]?.file_path ?? null)
   const [selectedRecord, setSelectedRecord] = useState<number>(0)
   const [showRecord, setShowRecord] = useState(true)
   const [gpxOpen, setGpxOpen] = useState(false)
@@ -87,7 +89,7 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
     ? (String(exp.preview_image).split('/').pop() ?? null)
     : null
 
-  const activeGpxName = activeGpx ? (activeGpx.split('/').pop() ?? activeGpx) : 'GPX'
+  const activeGpxName = gpxFiles.find(g => g.file_path === activeGpx)?.filename ?? 'GPX'
   const activeRecName = records[selectedRecord]?.filename ?? '紀錄'
 
   useEffect(() => {
@@ -166,17 +168,17 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
         {/* Dropdown group — outside-click handled by dropdownsRef */}
         <div ref={dropdownsRef} style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap', pointerEvents: 'auto' }}>
           {/* GPX dropdown */}
-          {gpxPaths.length > 0 && (
+          {gpxFiles.length > 0 && (
             <RisoDropdown
               label={activeGpxName}
-              options={gpxPaths.map(p => p.split('/').pop() ?? p)}
+              options={gpxFiles.map(g => g.filename)}
               color="#e65100"
               open={gpxOpen}
               onToggle={() => { setGpxOpen(o => !o); setPdfOpen(false); setRecOpen(false) }}
-              onSelect={i => setActiveGpx(gpxPaths[i])}
+              onSelect={i => setActiveGpx(gpxFiles[i].file_path)}
               rot={-1.2}
-              isActive={gpxPaths.length > 0}
-              activeIndex={gpxPaths.indexOf(activeGpx ?? '')}
+              isActive={gpxFiles.length > 0}
+              activeIndex={gpxFiles.findIndex(g => g.file_path === activeGpx)}
             />
           )}
 
@@ -184,7 +186,7 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
           {pdfFiles.length > 0 && (
             <RisoDropdown
               label="地圖 PDF"
-              options={pdfFiles.map(f => f.file_path.split('/').pop() ?? f.file_path)}
+              options={pdfFiles.map(f => f.filename)}
               color="#e65100"
               open={pdfOpen}
               onToggle={() => { setPdfOpen(o => !o); setGpxOpen(false); setRecOpen(false) }}
