@@ -24,6 +24,6 @@ COPY --from=builder /app/data ./data
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DB_PATH=/app/data/sttmountain.db
-ENV STATIC_DIR=/app/data/static
+ENV STATIC_BASE=/app/data/static
 EXPOSE 3000
 CMD ["npm", "start"]
