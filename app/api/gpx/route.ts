@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sttFetch } from '@/lib/api'
+
+const STORAGE_BASE = `${process.env.SUPABASE_URL}/storage/v1/object/public`
 
 export async function GET(req: NextRequest) {
   const filename = req.nextUrl.searchParams.get('file')
@@ -7,11 +8,5 @@ export async function GET(req: NextRequest) {
   if (filename.includes('..') || filename.startsWith('/')) {
     return NextResponse.json({ error: 'invalid path' }, { status: 400 })
   }
-
-  const res = await sttFetch(`/static/gpx/${filename}`)
-  if (!res.ok) return NextResponse.json({ error: 'not found' }, { status: 404 })
-
-  return new NextResponse(res.body, {
-    headers: { 'Content-Type': 'application/gpx+xml' },
-  })
+  return NextResponse.redirect(`${STORAGE_BASE}/gpx/${filename}`)
 }

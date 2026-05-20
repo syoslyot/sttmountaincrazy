@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { sttFetch } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 
 export async function GET() {
-  const res = await sttFetch('/api/expeditions/dates')
-  const data = await res.json()
-  return NextResponse.json(data, { status: res.status })
+  const { data, error } = await supabase.rpc('get_expedition_dates')
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
 }

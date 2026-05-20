@@ -15,6 +15,5 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV STTMOUNTAIN_URL=http://localhost:8000
 EXPOSE 3000
 CMD ["npm", "start"]
