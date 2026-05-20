@@ -204,6 +204,7 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
               onSelect={i => setSelectedRecord(i)}
               rot={-0.5}
               isActive={records.length > 0}
+              activeIndex={selectedRecord}
             />
           )}
         </div>
