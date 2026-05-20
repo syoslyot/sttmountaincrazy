@@ -34,6 +34,7 @@ export function HangbaoDatePicker({ value, onChange, placeholder = '選擇日期
   useEffect(() => {
     if (value) {
       const d = new Date(value)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync view state when controlled value changes
       setViewYear(d.getFullYear())
       setViewMonth(d.getMonth())
     }

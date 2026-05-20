@@ -65,6 +65,7 @@ export function useExpeditions(filter: ExpeditionFilter) {
   useEffect(() => {
     filterRef.current = filter
     pageRef.current = 1
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset list on filter change
     setExps([])
     // eslint-disable-next-line react-hooks/exhaustive-deps
     load(true)

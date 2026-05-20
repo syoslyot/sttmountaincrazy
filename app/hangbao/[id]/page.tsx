@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getDb } from '@/lib/db'
-import { HangbaoDetail } from '@/components/themes/hangbao/HangbaoDetail'
+import { HangbaoDetail, type ExpData } from '@/components/themes/hangbao/HangbaoDetail'
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -31,5 +31,5 @@ export default async function HangbaoDetailPage({ params }: Props) {
 
   const gpxPaths = ((exp.gpx_paths as string | null) ?? '').split(',').filter(Boolean)
 
-  return <HangbaoDetail exp={exp as any} gpxPaths={gpxPaths} records={records} mapFiles={mapFiles} />
+  return <HangbaoDetail exp={exp as unknown as ExpData} gpxPaths={gpxPaths} records={records} mapFiles={mapFiles} />
 }

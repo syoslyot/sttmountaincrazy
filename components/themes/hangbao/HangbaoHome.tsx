@@ -95,6 +95,7 @@ export function HangbaoHome() {
   useEffect(() => {
     filterRef.current = { selectedCounties, dateFrom, dateTo, query }
     pageRef.current = 1
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset list on filter change
     setExps([])
     load(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
