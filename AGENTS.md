@@ -18,7 +18,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `release/<version>` | release prep | `develop` | `main` + `develop` |
 | `hotfix/<short-desc>` | urgent prod fix | `main` | `main` + `develop` |
 
-**Never commit directly to `main` or `develop`.**
+**Never commit directly to `main` or `develop`.** Both branches are protected on GitHub (branch ruleset, 2025-05-20): PR required before merging, CI must pass, branches must be up to date, force push blocked.
 
 ## Commit message (Conventional Commits)
 
