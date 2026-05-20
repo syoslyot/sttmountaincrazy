@@ -1114,3 +1114,27 @@
   cursor: default;
   pointer-events: none;
 }
+
+/* ============== WAYPOINT MARKERS ============== */
+.hangbao-wpt-dot {
+  width: 16px; height: 16px;
+  background: #ff006e;
+  border: 2px solid #ffd60a;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px #ff006e, 0 0 2px #ffd60a;
+  cursor: pointer;
+}
+.hangbao-wpt-tip {
+  background: #1a0030 !important;
+  color: #ffd60a !important;
+  border: 2px solid #ff006e !important;
+  border-radius: 0 !important;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px !important;
+  box-shadow: 4px 4px 0 #ff006e !important;
+  white-space: nowrap;
+}
+.hangbao-wpt-tip::before {
+  border-top-color: #ff006e !important;
+}

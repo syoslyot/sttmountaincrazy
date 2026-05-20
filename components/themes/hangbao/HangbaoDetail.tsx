@@ -151,12 +151,12 @@ function HangbaoMap({ activePath }: { activePath: string }) {
 
         const mkStart = L.divIcon({
           className: '',
-          html: '<div style="background:#ff006e;color:white;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">起</div>',
+          html: '<div style="background:#00f5d4;color:#e63946;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">起</div>',
           iconSize: [40, 30], iconAnchor: [20, 15],
         })
         const mkEnd = L.divIcon({
           className: '',
-          html: '<div style="background:#1a0030;color:#ffd60a;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">終</div>',
+          html: '<div style="background:#ffd60a;color:#1a0030;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">終</div>',
           iconSize: [40, 30], iconAnchor: [20, 15],
         })
         const mStart = L.marker(latlngs[0], { icon: mkStart }).addTo(map)
@@ -166,10 +166,12 @@ function HangbaoMap({ activePath }: { activePath: string }) {
         waypoints.forEach(w => {
           const icon = L.divIcon({
             className: '',
-            html: `<div style="background:white;color:#1a0030;padding:3px 8px;font-weight:700;font-size:12px;border:2px solid #ff006e;white-space:nowrap;">▲ ${w.name}</div>`,
-            iconSize: [80, 24], iconAnchor: [40, 12],
+            html: '<div class="hangbao-wpt-dot"></div>',
+            iconSize: [16, 16], iconAnchor: [8, 8],
           })
-          const wm = L.marker([w.lat, w.lng], { icon }).addTo(map)
+          const wm = L.marker([w.lat, w.lng], { icon })
+            .bindTooltip(w.name, { direction: 'top', offset: [0, -10], className: 'hangbao-wpt-tip' })
+            .addTo(map)
           trackLayersRef.current.push(wm)
         })
 
