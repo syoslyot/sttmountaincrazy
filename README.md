@@ -72,6 +72,24 @@ merge 進 `main` 後另外跑（不屬於 PR 驗證）：
 | Docker build + push | 確認 `Dockerfile` 語法正確、`npm run build` 可完成 Production build |
 | Watchtower | 部署伺服器偵測新 image 後自動重啟容器 |
 
+## 部署架構備忘
+
+### 現有流程的限制
+
+每次 push，不論改了幾行，都要跑完整個 build 流程（`npm run build` → `docker build` → push image → Watchtower 換 container）。Docker image 是不可變快照，沒有「只更新某一行」的操作，只能整包替換。
+
+代價：build 時間約 3–8 分鐘；Watchtower 停舊 container 到新 container 就緒之間有短暫停機。
+
+### 業界解法（目前規模不需要，作為學習紀錄）
+
+| 技術 | 解決什麼問題 | 說明 |
+|------|------------|------|
+| **增量 build**（monorepo + turborepo） | build 時間長 | 只重新 build 有變動的套件/服務，其餘從 cache 取 |
+| **藍綠部署**（Blue-Green Deployment） | 停機時間 | 先啟動新 container 並確認健康，再把流量切過去，舊 container 才停。零停機。 |
+| **Kubernetes Rolling Update** | 停機時間 + 水平擴展 | 多個 container 逐一替換，永遠保持部分舊 container 在服務中，不全停。需要 K8s 叢集。 |
+
+**這個專案現況**：3–5 分鐘 build + 幾秒停機完全可以接受，不需要上述機制。
+
 > 未來可新增的驗證：E2E 測試（Playwright）、bundle size 分析（`@next/bundle-analyzer`）
 
 ## 開發流程
