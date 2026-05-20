@@ -22,11 +22,13 @@ export interface ExpData {
 
 interface RecordItem { filename: string; content: string }
 
+interface GpxFile { file_path: string; filename: string }
+
 interface Props {
   exp: ExpData
-  gpxPaths: string[]
+  gpxFiles: GpxFile[]
   records: RecordItem[]
-  mapFiles: { file_path: string }[]
+  mapFiles: { file_path: string; filename: string }[]
 }
 
 function fmtDate(d: string | null | undefined): string {
@@ -300,7 +302,7 @@ const IMG_ROTS = [-1.5, 1.2, -2, 0.8, -1, 1.8]
 const TITLE_ROTS = [-4, 3, -6, 2, -3, 5, -2, 4, -5, 2]
 const REC_SHAPES = ['rs-square','rs-rect','rs-circle','rs-ellipse','rs-blob','rs-skew','rs-tall','rs-wide']
 
-export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
+export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
   const [openRec, setOpenRec]     = useState<number | null>(null)
   const [activeGpxIdx, setActiveGpxIdx] = useState(0)
   const [gpxOpen, setGpxOpen]     = useState(false)
@@ -308,7 +310,7 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   const mapSectionRef  = useRef<HTMLDivElement>(null)
   const actionsDropRef = useRef<HTMLDivElement>(null)
 
-  const activeGpxPath = gpxPaths[activeGpxIdx] ?? ''
+  const activeGpxPath = gpxFiles[activeGpxIdx]?.file_path ?? ''
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -363,13 +365,13 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
           <div className="d-map-corner">山協 siak-phānn</div>
           <div className="d-map-actions" ref={actionsDropRef}>
             {/* GPX dropdown */}
-            {gpxPaths.length > 0 && (
+            {gpxFiles.length > 0 && (
               <div style={{ position: 'relative' }}>
                 <button
                   className="d-dl-btn b2"
                   onClick={() => { setGpxOpen(o => !o); setPdfOpen(false) }}
                 >
-                  <span className="big">{activeGpxPath || 'GPX'} {gpxOpen ? '▲' : '▼'}</span>
+                  <span className="big">{gpxFiles[activeGpxIdx]?.filename || 'GPX'} {gpxOpen ? '▲' : '▼'}</span>
                 </button>
                 {gpxOpen && (
                   <div style={{
@@ -377,23 +379,20 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                     background: 'var(--bg)', border: '4px solid var(--bg)',
                     boxShadow: '6px 6px 0 var(--hot)', minWidth: '100%',
                   }}>
-                    {gpxPaths.map((p, i) => {
-                      const fname = p.split('/').pop() ?? p
-                      return (
-                        <button key={i}
-                          className="d-dl-item"
-                          style={{
-                            display: 'block', width: '100%', padding: '10px 16px',
-                            background: i === activeGpxIdx ? 'var(--hot)' : 'var(--yellow)',
-                            color: 'var(--bg)', border: 'none', cursor: 'pointer',
-                            textAlign: 'left',
-                          }}
-                          onClick={() => { setActiveGpxIdx(i); setGpxOpen(false) }}
-                        >
-                          {fname}
-                        </button>
-                      )
-                    })}
+                    {gpxFiles.map((g, i) => (
+                      <button key={i}
+                        className="d-dl-item"
+                        style={{
+                          display: 'block', width: '100%', padding: '10px 16px',
+                          background: i === activeGpxIdx ? 'var(--hot)' : 'var(--yellow)',
+                          color: 'var(--bg)', border: 'none', cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                        onClick={() => { setActiveGpxIdx(i); setGpxOpen(false) }}
+                      >
+                        {g.filename}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -401,7 +400,7 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
 
             {/* PDF dropdown */}
             {(() => {
-              const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.file_path))
+              const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.filename))
               if (mapFileItems.length === 0) return null
               return (
                 <div style={{ position: 'relative' }}>
@@ -418,11 +417,10 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                       boxShadow: '6px 6px 0 var(--cyan)', minWidth: '100%',
                     }}>
                       {mapFileItems.map((f, i) => {
-                        const fname = f.file_path.split('/').pop() ?? ''
-                        const isPdf = /\.pdf$/i.test(fname)
+                        const isPdf = /\.pdf$/i.test(f.filename)
                         const url = isPdf
                           ? `/api/pdf?file=${encodeURIComponent(f.file_path)}`
-                          : `/api/preview?file=${encodeURIComponent(fname)}`
+                          : `/api/preview?file=${encodeURIComponent(f.file_path.split('/').pop() ?? '')}`
                         return (
                           <button key={i}
                             className="d-dl-item"
@@ -433,7 +431,7 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
                             }}
                             onClick={() => { window.open(url, '_blank'); setPdfOpen(false) }}
                           >
-                            {fname}
+                            {f.filename}
                           </button>
                         )
                       })}
