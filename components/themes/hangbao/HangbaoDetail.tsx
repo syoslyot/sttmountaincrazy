@@ -6,7 +6,7 @@ import Link from 'next/link'
 import 'leaflet/dist/leaflet.css'
 import './hangbao.css'
 
-interface ExpData {
+export interface ExpData {
   id: number
   name: string
   date_start: string
