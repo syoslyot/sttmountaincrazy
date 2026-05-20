@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_ANON_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Fallback keeps `npm run build` from crashing when env vars aren't present.
+// Real values are injected by Render at runtime; build never makes actual API calls.
+export const supabase = createClient(
+  process.env.SUPABASE_URL      ?? 'http://localhost',
+  process.env.SUPABASE_ANON_KEY ?? 'anon'
+)
 
 type GpxFile = { file_path: string }
 type MapFile = { file_path: string; filename: string }
