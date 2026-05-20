@@ -500,6 +500,7 @@ export function ScatteredTaiwanMap({ selected, onSelect, variant, fillNormal, fi
     <div style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
       {variant === 'fall' && <style>{fallCSS}</style>}
 
+      {/* eslint-disable react-hooks/refs -- intentional: dragRef read during render for per-piece drag state */}
       {pieces.map((p, i) => {
         const isSel = selected.includes(p.name)
         const isHov = hovered === p.name

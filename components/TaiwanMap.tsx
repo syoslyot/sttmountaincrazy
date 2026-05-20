@@ -21,7 +21,9 @@ interface Props {
 export function TaiwanMap({ selected, onSelect }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const stateRef = useRef({ selected, onSelect, g: null as any, getColor: null as any })
+  // eslint-disable-next-line react-hooks/refs
   stateRef.current.selected = selected
+  // eslint-disable-next-line react-hooks/refs
   stateRef.current.onSelect = onSelect
 
   useEffect(() => {

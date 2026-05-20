@@ -280,6 +280,7 @@ export function RocketLeafletMap({ activeGpx }: Props) {
   const activeGpxRef = useRef(activeGpx)
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
 
+  // eslint-disable-next-line react-hooks/refs
   activeGpxRef.current = activeGpx
 
   const handleChartHover = useCallback((pt: ElevPoint) => {
