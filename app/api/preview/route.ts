@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const PREVIEW_DIR = process.env.STATIC_DIR
-  ? path.join(process.env.STATIC_DIR, 'previews')
+const PREVIEW_DIR = process.env.STATIC_BASE
+  ? path.join(process.env.STATIC_BASE, 'previews')
   : path.resolve(process.cwd(), '../sttmountain/app/static/previews')
-const MAPS_DIR = process.env.STATIC_DIR
-  ? path.join(process.env.STATIC_DIR, 'maps')
+const MAPS_DIR = process.env.STATIC_BASE
+  ? path.join(process.env.STATIC_BASE, 'maps')
   : path.resolve(process.cwd(), '../sttmountain/app/static/maps')
 
 export function GET(req: NextRequest) {

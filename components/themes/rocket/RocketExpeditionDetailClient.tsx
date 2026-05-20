@@ -28,9 +28,10 @@ interface DropdownProps {
   onToggle: () => void
   rot?: number
   isActive?: boolean
+  activeIndex?: number
 }
 
-function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false }: DropdownProps) {
+function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false, activeIndex }: DropdownProps) {
   const filled = open || isActive
   return (
     <div style={{ position: 'relative', pointerEvents: 'auto' }}>
@@ -59,8 +60,9 @@ function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0
               style={{
                 display: 'block', width: '100%', padding: '0.25rem 0.6rem',
                 fontFamily: "'Bebas Neue', sans-serif", fontSize: '0.89rem',
-                border: 'none', background: 'transparent', color, cursor: 'pointer',
-                textAlign: 'left', letterSpacing: '0.08em',
+                border: 'none', background: i === activeIndex ? color : 'transparent',
+                color: i === activeIndex ? '#fffde7' : color,
+                cursor: 'pointer', textAlign: 'left', letterSpacing: '0.08em',
               }}>
               {opt}
             </button>
@@ -174,6 +176,7 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
               onSelect={i => setActiveGpx(gpxPaths[i])}
               rot={-1.2}
               isActive={gpxPaths.length > 0}
+              activeIndex={gpxPaths.indexOf(activeGpx ?? '')}
             />
           )}
 
@@ -201,6 +204,7 @@ export function RocketExpeditionDetailClient({ exp, gpxPaths, mapFiles, records 
               onSelect={i => setSelectedRecord(i)}
               rot={-0.5}
               isActive={records.length > 0}
+              activeIndex={selectedRecord}
             />
           )}
         </div>

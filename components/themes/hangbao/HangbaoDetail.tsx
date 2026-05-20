@@ -182,12 +182,12 @@ function HangbaoMap({ activePath }: { activePath: string }) {
 
         const mkStart = L.divIcon({
           className: '',
-          html: '<div style="background:#ff006e;color:white;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">起</div>',
+          html: '<div style="background:#00f5d4;color:#e63946;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">起</div>',
           iconSize: [40, 30], iconAnchor: [20, 15],
         })
         const mkEnd = L.divIcon({
           className: '',
-          html: '<div style="background:#1a0030;color:#ffd60a;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">終</div>',
+          html: '<div style="background:#ffd60a;color:#1a0030;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">終</div>',
           iconSize: [40, 30], iconAnchor: [20, 15],
         })
         const mStart = L.marker(latlngs[0], { icon: mkStart }).addTo(map)
@@ -308,7 +308,7 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   const mapSectionRef  = useRef<HTMLDivElement>(null)
   const actionsDropRef = useRef<HTMLDivElement>(null)
 
-  const activeGpxPath = gpxPaths[activeGpxIdx]?.split('/').pop() ?? ''
+  const activeGpxPath = gpxPaths[activeGpxIdx] ?? ''
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

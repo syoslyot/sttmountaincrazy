@@ -212,9 +212,8 @@ async function loadTrackOnMap(
   trackLayersRef.current = []
   setElevPoints([])
 
-  const filename = activeGpx.split('/').pop() ?? activeGpx
-  const isKml = filename.toLowerCase().endsWith('.kml')
-  const url = `/api/gpx?file=${encodeURIComponent(filename)}`
+  const isKml = activeGpx.toLowerCase().endsWith('.kml')
+  const url = `/api/gpx?file=${encodeURIComponent(activeGpx)}`
 
   try {
     const res = await fetch(url)
@@ -241,7 +240,7 @@ async function loadTrackOnMap(
     if (latlngs.at(-1)) {
       const endIcon = L.divIcon({
         className: '',
-        html: '<div style="background:#1a1000;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
+        html: '<div style="background:#0066cc;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
         iconSize: [30, 26], iconAnchor: [15, 13],
       })
       const end = L.marker(latlngs.at(-1)!, { icon: endIcon })

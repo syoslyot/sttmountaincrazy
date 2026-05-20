@@ -39,8 +39,7 @@ export function LeafletMap({ gpxPaths }: Props) {
         gpxPaths.map(async (p, i) => {
           // Serve GPX from sttmountain static via Next.js API or directly
           // For local dev: read from filesystem via API
-          const filename = p.split('/').pop() ?? p
-          const url = `/api/gpx?file=${encodeURIComponent(filename)}`
+          const url = `/api/gpx?file=${encodeURIComponent(p)}`
           const res = await fetch(url)
           if (!res.ok) return
           const text = await res.text()
