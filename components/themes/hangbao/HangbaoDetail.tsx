@@ -275,7 +275,7 @@ export function HangbaoDetail({ exp, gpxPaths, records, mapFiles }: Props) {
   const mapSectionRef  = useRef<HTMLDivElement>(null)
   const actionsDropRef = useRef<HTMLDivElement>(null)
 
-  const activeGpxPath = gpxPaths[activeGpxIdx]?.split('/').pop() ?? ''
+  const activeGpxPath = gpxPaths[activeGpxIdx] ?? ''
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

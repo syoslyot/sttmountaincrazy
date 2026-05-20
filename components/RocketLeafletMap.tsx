@@ -212,9 +212,8 @@ async function loadTrackOnMap(
   trackLayersRef.current = []
   setElevPoints([])
 
-  const filename = activeGpx.split('/').pop() ?? activeGpx
-  const isKml = filename.toLowerCase().endsWith('.kml')
-  const url = `/api/gpx?file=${encodeURIComponent(filename)}`
+  const isKml = activeGpx.toLowerCase().endsWith('.kml')
+  const url = `/api/gpx?file=${encodeURIComponent(activeGpx)}`
 
   try {
     const res = await fetch(url)
