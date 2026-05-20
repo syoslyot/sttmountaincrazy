@@ -240,7 +240,7 @@ async function loadTrackOnMap(
     if (latlngs.at(-1)) {
       const endIcon = L.divIcon({
         className: '',
-        html: '<div style="background:#1a1000;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
+        html: '<div style="background:#0066cc;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
         iconSize: [30, 26], iconAnchor: [15, 13],
       })
       const end = L.marker(latlngs.at(-1)!, { icon: endIcon })
@@ -252,10 +252,11 @@ async function loadTrackOnMap(
       if (!wpt.name) continue
       const wptIcon = L.divIcon({
         className: '',
-        html: `<div style="background:#fffde7;color:#1a1000;padding:3px 8px;font-weight:700;font-size:12px;font-family:'Noto Sans TC',sans-serif;border:2px solid #e65100;white-space:nowrap">▲ ${wpt.name}</div>`,
-        iconSize: [80, 24], iconAnchor: [40, 12],
+        html: `<div style="background:#e65100;color:#fffde7;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;border-radius:50%;border:2px solid #fffde7;box-shadow:0 1px 4px rgba(0,0,0,0.4)">▲</div>`,
+        iconSize: [18, 18], iconAnchor: [9, 9],
       })
       const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
+      marker.bindTooltip(wpt.name, { permanent: false, direction: 'top', offset: [0, -9] })
       marker.addTo(map)
       trackLayersRef.current.push(marker)
     }
