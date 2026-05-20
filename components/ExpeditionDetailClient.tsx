@@ -7,13 +7,15 @@ const RocketExpeditionDetailClient = dynamic(
   { ssr: false }
 )
 
+interface GpxFile { file_path: string; filename: string }
+
 interface Props {
   exp: Record<string, unknown>
-  gpxPaths: string[]
-  mapFiles: { file_path: string }[]
+  gpxFiles: GpxFile[]
+  mapFiles: { file_path: string; filename: string }[]
   records: { filename: string; content: string }[]
 }
 
-export function ExpeditionDetailClient({ exp, gpxPaths, mapFiles, records }: Props) {
-  return <RocketExpeditionDetailClient exp={exp} gpxPaths={gpxPaths} mapFiles={mapFiles} records={records} />
+export function ExpeditionDetailClient({ exp, gpxFiles, mapFiles, records }: Props) {
+  return <RocketExpeditionDetailClient exp={exp} gpxFiles={gpxFiles} mapFiles={mapFiles} records={records} />
 }

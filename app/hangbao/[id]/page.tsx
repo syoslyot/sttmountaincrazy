@@ -9,5 +9,5 @@ export default async function HangbaoDetailPage({ params }: Props) {
   const exp = await fetchExpeditionById(id)
   if (!exp) notFound()
 
-  return <HangbaoDetail exp={exp} gpxPaths={(exp.gpx_paths ?? '').split(',').filter(Boolean)} records={exp.records} mapFiles={exp.map_files} />
+  return <HangbaoDetail exp={exp} gpxFiles={exp.gpx_files} records={exp.records} mapFiles={exp.map_files} />
 }

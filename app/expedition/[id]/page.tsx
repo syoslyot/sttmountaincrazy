@@ -19,7 +19,7 @@ export default async function ExpeditionPage({ params }: Props) {
       <Navbar />
       <ExpeditionDetailClient
         exp={exp as unknown as Record<string, unknown>}
-        gpxPaths={(exp.gpx_paths ?? '').split(',').filter(Boolean)}
+        gpxFiles={exp.gpx_files}
         mapFiles={exp.map_files}
         records={exp.records}
       />
