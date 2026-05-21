@@ -83,6 +83,17 @@ function parseKmlHangbao(text: string): { latlngs: [number, number][]; waypoints
   return { latlngs, waypoints: [] }
 }
 
+function ensureWptTipStyle(color: string): string {
+  const cls = `hangbao-wpt-tip-${color.replace('#', '')}`
+  if (!document.querySelector(`style[data-hwpt="${cls}"]`)) {
+    const s = document.createElement('style')
+    s.dataset.hwpt = cls
+    s.textContent = `.${cls}{background:#1a0030!important;color:${color}!important;border:2px solid ${color}!important;border-radius:0!important;font-weight:700;font-size:13px;}`
+    document.head.appendChild(s)
+  }
+  return cls
+}
+
 function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap: Record<string, string> }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
@@ -227,7 +238,7 @@ function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap
                 iconSize: [16, 16], iconAnchor: [8, 8],
               })
               layers.push(L.marker([w.lat, w.lng], { icon })
-                .bindTooltip(w.name, { direction: 'top', offset: [0, -10], className: 'hangbao-wpt-tip' })
+                .bindTooltip(w.name, { direction: 'top', offset: [0, -10], className: ensureWptTipStyle(color) })
                 .addTo(map))
             })
 
