@@ -343,11 +343,13 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         <>
           {showRecord && (
             <div style={{
-              position: 'fixed', top: '88px', bottom: '20px', left: '62%', right: '1%',
+              position: 'fixed', top: '10.5%', bottom: '15%', left: '62%', right: '1%',
               overflow: 'auto',
               background: '#fffde7',
               border: '3px solid #3a7d44',
               boxShadow: '4px 4px 0 #3a7d44',
+              transform: 'rotate(-5deg)',
+              transformOrigin: 'center center',
               zIndex: 1100,
               padding: '1rem 1.2rem',
               fontFamily: "'Noto Sans TC', sans-serif",
