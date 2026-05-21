@@ -155,7 +155,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
     () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
   )
   const [selectedRecord, setSelectedRecord] = useState<number>(0)
-  const [showRecord, setShowRecord] = useState(true)
+  const [showRecord, setShowRecord] = useState(false)
   const [gpxOpen, setGpxOpen] = useState(false)
   const [pdfOpen, setPdfOpen] = useState(false)
   const [recOpen, setRecOpen] = useState(false)
@@ -343,12 +343,12 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         <>
           {showRecord && (
             <div style={{
-              position: 'fixed', bottom: 110, left: 20,
-              width: 432, maxHeight: 510,
+              position: 'fixed', bottom: 110, right: 20,
+              width: 560, maxHeight: 620,
               overflow: 'auto',
               background: '#fffde7',
-              border: '3px solid #1a1000',
-              boxShadow: '4px 4px 0 #1a1000',
+              border: '3px solid #3a7d44',
+              boxShadow: '4px 4px 0 #3a7d44',
               zIndex: 1100,
               padding: '1rem 1.2rem',
               fontFamily: "'Noto Sans TC', sans-serif",
@@ -371,7 +371,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
           <div
             onClick={() => setShowRecord(p => !p)}
             style={{
-              position: 'fixed', bottom: 25, left: 20, zIndex: 1100,
+              position: 'fixed', bottom: 25, right: 20, zIndex: 1100,
               pointerEvents: 'auto', cursor: 'pointer',
               animation: 'bubbleFloat 3.5s ease-in-out infinite',
             }}
