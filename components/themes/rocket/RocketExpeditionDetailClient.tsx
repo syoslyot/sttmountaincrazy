@@ -171,9 +171,11 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
   const toggleGpx = (path: string) => {
     setActiveGpxes(prev => {
       const next = new Set(prev)
+      if (next.has(path) && next.size === 1) return prev
       next.has(path) ? next.delete(path) : next.add(path)
       return next
     })
+    setGpxOpen(false)
   }
 
   useEffect(() => {
@@ -353,12 +355,12 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
               zIndex: 1100,
               padding: '1rem 1.2rem',
               fontFamily: "'Noto Sans TC', sans-serif",
-              fontSize: '1.275rem', lineHeight: 1.8,
+              fontSize: '1.1rem', lineHeight: 1.8,
               color: '#1a1000',
             }}>
               <div style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '1.6rem', color: '#e65100',
+                fontSize: '1.275rem', color: '#e65100',
                 letterSpacing: '0.1em', marginBottom: '0.5rem',
               }}>
                 {records[selectedRecord]?.filename}
