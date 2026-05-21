@@ -115,11 +115,13 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
         {label} {open ? '▲' : '▼'}
       </button>
       {open && options.length > 0 && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
-          background: '#fffde7', border: `2px solid ${color}`, minWidth: '100%',
-          boxShadow: `3px 3px 0 ${color}`,
-        }}>
+        <div
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+            background: '#fffde7', border: `2px solid ${color}`, minWidth: '100%',
+            boxShadow: `3px 3px 0 ${color}`,
+          }}>
           {options.map((opt, i) => {
             const isSelected = selected.has(opt.path)
             const dotColor = trackColors[i % trackColors.length]
