@@ -36,15 +36,17 @@ interface DropdownProps {
   rot?: number
   isActive?: boolean
   activeIndex?: number
+  maxWidth?: string
 }
 
-function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false, activeIndex }: DropdownProps) {
+function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false, activeIndex, maxWidth }: DropdownProps) {
   const filled = open || isActive
   return (
     <div style={{ position: 'relative', pointerEvents: 'auto' }}>
       <button
         onClick={onToggle}
         style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
           border: `2px solid ${color}`,
           background: filled ? color : 'transparent',
           color: filled ? '#fffde7' : color,
@@ -53,8 +55,12 @@ function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0
           fontSize: '0.89rem', letterSpacing: '0.12em',
           cursor: 'pointer',
           transform: `rotate(${rot}deg)`,
+          ...(maxWidth ? { maxWidth } : {}),
         }}>
-        {label} {open ? '▲' : '▼'}
+        <span style={maxWidth ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 } : {}}>
+          {label}
+        </span>
+        <span style={{ flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
       </button>
       {open && options.length > 0 && (
         <div style={{
@@ -291,6 +297,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
               rot={-0.5}
               isActive={records.length > 0}
               activeIndex={selectedRecord}
+              maxWidth="16rem"
             />
           )}
         </div>
