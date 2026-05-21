@@ -172,7 +172,7 @@ export function HangbaoHome() {
 
       <section className="neon-search">
         <div className="neon-card">
-          <h2><span className="badge">1</span>選地區</h2>
+          <h2><span className="badge">1</span>你可以選地區</h2>
           <div className="county-select" ref={countyPanelRef}>
             <button
               className="county-trigger"
@@ -200,7 +200,7 @@ export function HangbaoHome() {
         </div>
 
         <div className="neon-card">
-          <h2><span className="badge">2</span>挑日期</h2>
+          <h2><span className="badge">2</span>也可以挑日期</h2>
           <div className="row">
             <HangbaoDatePicker
               value={dateFrom}
@@ -222,7 +222,7 @@ export function HangbaoHome() {
         </div>
 
         <div className="neon-card">
-          <h2><span className="badge">3</span>打關鍵字</h2>
+          <h2><span className="badge">3</span>或是打關鍵字</h2>
           <input
             type="text"
             placeholder="打個字就有！山名？領隊？"
