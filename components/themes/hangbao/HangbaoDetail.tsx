@@ -7,8 +7,8 @@ import 'leaflet/dist/leaflet.css'
 import './hangbao.css'
 
 const TRACK_COLORS = [
-  '#ff006e', '#00f5d4', '#ffd60a', '#c1ff00', '#ff7b00',
-  '#a855f7', '#38bdf8', '#f43f5e', '#4ade80', '#fb923c',
+  '#e8185a', '#00a896', '#f0a500', '#8bc34a', '#e64a19',
+  '#7e57c2', '#039be5', '#d81b60', '#43a047', '#ef6c00',
 ]
 
 export interface ExpData {
