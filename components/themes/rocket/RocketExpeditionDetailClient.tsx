@@ -299,7 +299,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row', position: 'relative' }}>
 
         {/* Map area */}
-        <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '40px 45px 45px 50px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100' }}>
+        <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '35px 45px 45px 55px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100' }}>
           <RocketLeafletMap activeGpxes={[...activeGpxes]} />
         </div>
 
