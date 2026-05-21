@@ -618,7 +618,7 @@
   position: relative; z-index: 5;
 }
 .d-map-wrap {
-  height: 84vh; min-height: 648px;
+  height: 80.5vh; min-height: 621px;
   position: relative;
   border: 6px solid var(--bg);
   box-shadow: 14px 14px 0 var(--hot), 28px 28px 0 var(--cyan);
