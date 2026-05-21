@@ -100,10 +100,10 @@ interface MultiDropdownProps {
 function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenToggle, rot = 0, trackColors }: MultiDropdownProps) {
   const count = selected.size
   const label = count === 0
-    ? 'GPX'
+    ? 'GPX/KML'
     : count === 1
-      ? (options.find(o => selected.has(o.path))?.label ?? 'GPX')
-      : `GPX (${count})`
+      ? (options.find(o => selected.has(o.path))?.label ?? 'GPX/KML')
+      : `地圖航跡 GPX/KML（${count}）`
 
   return (
     <div style={{ position: 'relative', pointerEvents: 'auto' }}>
