@@ -6,10 +6,16 @@ import 'leaflet/dist/leaflet.css'
 
 interface ElevPoint { dist: number; ele: number; lat: number; lng: number }
 interface Waypoint { lat: number; lng: number; name: string }
+interface ParsedTrack { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] }
 
 interface Props {
-  activeGpx: string | null
+  activeGpxes: string[]
 }
+
+const TRACK_COLORS = ['#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0']
+
+// Module-level cache — persists across re-renders, cleared on page refresh
+const gpxCache = new Map<string, ParsedTrack>()
 
 function haversineDist(a: [number, number], b: [number, number]): number {
   const R = 6371000
@@ -20,7 +26,7 @@ function haversineDist(a: [number, number], b: [number, number]): number {
   return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s))
 }
 
-function parseGpx(text: string): { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] } {
+function parseGpx(text: string): ParsedTrack {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const pts = Array.from(doc.querySelectorAll('trkpt'))
   const latlngs: [number, number][] = pts.map(p => [
@@ -41,7 +47,7 @@ function parseGpx(text: string): { latlngs: [number, number][]; elevs: ElevPoint
   return { latlngs, elevs, waypoints }
 }
 
-function parseKml(text: string): { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] } {
+function parseKml(text: string): ParsedTrack {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const coordNodes = Array.from(doc.querySelectorAll('coordinates'))
   const latlngs: [number, number][] = []
@@ -51,7 +57,7 @@ function parseKml(text: string): { latlngs: [number, number][]; elevs: ElevPoint
     for (const tuple of tuples) {
       const parts = tuple.split(',').map(Number)
       if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-        latlngs.push([parts[1], parts[0]])  // KML: lon,lat → lat,lon
+        latlngs.push([parts[1], parts[0]])
         eleRaw.push(parts[2] ?? 0)
       }
     }
@@ -62,6 +68,46 @@ function parseKml(text: string): { latlngs: [number, number][]; elevs: ElevPoint
     return { dist: cumDist, ele: eleRaw[i] ?? 0, lat: ll[0], lng: ll[1] }
   })
   return { latlngs, elevs, waypoints: [] }
+}
+
+// Iterative RDP — avoids call stack overflow on large arrays
+function rdpSimplify(points: [number, number][], epsilon: number): [number, number][] {
+  if (points.length < 3) return points
+  const keep = new Uint8Array(points.length)
+  keep[0] = 1
+  keep[points.length - 1] = 1
+  const stack: [number, number][] = [[0, points.length - 1]]
+  while (stack.length > 0) {
+    const [start, end] = stack.pop()!
+    let maxDist = 0, maxIdx = start
+    const dx = points[end][0] - points[start][0]
+    const dy = points[end][1] - points[start][1]
+    const lenSq = dx * dx + dy * dy
+    for (let i = start + 1; i < end; i++) {
+      let d: number
+      if (lenSq === 0) {
+        d = Math.hypot(points[i][0] - points[start][0], points[i][1] - points[start][1])
+      } else {
+        const t = Math.max(0, Math.min(1,
+          ((points[i][0] - points[start][0]) * dx + (points[i][1] - points[start][1]) * dy) / lenSq
+        ))
+        d = Math.hypot(points[i][0] - points[start][0] - t * dx, points[i][1] - points[start][1] - t * dy)
+      }
+      if (d > maxDist) { maxDist = d; maxIdx = i }
+    }
+    if (maxDist > epsilon) {
+      keep[maxIdx] = 1
+      stack.push([start, maxIdx], [maxIdx, end])
+    }
+  }
+  return points.filter((_, i) => keep[i])
+}
+
+// Uniform subsample for SVG chart rendering — no benefit past chart pixel width
+function subsampleElevs(points: ElevPoint[], max: number): ElevPoint[] {
+  if (points.length <= max) return points
+  const step = Math.ceil(points.length / max)
+  return points.filter((_, i) => i % step === 0 || i === points.length - 1)
 }
 
 function fmtDist(m: number) {
@@ -78,7 +124,6 @@ function RocketElevationChart({
   onLeave?: () => void
 }) {
   const [hoverPt, setHoverPt] = useState<ElevPoint | null>(null)
-
   if (points.length < 2) return null
 
   const W = 600
@@ -96,12 +141,14 @@ function RocketElevationChart({
   const scaleX = (d: number) => PAD.left + (d / maxDist) * innerW
   const scaleY = (e: number) => PAD.top + innerH - ((e - minEle) / eleRange) * innerH
 
-  const pathD = points.map((p, i) =>
+  // Use subsampled points for SVG path only
+  const chartPts = subsampleElevs(points, 600)
+  const pathD = chartPts.map((p, i) =>
     `${i === 0 ? 'M' : 'L'}${scaleX(p.dist).toFixed(1)},${scaleY(p.ele).toFixed(1)}`
   ).join(' ')
   const areaD = `${pathD} L${scaleX(maxDist).toFixed(1)},${(PAD.top + innerH).toFixed(1)} L${PAD.left},${(PAD.top + innerH).toFixed(1)} Z`
 
-  // Stats
+  // Stats from full points
   let gain = 0, loss = 0
   const THRESH = 5
   let prevEle = points[0].ele
@@ -129,7 +176,6 @@ function RocketElevationChart({
 
   return (
     <div style={{ background: 'rgba(255,253,231,0.92)', borderTop: '2px solid #e65100' }}>
-      {/* Stats bar */}
       <div style={{
         display: 'flex', gap: '1.4rem', padding: '2px 12px 2px 44px',
         fontSize: '0.62rem', fontFamily: "'Courier Prime', monospace", color: '#5a4a00',
@@ -177,7 +223,6 @@ function RocketElevationChart({
           textAnchor="middle" fontSize="9" fill="#e65100"
           fontFamily="'Bebas Neue', sans-serif" letterSpacing="0.1em">高度m</text>
 
-        {/* Hover cursor */}
         {hoverPt && (() => {
           const hx = scaleX(hoverPt.dist)
           const hy = scaleY(hoverPt.ele)
@@ -201,87 +246,83 @@ function RocketElevationChart({
   )
 }
 
-async function loadTrackOnMap(
-  map: any,
-  L: any,
-  activeGpx: string,
-  trackLayersRef: React.MutableRefObject<any[]>,
-  setElevPoints: (pts: ElevPoint[]) => void
-) {
-  trackLayersRef.current.forEach(l => l.remove())
-  trackLayersRef.current = []
-  setElevPoints([])
-
-  const isKml = activeGpx.toLowerCase().endsWith('.kml')
-  const url = `/api/gpx?file=${encodeURIComponent(activeGpx)}`
-
+async function fetchAndParse(path: string): Promise<ParsedTrack | null> {
+  const cached = gpxCache.get(path)
+  if (cached) return cached
   try {
-    const res = await fetch(url)
-    if (!res.ok) return
+    const res = await fetch(`/api/gpx?file=${encodeURIComponent(path)}`)
+    if (!res.ok) return null
     const text = await res.text()
-
-    const { latlngs, elevs, waypoints } = isKml ? parseKml(text) : parseGpx(text)
-    if (latlngs.length === 0) return
-
-    const line = L.polyline(latlngs, { color: '#e65100', weight: 3.5, opacity: 0.9 })
-    line.addTo(map)
-    trackLayersRef.current.push(line)
-
-    if (latlngs[0]) {
-      const startIcon = L.divIcon({
-        className: '',
-        html: '<div style="background:#3a7d44;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">起</div>',
-        iconSize: [30, 26], iconAnchor: [15, 13],
-      })
-      const start = L.marker(latlngs[0], { icon: startIcon })
-      start.addTo(map)
-      trackLayersRef.current.push(start)
-    }
-    if (latlngs.at(-1)) {
-      const endIcon = L.divIcon({
-        className: '',
-        html: '<div style="background:#0066cc;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
-        iconSize: [30, 26], iconAnchor: [15, 13],
-      })
-      const end = L.marker(latlngs.at(-1)!, { icon: endIcon })
-      end.addTo(map)
-      trackLayersRef.current.push(end)
-    }
-
-    for (const wpt of waypoints) {
-      if (!wpt.name) continue
-      const wptIcon = L.divIcon({
-        className: '',
-        html: '<div style="width:12px;height:12px;background:#e65100;border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>',
-        iconSize: [12, 12], iconAnchor: [6, 6],
-      })
-      const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
-        .bindTooltip(wpt.name, {
-          direction: 'top', offset: [0, -8],
-          className: 'rocket-wpt-tip',
-        })
-      marker.addTo(map)
-      trackLayersRef.current.push(marker)
-    }
-
-    map.fitBounds(latlngs as any, { padding: [24, 24] })
-    setElevPoints(elevs)
+    const parsed = path.toLowerCase().endsWith('.kml') ? parseKml(text) : parseGpx(text)
+    gpxCache.set(path, parsed)
+    return parsed
   } catch {
-    // network error — leave map as-is
+    return null
   }
 }
 
-export function RocketLeafletMap({ activeGpx }: Props) {
+function addTrackLayers(
+  map: any, L: any, parsed: ParsedTrack, color: string
+): any[] {
+  const { latlngs, waypoints } = parsed
+  if (latlngs.length === 0) return []
+
+  const simplified = rdpSimplify(latlngs, 0.0001)
+  const layers: any[] = []
+
+  const line = L.polyline(simplified, { color, weight: 3.5, opacity: 0.9 })
+  line.addTo(map)
+  layers.push(line)
+
+  if (latlngs[0]) {
+    const startIcon = L.divIcon({
+      className: '',
+      html: `<div style="background:${color === '#e65100' ? '#3a7d44' : color};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">起</div>`,
+      iconSize: [30, 26], iconAnchor: [15, 13],
+    })
+    const start = L.marker(latlngs[0], { icon: startIcon })
+    start.addTo(map)
+    layers.push(start)
+  }
+  if (latlngs.at(-1)) {
+    const endIcon = L.divIcon({
+      className: '',
+      html: '<div style="background:#0066cc;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
+      iconSize: [30, 26], iconAnchor: [15, 13],
+    })
+    const end = L.marker(latlngs.at(-1)!, { icon: endIcon })
+    end.addTo(map)
+    layers.push(end)
+  }
+
+  for (const wpt of waypoints) {
+    if (!wpt.name) continue
+    const wptIcon = L.divIcon({
+      className: '',
+      html: '<div style="width:12px;height:12px;background:#e65100;border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>',
+      iconSize: [12, 12], iconAnchor: [6, 6],
+    })
+    const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
+      .bindTooltip(wpt.name, { direction: 'top', offset: [0, -8], className: 'rocket-wpt-tip' })
+    marker.addTo(map)
+    layers.push(marker)
+  }
+
+  return layers
+}
+
+export function RocketLeafletMap({ activeGpxes }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const leafletRef = useRef<any>(null)
-  const trackLayersRef = useRef<any[]>([])
+  const trackLayersRef = useRef<Map<string, any[]>>(new Map())
+  const colorAssignRef = useRef<Map<string, string>>(new Map())
+  const nextColorRef = useRef(0)
   const hoverMarkerRef = useRef<any>(null)
-  const activeGpxRef = useRef(activeGpx)
+  const activeGpxesRef = useRef(activeGpxes)
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
 
-  // eslint-disable-next-line react-hooks/refs
-  activeGpxRef.current = activeGpx
+  activeGpxesRef.current = activeGpxes
 
   const handleChartHover = useCallback((pt: ElevPoint) => {
     if (!mapRef.current || !leafletRef.current) return
@@ -300,12 +341,7 @@ export function RocketLeafletMap({ activeGpx }: Props) {
     hoverMarkerRef.current = null
   }, [])
 
-  // Clean up hover marker when track changes
-  useEffect(() => {
-    hoverMarkerRef.current?.remove()
-    hoverMarkerRef.current = null
-  }, [activeGpx])
-
+  // Map init
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
@@ -369,7 +405,6 @@ export function RocketLeafletMap({ activeGpx }: Props) {
       })
       new FullscreenCtrl().addTo(map)
 
-      // Inject waypoint tooltip styles once
       if (!document.getElementById('rocket-wpt-style')) {
         const s = document.createElement('style')
         s.id = 'rocket-wpt-style'
@@ -379,8 +414,39 @@ export function RocketLeafletMap({ activeGpx }: Props) {
 
       map.setView([23.5, 121], 7)
 
-      if (activeGpxRef.current) {
-        loadTrackOnMap(map, L, activeGpxRef.current, trackLayersRef, setElevPoints)
+      // Load initial tracks
+      const paths = activeGpxesRef.current
+      if (paths.length > 0) {
+        Promise.all(paths.map(async path => {
+          if (cancelled) return
+          if (!colorAssignRef.current.has(path)) {
+            colorAssignRef.current.set(path, TRACK_COLORS[nextColorRef.current % TRACK_COLORS.length])
+            nextColorRef.current++
+          }
+          const color = colorAssignRef.current.get(path)!
+          const parsed = await fetchAndParse(path)
+          if (!parsed || cancelled) return
+          const layers = addTrackLayers(map, L, parsed, color)
+          trackLayersRef.current.set(path, layers)
+          return parsed
+        })).then(results => {
+          if (cancelled) return
+          // Fit bounds
+          const bounds: any[] = []
+          for (const layers of trackLayersRef.current.values()) {
+            for (const layer of layers) {
+              if (layer.getBounds) bounds.push(layer.getBounds())
+            }
+          }
+          if (bounds.length > 0) {
+            const combined = bounds.reduce((acc: any, b: any) => acc.extend(b))
+            map.fitBounds(combined, { padding: [24, 24] })
+          }
+          // Set elevation if single track
+          if (paths.length === 1 && results[0]) {
+            setElevPoints(results[0].elevs)
+          }
+        })
       }
     })
 
@@ -392,15 +458,83 @@ export function RocketLeafletMap({ activeGpx }: Props) {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Track management when activeGpxes changes
   useEffect(() => {
-    if (!activeGpx || !mapRef.current || !leafletRef.current) return
-    loadTrackOnMap(mapRef.current, leafletRef.current, activeGpx, trackLayersRef, setElevPoints)
-  }, [activeGpx])
+    const map = mapRef.current
+    const L = leafletRef.current
+    if (!map || !L) return
+
+    let cancelled = false
+    const prevPaths = new Set(trackLayersRef.current.keys())
+    const nextPaths = new Set(activeGpxes)
+
+    // Remove deselected tracks
+    for (const path of prevPaths) {
+      if (!nextPaths.has(path)) {
+        trackLayersRef.current.get(path)?.forEach(l => l.remove())
+        trackLayersRef.current.delete(path)
+      }
+    }
+
+    // Clear hover marker and elevation when multi-select
+    hoverMarkerRef.current?.remove()
+    hoverMarkerRef.current = null
+    if (activeGpxes.length !== 1) setElevPoints([])
+
+    // Paths to load (not yet on map)
+    const toLoad = activeGpxes.filter(p => !prevPaths.has(p))
+
+    // If single track already loaded, show its elevation from cache
+    if (activeGpxes.length === 1 && toLoad.length === 0) {
+      const cached = gpxCache.get(activeGpxes[0])
+      if (cached) setElevPoints(cached.elevs)
+      return
+    }
+
+    if (toLoad.length === 0) return
+
+    Promise.all(toLoad.map(async path => {
+      if (!colorAssignRef.current.has(path)) {
+        colorAssignRef.current.set(path, TRACK_COLORS[nextColorRef.current % TRACK_COLORS.length])
+        nextColorRef.current++
+      }
+      const color = colorAssignRef.current.get(path)!
+      const parsed = await fetchAndParse(path)
+      if (!parsed || cancelled) return null
+      const layers = addTrackLayers(map, L, parsed, color)
+      trackLayersRef.current.set(path, layers)
+      return parsed
+    })).then(results => {
+      if (cancelled) return
+
+      // Fit bounds to all visible tracks
+      const bounds: any[] = []
+      for (const layers of trackLayersRef.current.values()) {
+        for (const layer of layers) {
+          if (layer.getBounds) bounds.push(layer.getBounds())
+        }
+      }
+      if (bounds.length > 0) {
+        const combined = bounds.reduce((acc: any, b: any) => acc.extend(b))
+        map.fitBounds(combined, { padding: [24, 24] })
+      }
+
+      // Elevation only for single track
+      if (activeGpxes.length === 1) {
+        const cached = gpxCache.get(activeGpxes[0])
+        if (cached && !cancelled) setElevPoints(cached.elevs)
+      }
+
+      void results
+    })
+
+    return () => { cancelled = true }
+  }, [activeGpxes])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
       <div ref={containerRef} style={{ flex: 1, minHeight: 0 }} />
-      {elevPoints.length >= 2 && (
+      {elevPoints.length >= 2 && activeGpxes.length === 1 && (
         <RocketElevationChart
           points={elevPoints}
           onHover={handleChartHover}

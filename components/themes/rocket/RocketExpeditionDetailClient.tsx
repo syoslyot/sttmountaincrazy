@@ -21,6 +21,8 @@ interface Props {
   records: { filename: string; content: string }[]
 }
 
+const TRACK_COLORS = ['#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0']
+
 interface DropdownProps {
   label: string
   options: string[]
@@ -75,8 +77,81 @@ function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0
   )
 }
 
+interface MultiDropdownProps {
+  options: { label: string; path: string }[]
+  selected: Set<string>
+  onToggle: (path: string) => void
+  color: string
+  open: boolean
+  onOpenToggle: () => void
+  rot?: number
+  trackColors: string[]
+}
+
+function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenToggle, rot = 0, trackColors }: MultiDropdownProps) {
+  const count = selected.size
+  const label = count === 0
+    ? 'GPX'
+    : count === 1
+      ? (options.find(o => selected.has(o.path))?.label ?? 'GPX')
+      : `GPX (${count})`
+
+  return (
+    <div style={{ position: 'relative', pointerEvents: 'auto' }}>
+      <button
+        onClick={onOpenToggle}
+        style={{
+          border: `2px solid ${color}`,
+          background: count > 0 || open ? color : 'transparent',
+          color: count > 0 || open ? '#fffde7' : color,
+          padding: '0.32rem 0.84rem',
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: '0.89rem', letterSpacing: '0.12em',
+          cursor: 'pointer',
+          transform: `rotate(${rot}deg)`,
+          maxWidth: '16rem',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+        {label} {open ? '▲' : '▼'}
+      </button>
+      {open && options.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+          background: '#fffde7', border: `2px solid ${color}`, minWidth: '100%',
+          boxShadow: `3px 3px 0 ${color}`,
+        }}>
+          {options.map((opt, i) => {
+            const isSelected = selected.has(opt.path)
+            const dotColor = trackColors[i % trackColors.length]
+            return (
+              <button key={opt.path} onClick={() => onToggle(opt.path)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  width: '100%', padding: '0.25rem 0.6rem',
+                  fontFamily: "'Bebas Neue', sans-serif", fontSize: '0.89rem',
+                  border: 'none', background: 'transparent',
+                  color, cursor: 'pointer', textAlign: 'left', letterSpacing: '0.08em',
+                }}>
+                <span style={{
+                  width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                  background: isSelected ? dotColor : 'transparent',
+                  border: `2px solid ${dotColor}`,
+                  display: 'inline-block',
+                }} />
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records }: Props) {
-  const [activeGpx, setActiveGpx] = useState<string | null>(gpxFiles[0]?.file_path ?? null)
+  const [activeGpxes, setActiveGpxes] = useState<Set<string>>(
+    () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
+  )
   const [selectedRecord, setSelectedRecord] = useState<number>(0)
   const [showRecord, setShowRecord] = useState(true)
   const [gpxOpen, setGpxOpen] = useState(false)
@@ -89,8 +164,15 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
     ? (String(exp.preview_image).split('/').pop() ?? null)
     : null
 
-  const activeGpxName = gpxFiles.find(g => g.file_path === activeGpx)?.filename ?? 'GPX'
   const activeRecName = records[selectedRecord]?.filename ?? '紀錄'
+
+  const toggleGpx = (path: string) => {
+    setActiveGpxes(prev => {
+      const next = new Set(prev)
+      next.has(path) ? next.delete(path) : next.add(path)
+      return next
+    })
+  }
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -167,18 +249,17 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
 
         {/* Dropdown group — outside-click handled by dropdownsRef */}
         <div ref={dropdownsRef} style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap', pointerEvents: 'auto' }}>
-          {/* GPX dropdown */}
+          {/* GPX multi-select dropdown */}
           {gpxFiles.length > 0 && (
-            <RisoDropdown
-              label={activeGpxName}
-              options={gpxFiles.map(g => g.filename)}
+            <RisoMultiDropdown
+              options={gpxFiles.map(g => ({ label: g.filename, path: g.file_path }))}
+              selected={activeGpxes}
+              onToggle={toggleGpx}
               color="#e65100"
               open={gpxOpen}
-              onToggle={() => { setGpxOpen(o => !o); setPdfOpen(false); setRecOpen(false) }}
-              onSelect={i => setActiveGpx(gpxFiles[i].file_path)}
+              onOpenToggle={() => { setGpxOpen(o => !o); setPdfOpen(false); setRecOpen(false) }}
               rot={-1.2}
-              isActive={gpxFiles.length > 0}
-              activeIndex={gpxFiles.findIndex(g => g.file_path === activeGpx)}
+              trackColors={TRACK_COLORS}
             />
           )}
 
@@ -217,7 +298,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
 
         {/* Map area */}
         <div style={{ flex: 1, maxWidth: '55%', minWidth: 0, zIndex: 1, marginTop: '10px', marginLeft: '180px' }}>
-          <RocketLeafletMap activeGpx={activeGpx} />
+          <RocketLeafletMap activeGpxes={[...activeGpxes]} />
         </div>
 
         {/* Right panel: one orange quad + one big image (overflows into map) */}
