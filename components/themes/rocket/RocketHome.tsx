@@ -8,7 +8,7 @@ import { ThemeBadge } from '@/components/ThemeBadge'
 
 const RocketSystem = dynamic(() => import('./RocketSystem').then(m => m.RocketSystem), { ssr: false })
 const SpeechBubble = dynamic(() => import('./SpeechBubble').then(m => m.SpeechBubble), { ssr: false })
-const ScatteredTaiwanMap = dynamic(() => import('@/components/ScatteredTaiwanMap').then(m => m.ScatteredTaiwanMap), { ssr: false })
+const ScatteredTaiwanMap = dynamic(() => import('@/components/themes/rocket/ScatteredTaiwanMap').then(m => m.ScatteredTaiwanMap), { ssr: false })
 
 const ROTS = [-4, 2, -1.5, 3, -2.5, 1, -3, 0.5, 2.5, -1]
 const COLORS = [
