@@ -135,16 +135,14 @@ export function RocketHome() {
                 <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.05rem', letterSpacing: '0.08em', color: c.accent, marginBottom: '2px' }}>{e.name}</div>
                 <div style={{ fontSize: '0.65rem', color: '#5a4a00' }}>
                   {(() => {
-                    const r = e.region; const rx = e.region_exit
-                    const entryC = e.county ?? ''
-                    let exitC = entryC
-                    if (e.all_counties) {
-                      const others = e.all_counties.split(',').filter(c => c && c !== entryC)
-                      if (others.length === 1) exitC = others[0]
-                    }
-                    const from = [entryC, r].filter(Boolean).join(' ')
-                    const to   = rx && rx !== r ? [exitC, rx].filter(Boolean).join(' ') : null
-                    const loc  = from && to ? `${from} → ${to}` : (from || null)
+                    const entryC = e.region_entry_county ?? ''
+                    const entryT = e.region_entry_town   ?? ''
+                    const exitC  = e.region_exit_county  ?? ''
+                    const exitT  = e.region_exit_town    ?? ''
+                    const from = [entryC, entryT].filter(Boolean).join('・')
+                    const to   = [exitC, exitT].filter(Boolean).join('・')
+                    const toFinal = to && to !== from ? to : null
+                    const loc  = from && toFinal ? `${from} → ${toFinal}` : (from || null)
                     return <>{e.date_start}{loc ? ` / ${loc}` : ''}{e.leader ? ` · ${e.leader}` : ''}</>
                   })()}
                 </div>

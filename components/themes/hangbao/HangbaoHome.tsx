@@ -16,30 +16,27 @@ interface Exp {
   name: string
   date_start: string
   date_end: string | null
-  county: string | null
-  all_counties: string | null
-  region: string | null
-  region_exit: string | null
+  region_entry_county: string | null
+  region_entry_town:   string | null
+  region_exit_county:  string | null
+  region_exit_town:    string | null
   leader: string | null
 }
 
 function regionLabel(e: Exp): string {
-  const r = e.region, rx = e.region_exit
-  const entryC = e.county ?? ''
-  let exitC = entryC
-  if (e.all_counties) {
-    const others = e.all_counties.split(',').filter(c => c && c !== entryC)
-    if (others.length === 1) exitC = others[0]
-  }
-  if (!r && !rx) return ''
-  if (!rx || r === rx) return entryC && r ? `${entryC}・${r}` : (entryC || r || '')
-  const from = entryC && r ? `${entryC}・${r}` : (entryC || r || '')
-  const to   = exitC  && rx ? `${exitC}・${rx}` : (exitC || rx || '')
+  const entryC = e.region_entry_county ?? ''
+  const entryT = e.region_entry_town   ?? ''
+  const exitC  = e.region_exit_county  ?? ''
+  const exitT  = e.region_exit_town    ?? ''
+  const from = entryC && entryT ? `${entryC}・${entryT}` : (entryC || entryT || '')
+  const to   = exitC  && exitT  ? `${exitC}・${exitT}`   : (exitC  || exitT  || '')
+  if (!from && !to) return ''
+  if (!to || from === to) return from
   return `${from}→${to}`
 }
 
 function fmtDate(d: string | null | undefined): string {
-  return d ? d.replace(/-/g, '.') : ''
+  return d ?? ''
 }
 
 export function HangbaoHome() {
@@ -258,12 +255,12 @@ export function HangbaoHome() {
               return (
                 <Link key={e.id} href={`/hangbao/${e.id}`} className={`neon-trip ${shape}`}>
                   <span className="trip-num">NO.{String(i + 1).padStart(2, '0')}</span>
-                  <span className="trip-date">
-                    {fmtDate(e.date_start)}{e.date_end ? ` — ${fmtDate(e.date_end)}` : ''}
-                  </span>
                   <h3 className="trip-title">{e.name}</h3>
-                  {e.leader && <div className="trip-leader">領隊 {e.leader}</div>}
-                  {region && <div className="trip-region">{region}</div>}
+                  <span className="trip-date">
+                    {fmtDate(e.date_start)}{e.date_end ? ` - ${fmtDate(e.date_end)}` : ''}
+                    {region ? ` / ${region}` : ''}
+                    {e.leader ? ` / 領隊 ${e.leader}` : ''}
+                  </span>
                 </Link>
               )
             })}

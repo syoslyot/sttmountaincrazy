@@ -7,10 +7,10 @@ export interface Expedition {
   name: string
   date_start: string
   date_end: string | null
-  county: string | null
-  all_counties: string | null
-  region: string | null
-  region_exit: string | null
+  region_entry_county: string | null
+  region_entry_town:   string | null
+  region_exit_county:  string | null
+  region_exit_town:    string | null
   leader: string | null
 }
 
