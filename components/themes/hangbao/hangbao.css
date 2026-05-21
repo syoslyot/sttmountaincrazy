@@ -819,7 +819,7 @@
 }
 .d-float-window {
   position: fixed;
-  width: min(552px, calc(100vw - 40px));
+  width: min(580px, calc(100vw - 40px));
   max-height: calc(100vh - 40px);
   z-index: 9000;
   background: white; color: var(--bg);

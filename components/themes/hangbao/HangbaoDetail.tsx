@@ -296,7 +296,7 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
   records: RecordItem[]
 }) {
   const [pos, setPos] = useState(() => {
-    const w = Math.min(552, window.innerWidth - 40)
+    const w = Math.min(580, window.innerWidth - 40)
     return { x: Math.max(20, window.innerWidth - w - 32), y: 60 }
   })
   const [minimized, setMinimized] = useState(false)
