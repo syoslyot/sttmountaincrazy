@@ -238,7 +238,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         pointerEvents: 'none',
       }}>
         {/* 成大山協 */}
-        <Link href="/" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
+        <Link href="/rocket" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
           <div style={{
             background: '#e65100', color: '#fffde7',
             padding: '0.4rem 1.2rem', transform: 'rotate(-1deg)', display: 'inline-block',
