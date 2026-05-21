@@ -21,7 +21,10 @@ interface Props {
   records: { filename: string; content: string }[]
 }
 
-const TRACK_COLORS = ['#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0']
+const TRACK_COLORS = [
+  '#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0',
+  '#00695c', '#c68600', '#ad1457', '#4527a0', '#37474f',
+]
 
 interface DropdownProps {
   label: string
@@ -33,15 +36,17 @@ interface DropdownProps {
   rot?: number
   isActive?: boolean
   activeIndex?: number
+  maxWidth?: string
 }
 
-function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false, activeIndex }: DropdownProps) {
+function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0, isActive = false, activeIndex, maxWidth }: DropdownProps) {
   const filled = open || isActive
   return (
     <div style={{ position: 'relative', pointerEvents: 'auto' }}>
       <button
         onClick={onToggle}
         style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
           border: `2px solid ${color}`,
           background: filled ? color : 'transparent',
           color: filled ? '#fffde7' : color,
@@ -50,8 +55,12 @@ function RisoDropdown({ label, options, onSelect, color, open, onToggle, rot = 0
           fontSize: '0.89rem', letterSpacing: '0.12em',
           cursor: 'pointer',
           transform: `rotate(${rot}deg)`,
+          ...(maxWidth ? { maxWidth } : {}),
         }}>
-        {label} {open ? '▲' : '▼'}
+        <span style={maxWidth ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 } : {}}>
+          {label}
+        </span>
+        <span style={{ flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
       </button>
       {open && options.length > 0 && (
         <div style={{
@@ -101,6 +110,7 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
       <button
         onClick={onOpenToggle}
         style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
           border: `2px solid ${color}`,
           background: count > 0 || open ? color : 'transparent',
           color: count > 0 || open ? '#fffde7' : color,
@@ -110,9 +120,9 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
           cursor: 'pointer',
           transform: `rotate(${rot}deg)`,
           maxWidth: '16rem',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-        {label} {open ? '▲' : '▼'}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
+        <span style={{ flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
       </button>
       {open && options.length > 0 && (
         <div
@@ -155,7 +165,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
     () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
   )
   const [selectedRecord, setSelectedRecord] = useState<number>(0)
-  const [showRecord, setShowRecord] = useState(true)
+  const [showRecord, setShowRecord] = useState(false)
   const [gpxOpen, setGpxOpen] = useState(false)
   const [pdfOpen, setPdfOpen] = useState(false)
   const [recOpen, setRecOpen] = useState(false)
@@ -171,9 +181,11 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
   const toggleGpx = (path: string) => {
     setActiveGpxes(prev => {
       const next = new Set(prev)
+      if (next.has(path) && next.size === 1) return prev
       next.has(path) ? next.delete(path) : next.add(path)
       return next
     })
+    setGpxOpen(false)
   }
 
   useEffect(() => {
@@ -226,7 +238,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         pointerEvents: 'none',
       }}>
         {/* 成大山協 */}
-        <Link href="/" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
+        <Link href="/rocket" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
           <div style={{
             background: '#e65100', color: '#fffde7',
             padding: '0.4rem 1.2rem', transform: 'rotate(-1deg)', display: 'inline-block',
@@ -285,6 +297,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
               rot={-0.5}
               isActive={records.length > 0}
               activeIndex={selectedRecord}
+              maxWidth="16rem"
             />
           )}
         </div>
@@ -294,7 +307,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row', position: 'relative' }}>
 
         {/* Map area */}
-        <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '35px 45px 45px 55px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100' }}>
+        <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '35px 45px 45px 55px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100', transform: 'rotate(1deg)', transformOrigin: 'center center' }}>
           <RocketLeafletMap activeGpxes={[...activeGpxes]} />
         </div>
 
@@ -326,7 +339,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
                 position: 'absolute',
                 top: 'calc(-10% + 25px)',
                 right: 30,
-                width: '95%',
+                width: '99.75%',
                 maxWidth: 'none',
                 transform: 'rotate(-3deg)',
                 zIndex: 10,
@@ -343,21 +356,22 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         <>
           {showRecord && (
             <div style={{
-              position: 'fixed', bottom: 110, left: 20,
-              width: 432, maxHeight: 510,
+              position: 'fixed', top: '10.5%', bottom: '15%', left: '62%', right: '1%',
               overflow: 'auto',
               background: '#fffde7',
-              border: '3px solid #1a1000',
-              boxShadow: '4px 4px 0 #1a1000',
+              border: '5px solid #3a7d44',
+              boxShadow: '4px 4px 0 #3a7d44',
+              transform: 'rotate(-3deg)',
+              transformOrigin: 'center center',
               zIndex: 1100,
               padding: '1rem 1.2rem',
               fontFamily: "'Noto Sans TC', sans-serif",
-              fontSize: '0.85rem', lineHeight: 1.8,
+              fontSize: '1.1rem', lineHeight: 1.8,
               color: '#1a1000',
             }}>
               <div style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.9rem', color: '#e65100',
+                fontSize: '1.275rem', color: '#e65100',
                 letterSpacing: '0.1em', marginBottom: '0.5rem',
               }}>
                 {records[selectedRecord]?.filename}

@@ -12,7 +12,10 @@ interface Props {
   activeGpxes: string[]
 }
 
-const TRACK_COLORS = ['#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0']
+const TRACK_COLORS = [
+  '#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0',
+  '#00695c', '#c68600', '#ad1457', '#4527a0', '#37474f',
+]
 
 // Module-level cache — persists across re-renders, cleared on page refresh
 const gpxCache = new Map<string, ParsedTrack>()
