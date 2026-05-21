@@ -340,7 +340,7 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
   const [loadingCount, setLoadingCount] = useState(0)
 
-  activeGpxesRef.current = activeGpxes
+  useEffect(() => { activeGpxesRef.current = activeGpxes })
 
   const handleChartHover = useCallback((pt: ElevPoint) => {
     if (!mapRef.current || !leafletRef.current) return
@@ -502,10 +502,9 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
       }
     }
 
-    // Clear hover marker and elevation when multi-select
+    // Clear hover marker when switching tracks
     hoverMarkerRef.current?.remove()
     hoverMarkerRef.current = null
-    if (!single) setElevPoints([])
 
     // Detect single↔multi mode change — must redraw all existing tracks
     const modeChanged = prevCount > 0 && (prevCount === 1) !== single
@@ -526,6 +525,7 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
     // If single track already loaded, show its elevation from cache
     if (activeGpxes.length === 1 && toLoad.length === 0) {
       const cached = gpxCache.get(activeGpxes[0])
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (cached) setElevPoints(cached.elevs)
       return
     }
