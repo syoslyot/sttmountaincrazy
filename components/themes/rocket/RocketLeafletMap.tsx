@@ -10,6 +10,7 @@ interface ParsedTrack { latlngs: [number, number][]; elevs: ElevPoint[]; waypoin
 
 interface Props {
   activeGpxes: string[]
+  colorMap?: Record<string, string>
   entryTown?: string | null
   entryCounty?: string | null
 }
@@ -383,13 +384,14 @@ function addTrackLayers(
   return layers
 }
 
-export function RocketLeafletMap({ activeGpxes, entryTown, entryCounty }: Props) {
+export function RocketLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const leafletRef = useRef<any>(null)
   const trackLayersRef = useRef<Map<string, any[]>>(new Map())
   const colorAssignRef = useRef<Map<string, string>>(new Map())
   const nextColorRef = useRef(0)
+  const colorMapRef = useRef(colorMap)
   const prevCountRef = useRef(activeGpxes.length)
   const hoverMarkerRef = useRef<any>(null)
   const activeGpxesRef = useRef(activeGpxes)
@@ -500,7 +502,8 @@ export function RocketLeafletMap({ activeGpxes, entryTown, entryCounty }: Props)
         Promise.all(paths.map(async path => {
           if (cancelled) return
           if (!colorAssignRef.current.has(path)) {
-            colorAssignRef.current.set(path, TRACK_COLORS[nextColorRef.current % TRACK_COLORS.length])
+            const c = colorMapRef.current?.[path] ?? TRACK_COLORS[nextColorRef.current % TRACK_COLORS.length]
+            colorAssignRef.current.set(path, c)
             nextColorRef.current++
           }
           const color = colorAssignRef.current.get(path)!
@@ -595,7 +598,8 @@ export function RocketLeafletMap({ activeGpxes, entryTown, entryCounty }: Props)
 
     Promise.all(toLoad.map(async path => {
       if (!colorAssignRef.current.has(path)) {
-        colorAssignRef.current.set(path, TRACK_COLORS[nextColorRef.current % TRACK_COLORS.length])
+        const c = colorMapRef.current?.[path] ?? TRACK_COLORS[nextColorRef.current % TRACK_COLORS.length]
+        colorAssignRef.current.set(path, c)
         nextColorRef.current++
       }
       const color = colorAssignRef.current.get(path)!

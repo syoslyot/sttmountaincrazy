@@ -310,6 +310,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '35px 45px 45px 55px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100', transform: 'rotate(1deg)', transformOrigin: 'center center' }}>
           <RocketLeafletMap
             activeGpxes={[...activeGpxes]}
+            colorMap={Object.fromEntries(gpxFiles.map((g, i) => [g.file_path, TRACK_COLORS[i % TRACK_COLORS.length]]))}
             entryTown={exp.region as string | null}
             entryCounty={exp.county as string | null}
           />
