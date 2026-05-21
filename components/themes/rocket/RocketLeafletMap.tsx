@@ -337,6 +337,7 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
   const hoverMarkerRef = useRef<any>(null)
   const activeGpxesRef = useRef(activeGpxes)
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
+  const [loadingCount, setLoadingCount] = useState(0)
 
   activeGpxesRef.current = activeGpxes
 
@@ -433,7 +434,10 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
             nextColorRef.current++
           }
           const color = colorAssignRef.current.get(path)!
+          const isCached = gpxCache.has(path)
+          if (!isCached) setLoadingCount(c => c + 1)
           const parsed = await fetchAndParse(path)
+          if (!isCached) setLoadingCount(c => c - 1)
           if (!parsed || cancelled) return
           const layers = addTrackLayers(map, L, parsed, color, paths.length === 1)
           trackLayersRef.current.set(path, layers)
@@ -525,7 +529,10 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
         nextColorRef.current++
       }
       const color = colorAssignRef.current.get(path)!
+      const isCached = gpxCache.has(path)
+      if (!isCached) setLoadingCount(c => c + 1)
       const parsed = await fetchAndParse(path)
+      if (!isCached) setLoadingCount(c => c - 1)
       if (!parsed || cancelled) return null
       const layers = addTrackLayers(map, L, parsed, color, single)
       trackLayersRef.current.set(path, layers)
@@ -559,7 +566,28 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
-      <div ref={containerRef} style={{ flex: 1, minHeight: 0 }} />
+      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+        {loadingCount > 0 && (
+          <>
+            <style>{`@keyframes risoBlink{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
+            <div style={{
+              position: 'absolute', top: 10, left: '50%',
+              transform: 'translateX(-50%) rotate(-1.5deg)',
+              zIndex: 1000, pointerEvents: 'none',
+              background: '#e65100', color: '#fffde7',
+              padding: '5px 18px',
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: '1rem', letterSpacing: '0.25em',
+              boxShadow: '3px 3px 0 rgba(0,0,0,0.25)',
+              animation: 'risoBlink 1.2s ease-in-out infinite',
+              whiteSpace: 'nowrap',
+            }}>
+              LOADING
+            </div>
+          </>
+        )}
+      </div>
       {elevPoints.length >= 2 && activeGpxes.length === 1 && (
         <RocketElevationChart
           points={elevPoints}
