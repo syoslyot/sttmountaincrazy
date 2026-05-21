@@ -572,14 +572,14 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
           <>
             <style>{`@keyframes risoBlink{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
             <div style={{
-              position: 'absolute', top: 10, left: '50%',
-              transform: 'translateX(-50%) rotate(-1.5deg)',
+              position: 'absolute', top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%) rotate(-1.5deg)',
               zIndex: 1000, pointerEvents: 'none',
               background: '#e65100', color: '#fffde7',
-              padding: '5px 18px',
+              padding: '25px 90px',
               fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: '1rem', letterSpacing: '0.25em',
-              boxShadow: '3px 3px 0 rgba(0,0,0,0.25)',
+              fontSize: '5rem', letterSpacing: '0.25em',
+              boxShadow: '15px 15px 0 rgba(0,0,0,0.25)',
               animation: 'risoBlink 1.2s ease-in-out infinite',
               whiteSpace: 'nowrap',
             }}>
