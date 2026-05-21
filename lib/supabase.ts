@@ -9,9 +9,8 @@ export const supabase = createClient(
 
 export type GpxFile = { file_path: string; filename: string }
 export type MapFile = { file_path: string; filename: string }
-type Record  = { filename: string; content: string }
-type Member  = { name: string; role: string | null; department: string | null; experience: string | null }
-type County  = { county: string }
+type Record = { filename: string; content: string }
+type County = { county: string }
 
 export interface ExpeditionDetail {
   id: number
@@ -29,13 +28,12 @@ export interface ExpeditionDetail {
   all_counties: string | null
   map_files: MapFile[]
   records: Record[]
-  members: Member[]
 }
 
 export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail | null> {
   const { data, error } = await supabase
     .from('expeditions')
-    .select('*, gpx_files(file_path, filename), map_files(file_path, filename), records(filename, content), members(name, role, department, experience), expedition_counties(county)')
+    .select('*, gpx_files(file_path, filename), map_files(file_path, filename), records(filename, content), expedition_counties(county)')
     .eq('id', id)
     .single()
 
@@ -46,17 +44,16 @@ export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail 
     name:          data.name,
     date_start:    data.date_start,
     date_end:      data.date_end,
-    county:        data.county,
-    region:        data.region,
-    region_exit:   data.region_exit,
+    county:        data.region_entry_county,
+    region:        data.region_entry_town,
+    region_exit:   data.region_exit_town,
     leader:        data.leader,
-    description:   data.description,
+    description:   null,
     preview_image: data.preview_image,
     created_at:    data.created_at,
     gpx_files:     data.gpx_files as GpxFile[],
     all_counties:  (data.expedition_counties as County[]).map(ec => ec.county).join(',') || null,
     map_files:     data.map_files as MapFile[],
     records:       data.records as Record[],
-    members:       data.members as Member[],
   }
 }
