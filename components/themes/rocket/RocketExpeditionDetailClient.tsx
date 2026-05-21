@@ -294,7 +294,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row', position: 'relative' }}>
 
         {/* Map area */}
-        <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '35px 45px 45px 55px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100', transform: 'rotate(3deg)', transformOrigin: 'center center' }}>
+        <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '35px 45px 45px 55px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100', transform: 'rotate(1deg)', transformOrigin: 'center center' }}>
           <RocketLeafletMap activeGpxes={[...activeGpxes]} />
         </div>
 
@@ -358,7 +358,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
             }}>
               <div style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '0.9rem', color: '#e65100',
+                fontSize: '1.6rem', color: '#e65100',
                 letterSpacing: '0.1em', marginBottom: '0.5rem',
               }}>
                 {records[selectedRecord]?.filename}
