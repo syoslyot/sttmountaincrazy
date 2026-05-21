@@ -409,10 +409,18 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
       const FullscreenCtrl = L.Control.extend({
         options: { position: 'topleft' as const },
         onAdd() {
-          const btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control')
-          btn.innerHTML = '⛶'
+          const btn = L.DomUtil.create('button', 'leaflet-control')
+          btn.innerHTML = '全螢幕'
           btn.title = '全螢幕'
-          btn.style.cssText = 'font-size:16px;padding:4px 8px;cursor:pointer;background:white;border:none;line-height:1;display:flex;align-items:center;justify-content:center;font-family:sans-serif'
+          btn.style.cssText = 'background:#fffde7;color:#e65100;border:2px solid #e65100;box-shadow:3px 3px 0 #1a1000;padding:4px 10px;font-family:"Bebas Neue",sans-serif;font-size:13px;letter-spacing:0.15em;cursor:pointer;line-height:1.2;display:block;transform:rotate(-0.5deg);transition:box-shadow 0.1s,transform 0.1s;margin-top:4px'
+          btn.addEventListener('mouseover', () => {
+            btn.style.boxShadow = '5px 5px 0 #1a1000'
+            btn.style.transform = 'rotate(-0.5deg) scale(1.05)'
+          })
+          btn.addEventListener('mouseout', () => {
+            btn.style.boxShadow = '3px 3px 0 #1a1000'
+            btn.style.transform = 'rotate(-0.5deg)'
+          })
           L.DomEvent.on(btn, 'click', () => {
             const el = map.getContainer()
             if (!document.fullscreenElement) el.requestFullscreen()
