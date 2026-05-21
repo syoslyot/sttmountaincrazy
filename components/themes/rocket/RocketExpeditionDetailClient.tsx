@@ -21,7 +21,10 @@ interface Props {
   records: { filename: string; content: string }[]
 }
 
-const TRACK_COLORS = ['#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0']
+const TRACK_COLORS = [
+  '#e65100', '#0066cc', '#3a7d44', '#8b0000', '#9c27b0',
+  '#00695c', '#c68600', '#ad1457', '#4527a0', '#37474f',
+]
 
 interface DropdownProps {
   label: string
@@ -101,6 +104,7 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
       <button
         onClick={onOpenToggle}
         style={{
+          display: 'flex', alignItems: 'center', gap: '0.4rem',
           border: `2px solid ${color}`,
           background: count > 0 || open ? color : 'transparent',
           color: count > 0 || open ? '#fffde7' : color,
@@ -110,9 +114,9 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
           cursor: 'pointer',
           transform: `rotate(${rot}deg)`,
           maxWidth: '16rem',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-        {label} {open ? '▲' : '▼'}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
+        <span style={{ flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
       </button>
       {open && options.length > 0 && (
         <div
