@@ -359,7 +359,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
               position: 'fixed', top: '10.5%', bottom: '15%', left: '62%', right: '1%',
               overflow: 'auto',
               background: '#fffde7',
-              border: '3px solid #3a7d44',
+              border: '3.3px solid #3a7d44',
               boxShadow: '4px 4px 0 #3a7d44',
               transform: 'rotate(-3deg)',
               transformOrigin: 'center center',
