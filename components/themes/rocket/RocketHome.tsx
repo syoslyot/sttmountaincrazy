@@ -144,7 +144,8 @@ export function RocketHome() {
                     const toFinal = to && to !== from ? to : null
                     const loc  = from && toFinal ? `${from} → ${toFinal}` : (from || null)
                     const dates = e.date_end ? `${e.date_start} - ${e.date_end}` : e.date_start
-                    return <>{dates}{loc ? ` / ${loc}` : ''}{e.leader ? ` / 領隊 ${e.leader}` : ''}</>
+                    const leaderDisplay = e.leader ? (e.leader.length > 5 ? '？' : e.leader) : null
+                    return <>{dates}{loc ? ` / ${loc}` : ''}{leaderDisplay ? ` / 領隊 ${leaderDisplay}` : ''}</>
                   })()}
                 </div>
               </Link>

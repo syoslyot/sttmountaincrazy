@@ -36,7 +36,7 @@ function regionLabel(e: Exp): string {
 }
 
 function fmtDate(d: string | null | undefined): string {
-  return d ?? ''
+  return d ? d.replace(/-/g, '.') : ''
 }
 
 export function HangbaoHome() {
@@ -255,12 +255,12 @@ export function HangbaoHome() {
               return (
                 <Link key={e.id} href={`/hangbao/${e.id}`} className={`neon-trip ${shape}`}>
                   <span className="trip-num">NO.{String(i + 1).padStart(2, '0')}</span>
-                  <h3 className="trip-title">{e.name}</h3>
                   <span className="trip-date">
-                    {fmtDate(e.date_start)}{e.date_end ? ` - ${fmtDate(e.date_end)}` : ''}
-                    {region ? ` / ${region}` : ''}
-                    {e.leader ? ` / 領隊 ${e.leader}` : ''}
+                    {fmtDate(e.date_start)}{e.date_end ? ` — ${fmtDate(e.date_end)}` : ''}
                   </span>
+                  <h3 className="trip-title">{e.name}</h3>
+                  {e.leader && <div className="trip-leader">領隊 {e.leader}</div>}
+                  {region && <div className="trip-region">{region}</div>}
                 </Link>
               )
             })}
