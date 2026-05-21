@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ThemeBadge } from '@/components/ThemeBadge'
 
 const RocketLeafletMap = dynamic(
-  () => import('@/components/RocketLeafletMap').then(m => m.RocketLeafletMap),
+  () => import('@/components/themes/rocket/RocketLeafletMap').then(m => m.RocketLeafletMap),
   { ssr: false, loading: () => <div style={{ width: '100%', height: '100%', background: '#fffde7' }} /> }
 )
 

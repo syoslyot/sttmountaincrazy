@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { fetchExpeditionById } from '@/lib/supabase'
-import { Navbar } from '@/components/Navbar'
-import { ExpeditionDetailClient } from '@/components/ExpeditionDetailClient'
+import { Navbar } from '@/components/themes/rocket/Navbar'
+import { ExpeditionDetailClient } from '@/components/themes/rocket/ExpeditionDetailClient'
 import { SetTheme } from '@/components/SetTheme'
 
 interface Props {
