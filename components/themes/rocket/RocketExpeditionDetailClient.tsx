@@ -308,7 +308,11 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
 
         {/* Map area */}
         <div style={{ flex: 1, maxWidth: 'calc(55% + 50px)', minWidth: 0, zIndex: 1, margin: '35px 45px 45px 55px', border: '3px solid #1a1000', boxShadow: '8px 8px 0 #e65100', transform: 'rotate(1deg)', transformOrigin: 'center center' }}>
-          <RocketLeafletMap activeGpxes={[...activeGpxes]} />
+          <RocketLeafletMap
+            activeGpxes={[...activeGpxes]}
+            entryTown={exp.region as string | null}
+            entryCounty={exp.county as string | null}
+          />
         </div>
 
         {/* Right panel: one orange quad + one big image (overflows into map) */}
