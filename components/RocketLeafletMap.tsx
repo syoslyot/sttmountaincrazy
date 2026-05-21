@@ -89,8 +89,8 @@ function RocketElevationChart({
 
   const maxDist = points[points.length - 1].dist
   const eles = points.map(p => p.ele)
-  const minEle = Math.min(...eles)
-  const maxEle = Math.max(...eles)
+  const minEle = eles.reduce((a, b) => a < b ? a : b)
+  const maxEle = eles.reduce((a, b) => a > b ? a : b)
   const eleRange = maxEle - minEle || 1
 
   const scaleX = (d: number) => PAD.left + (d / maxDist) * innerW
