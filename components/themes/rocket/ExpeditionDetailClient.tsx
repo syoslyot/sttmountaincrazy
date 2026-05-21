@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 
 const RocketExpeditionDetailClient = dynamic(
-  () => import('./themes/rocket/RocketExpeditionDetailClient').then(m => m.RocketExpeditionDetailClient),
+  () => import('./RocketExpeditionDetailClient').then(m => m.RocketExpeditionDetailClient),
   { ssr: false }
 )
 
