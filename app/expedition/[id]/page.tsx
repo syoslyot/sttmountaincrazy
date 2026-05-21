@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { fetchExpeditionById } from '@/lib/supabase'
 import { Navbar } from '@/components/themes/rocket/Navbar'
-import { ExpeditionDetailClient } from '@/components/themes/rocket/ExpeditionDetailClient'
+import { RocketExpeditionDetailClient } from '@/components/themes/rocket/RocketExpeditionDetailClient'
 import { SetTheme } from '@/components/SetTheme'
 
 interface Props {
@@ -17,7 +17,7 @@ export default async function ExpeditionPage({ params }: Props) {
     <>
       <SetTheme theme="rocket" />
       <Navbar />
-      <ExpeditionDetailClient
+      <RocketExpeditionDetailClient
         exp={exp as unknown as Record<string, unknown>}
         gpxFiles={exp.gpx_files}
         mapFiles={exp.map_files}
