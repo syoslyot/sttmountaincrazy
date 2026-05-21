@@ -277,7 +277,7 @@ function addTrackLayers(
   if (latlngs[0]) {
     const startIcon = L.divIcon({
       className: '',
-      html: `<div style="background:${color === '#e65100' ? '#3a7d44' : color};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">起</div>`,
+      html: `<div style="background:${color};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">起</div>`,
       iconSize: [30, 26], iconAnchor: [15, 13],
     })
     const start = L.marker(latlngs[0], { icon: startIcon })
@@ -287,7 +287,7 @@ function addTrackLayers(
   if (latlngs.at(-1)) {
     const endIcon = L.divIcon({
       className: '',
-      html: '<div style="background:#0066cc;color:#fffde7;padding:4px 8px;font-weight:900;font-family:\'Bebas Neue\',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>',
+      html: `<div style="background:${color};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:3px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>`,
       iconSize: [30, 26], iconAnchor: [15, 13],
     })
     const end = L.marker(latlngs.at(-1)!, { icon: endIcon })
@@ -299,7 +299,7 @@ function addTrackLayers(
     if (!wpt.name) continue
     const wptIcon = L.divIcon({
       className: '',
-      html: '<div style="width:12px;height:12px;background:#e65100;border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>',
+      html: `<div style="width:12px;height:12px;background:${color};border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>`,
       iconSize: [12, 12], iconAnchor: [6, 6],
     })
     const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
