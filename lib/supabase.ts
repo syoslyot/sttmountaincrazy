@@ -7,6 +7,12 @@ export const supabase = createClient(
   process.env.SUPABASE_ANON_KEY ?? 'anon'
 )
 
+// Server-side only — bypasses RLS for trusted server reads.
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL         ?? 'http://localhost',
+  process.env.SUPABASE_SERVICE_KEY ?? 'anon'
+)
+
 export type GpxFile = { file_path: string; filename: string }
 export type MapFile = { file_path: string; filename: string }
 type Record = { filename: string; content: string }
@@ -31,7 +37,7 @@ export interface ExpeditionDetail {
 }
 
 export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('expeditions')
     .select('*, gpx_files(file_path, filename), map_files(file_path, filename), records(filename, content), expedition_counties(county)')
     .eq('id', id)
