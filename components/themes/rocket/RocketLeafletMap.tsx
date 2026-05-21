@@ -297,11 +297,12 @@ function addTrackLayers(
     layers.push(start)
   }
   if (latlngs.at(-1)) {
-    const endBg = single ? '#0066cc' : color
-    const endBorder = single ? '2px' : '3px'
+    const endBg     = single ? '#0066cc' : '#fffde7'
+    const endFg     = single ? '#fffde7' : color
+    const endBorder = single ? '#fffde7' : color
     const endIcon = L.divIcon({
       className: '',
-      html: `<div style="background:${endBg};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:${endBorder} solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>`,
+      html: `<div style="background:${endBg};color:${endFg};padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:2px solid ${endBorder};box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>`,
       iconSize: [30, 26], iconAnchor: [15, 13],
     })
     const end = L.marker(latlngs.at(-1)!, { icon: endIcon })
