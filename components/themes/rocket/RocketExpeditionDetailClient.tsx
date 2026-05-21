@@ -343,8 +343,8 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         <>
           {showRecord && (
             <div style={{
-              position: 'fixed', bottom: 110, right: 20,
-              width: 580, maxHeight: 620,
+              position: 'fixed', bottom: 110, right: 20, left: 'calc(55% + 120px)',
+              maxHeight: 720,
               overflow: 'auto',
               background: '#fffde7',
               border: '3px solid #3a7d44',
