@@ -300,7 +300,7 @@ function addTrackLayers(
 
   for (const wpt of waypoints) {
     if (!wpt.name) continue
-    const wptBg = single ? '#e65100' : color
+    const wptBg = color
     const wptIcon = L.divIcon({
       className: '',
       html: `<div style="width:12px;height:12px;background:${wptBg};border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>`,
