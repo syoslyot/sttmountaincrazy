@@ -7,8 +7,8 @@ export async function GET(req: NextRequest) {
     p_q:         sp.get('q')       ?? '',
     p_county:    sp.get('county')  ?? '',
     p_counties:  sp.get('counties') ? sp.get('counties')!.split(',') : [],
-    p_start:     sp.get('start')   ?? '',
-    p_end:       sp.get('end')     ?? '',
+    p_start:     sp.get('start')   || null,
+    p_end:       sp.get('end')     || null,
     p_page:      parseInt(sp.get('page') ?? '1', 10),
     p_page_size: 20,
   })
