@@ -344,7 +344,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
           {showRecord && (
             <div style={{
               position: 'fixed', bottom: 110, right: 20,
-              width: 560, maxHeight: 620,
+              width: 580, maxHeight: 620,
               overflow: 'auto',
               background: '#fffde7',
               border: '3px solid #3a7d44',
@@ -371,7 +371,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
           <div
             onClick={() => setShowRecord(p => !p)}
             style={{
-              position: 'fixed', bottom: 25, right: 20, zIndex: 1100,
+              position: 'fixed', bottom: 25, left: 20, zIndex: 1100,
               pointerEvents: 'auto', cursor: 'pointer',
               animation: 'bubbleFloat 3.5s ease-in-out infinite',
             }}
