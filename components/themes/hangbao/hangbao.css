@@ -413,7 +413,7 @@
 .neon-trip.shape-triangle .trip-info { display: none; }
 .neon-trip.shape-triangle .trip-num { top: 40%; right: 38%; transform: rotate(0); }
 .neon-trip.shape-triangle .trip-region { margin-top: 4px; }
-.neon-trip.shape-triangle .trip-title { font-size: 54px; line-height: 1.1; }
+.neon-trip.shape-triangle .trip-title { font-size: 40px; line-height: 1.1; }
 .neon-trip.shape-tall {
   grid-column: span 3;
   aspect-ratio: 0.55;
