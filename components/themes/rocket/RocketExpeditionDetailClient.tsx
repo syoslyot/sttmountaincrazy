@@ -202,14 +202,14 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         @keyframes bubbleFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-4px) rotate(-0.5deg)} }
         .riso-det-bubble::after {
           content:''; position:absolute; bottom:-23px; left:25px;
-          border:12px solid transparent; border-top-color:#1a1000;
+          border:12px solid transparent; border-top-color:#3a7d44;
         }
         .riso-det-bubble::before {
           content:''; position:absolute; bottom:-18px; left:30px;
           border:7px solid transparent; border-top-color:#fffde7; z-index:1;
         }
-        .riso-det-bubble-open::after { border-top-color: #b84000; }
-        .riso-det-bubble-open::before { border-top-color: #e65100; }
+        .riso-det-bubble-open::after { border-top-color: #2a5c34; }
+        .riso-det-bubble-open::before { border-top-color: #3a7d44; }
       `}</style>
 
       {/* Grain overlay */}
@@ -384,14 +384,14 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
             <div
               className={showRecord ? 'riso-det-bubble riso-det-bubble-open' : 'riso-det-bubble'}
               style={{
-                background: showRecord ? '#e65100' : '#fffde7',
-                border: `3px solid ${showRecord ? '#b84000' : '#1a1000'}`,
+                background: showRecord ? '#3a7d44' : '#fffde7',
+                border: `3px solid ${showRecord ? '#2a5c34' : '#3a7d44'}`,
                 padding: '14px 25px',
                 position: 'relative',
                 fontFamily: "'Noto Sans TC', sans-serif",
                 fontSize: '1.29rem', lineHeight: 1,
                 color: showRecord ? '#fffde7' : '#1a1000',
-                boxShadow: `5px 5px 0 ${showRecord ? '#b84000' : '#1a1000'}`,
+                boxShadow: `5px 5px 0 ${showRecord ? '#2a5c34' : '#3a7d44'}`,
                 transition: 'background 0.2s, color 0.2s, border-color 0.2s',
                 whiteSpace: 'nowrap',
               }}>
