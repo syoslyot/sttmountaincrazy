@@ -618,7 +618,7 @@
   position: relative; z-index: 5;
 }
 .d-map-wrap {
-  height: 91vh; min-height: 702px;
+  height: 84vh; min-height: 648px;
   position: relative;
   border: 6px solid var(--bg);
   box-shadow: 14px 14px 0 var(--hot), 28px 28px 0 var(--cyan);
@@ -819,7 +819,7 @@
 }
 .d-float-window {
   position: fixed;
-  width: min(460px, calc(100vw - 40px));
+  width: min(552px, calc(100vw - 40px));
   max-height: calc(100vh - 40px);
   z-index: 9000;
   background: white; color: var(--bg);

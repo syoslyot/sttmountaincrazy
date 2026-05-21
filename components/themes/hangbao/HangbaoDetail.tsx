@@ -144,7 +144,7 @@ function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap
         options: { position: 'topleft' as const },
         onAdd() {
           const btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control hangbao-fullscreen-btn')
-          btn.innerHTML = '⛶'
+          btn.innerHTML = '全螢幕'
           btn.title = '全螢幕'
           L.DomEvent.on(btn, 'click', () => {
             const el = map.getContainer()
@@ -223,7 +223,7 @@ function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap
             waypoints.forEach(w => {
               const icon = L.divIcon({
                 className: '',
-                html: '<div class="hangbao-wpt-dot"></div>',
+                html: `<div style="width:16px;height:16px;background:${color};border:2px solid #ffd60a;transform:rotate(45deg);box-shadow:0 0 8px ${color},0 0 2px #ffd60a;cursor:pointer;"></div>`,
                 iconSize: [16, 16], iconAnchor: [8, 8],
               })
               layers.push(L.marker([w.lat, w.lng], { icon })
@@ -285,7 +285,7 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
   records: RecordItem[]
 }) {
   const [pos, setPos] = useState(() => {
-    const w = Math.min(460, window.innerWidth - 40)
+    const w = Math.min(552, window.innerWidth - 40)
     return { x: Math.max(20, window.innerWidth - w - 32), y: 60 }
   })
   const [minimized, setMinimized] = useState(false)
@@ -360,6 +360,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
   const [gpxOpen, setGpxOpen]     = useState(false)
   const [pdfOpen, setPdfOpen]     = useState(false)
   const mapSectionRef  = useRef<HTMLDivElement>(null)
+  const gpxDropRef     = useRef<HTMLDivElement>(null)
   const actionsDropRef = useRef<HTMLDivElement>(null)
 
   const gpxColorMap = Object.fromEntries(
@@ -383,10 +384,9 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (actionsDropRef.current && !actionsDropRef.current.contains(e.target as Node)) {
-        setGpxOpen(false)
-        setPdfOpen(false)
-      }
+      const t = e.target as Node
+      if (gpxDropRef.current && !gpxDropRef.current.contains(t)) setGpxOpen(false)
+      if (actionsDropRef.current && !actionsDropRef.current.contains(t)) setPdfOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -426,15 +426,11 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
 
         {/* Map */}
         <section className="d-map-section" ref={mapSectionRef}>
-          <div className="d-map-label">★ 地圖 MAP ★</div>
-          <div className="d-map-wrap">
-            <HangbaoMap activePaths={[...activeGpxes]} colorMap={gpxColorMap} />
-          </div>
-          <div className="d-map-corner">山協 siak-phānn</div>
-          <div className="d-map-actions" ref={actionsDropRef}>
-            {/* GPX multi-select dropdown */}
+          {/* Label row: "★ 地圖 MAP ★" + GPX dropdown overlapping from the right */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', marginBottom: '30px', marginLeft: '2%', position: 'relative', zIndex: 5 }}>
+            <div className="d-map-label" style={{ margin: 0, flexShrink: 0 }}>★ 地圖 MAP ★</div>
             {gpxFiles.length > 0 && (
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', marginLeft: '-10px', zIndex: 6 }} ref={gpxDropRef}>
                 <button
                   className="d-dl-btn b2"
                   onClick={() => { setGpxOpen(o => !o); setPdfOpen(false) }}
@@ -476,12 +472,19 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
                 )}
               </div>
             )}
+          </div>
 
-            {/* PDF dropdown */}
-            {(() => {
-              const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.filename))
-              if (mapFileItems.length === 0) return null
-              return (
+          <div className="d-map-wrap">
+            <HangbaoMap activePaths={[...activeGpxes]} colorMap={gpxColorMap} />
+          </div>
+          <div className="d-map-corner">山協 siak-phānn</div>
+
+          {/* PDF dropdown below map */}
+          {(() => {
+            const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.filename))
+            if (mapFileItems.length === 0) return null
+            return (
+              <div className="d-map-actions" ref={actionsDropRef}>
                 <div style={{ position: 'relative' }}>
                   <button
                     className="d-dl-btn b3"
@@ -517,9 +520,9 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
                     </div>
                   )}
                 </div>
-              )
-            })()}
-          </div>
+              </div>
+            )
+          })()}
         </section>
 
         {/* 出隊資料（左）+ 沿途紀錄（右）兩欄 */}
