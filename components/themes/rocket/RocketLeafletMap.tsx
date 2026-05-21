@@ -262,7 +262,7 @@ async function fetchAndParse(path: string): Promise<ParsedTrack | null> {
 }
 
 function addTrackLayers(
-  map: any, L: any, parsed: ParsedTrack, color: string
+  map: any, L: any, parsed: ParsedTrack, color: string, single: boolean
 ): any[] {
   const { latlngs, waypoints } = parsed
   if (latlngs.length === 0) return []
@@ -275,9 +275,10 @@ function addTrackLayers(
   layers.push(line)
 
   if (latlngs[0]) {
+    const startBg = single ? '#3a7d44' : color
     const startIcon = L.divIcon({
       className: '',
-      html: `<div style="background:${color};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">起</div>`,
+      html: `<div style="background:${startBg};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:2px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">起</div>`,
       iconSize: [30, 26], iconAnchor: [15, 13],
     })
     const start = L.marker(latlngs[0], { icon: startIcon })
@@ -285,9 +286,11 @@ function addTrackLayers(
     layers.push(start)
   }
   if (latlngs.at(-1)) {
+    const endBg = single ? '#0066cc' : color
+    const endBorder = single ? '2px' : '3px'
     const endIcon = L.divIcon({
       className: '',
-      html: `<div style="background:${color};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:3px solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>`,
+      html: `<div style="background:${endBg};color:#fffde7;padding:4px 8px;font-weight:900;font-family:'Bebas Neue',sans-serif;font-size:13px;border:${endBorder} solid #fffde7;box-shadow:0 2px 6px rgba(0,0,0,0.4)">終</div>`,
       iconSize: [30, 26], iconAnchor: [15, 13],
     })
     const end = L.marker(latlngs.at(-1)!, { icon: endIcon })
@@ -297,9 +300,10 @@ function addTrackLayers(
 
   for (const wpt of waypoints) {
     if (!wpt.name) continue
+    const wptBg = single ? '#e65100' : color
     const wptIcon = L.divIcon({
       className: '',
-      html: `<div style="width:12px;height:12px;background:${color};border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>`,
+      html: `<div style="width:12px;height:12px;background:${wptBg};border:2px solid #1a1000;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);cursor:pointer"></div>`,
       iconSize: [12, 12], iconAnchor: [6, 6],
     })
     const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
@@ -318,6 +322,7 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
   const trackLayersRef = useRef<Map<string, any[]>>(new Map())
   const colorAssignRef = useRef<Map<string, string>>(new Map())
   const nextColorRef = useRef(0)
+  const prevCountRef = useRef(activeGpxes.length)
   const hoverMarkerRef = useRef<any>(null)
   const activeGpxesRef = useRef(activeGpxes)
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
@@ -426,7 +431,7 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
           const color = colorAssignRef.current.get(path)!
           const parsed = await fetchAndParse(path)
           if (!parsed || cancelled) return
-          const layers = addTrackLayers(map, L, parsed, color)
+          const layers = addTrackLayers(map, L, parsed, color, paths.length === 1)
           trackLayersRef.current.set(path, layers)
           return parsed
         })).then(results => {
@@ -465,6 +470,10 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
     if (!map || !L) return
 
     let cancelled = false
+    const prevCount = prevCountRef.current
+    const single = activeGpxes.length === 1
+    prevCountRef.current = activeGpxes.length
+
     const prevPaths = new Set(trackLayersRef.current.keys())
     const nextPaths = new Set(activeGpxes)
 
@@ -479,10 +488,23 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
     // Clear hover marker and elevation when multi-select
     hoverMarkerRef.current?.remove()
     hoverMarkerRef.current = null
-    if (activeGpxes.length !== 1) setElevPoints([])
+    if (!single) setElevPoints([])
 
-    // Paths to load (not yet on map)
-    const toLoad = activeGpxes.filter(p => !prevPaths.has(p))
+    // Detect single↔multi mode change — must redraw all existing tracks
+    const modeChanged = prevCount > 0 && (prevCount === 1) !== single
+    if (modeChanged) {
+      for (const path of nextPaths) {
+        if (prevPaths.has(path)) {
+          trackLayersRef.current.get(path)?.forEach(l => l.remove())
+          trackLayersRef.current.delete(path)
+        }
+      }
+    }
+
+    // Paths to load (not yet on map, or forcibly cleared above)
+    const toLoad = modeChanged
+      ? [...activeGpxes]
+      : activeGpxes.filter(p => !prevPaths.has(p))
 
     // If single track already loaded, show its elevation from cache
     if (activeGpxes.length === 1 && toLoad.length === 0) {
@@ -501,7 +523,7 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
       const color = colorAssignRef.current.get(path)!
       const parsed = await fetchAndParse(path)
       if (!parsed || cancelled) return null
-      const layers = addTrackLayers(map, L, parsed, color)
+      const layers = addTrackLayers(map, L, parsed, color, single)
       trackLayersRef.current.set(path, layers)
       return parsed
     })).then(results => {
