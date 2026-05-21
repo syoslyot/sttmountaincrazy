@@ -204,12 +204,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
           content:''; position:absolute; bottom:-23px; left:25px;
           border:12px solid transparent; border-top-color:#3a7d44;
         }
-        .riso-det-bubble::before {
-          content:''; position:absolute; bottom:-18px; left:30px;
-          border:7px solid transparent; border-top-color:#fffde7; z-index:1;
-        }
         .riso-det-bubble-open::after { border-top-color: #2a5c34; }
-        .riso-det-bubble-open::before { border-top-color: #3a7d44; }
       `}</style>
 
       {/* Grain overlay */}
@@ -390,7 +385,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
                 position: 'relative',
                 fontFamily: "'Noto Sans TC', sans-serif",
                 fontSize: '1.29rem', lineHeight: 1,
-                color: showRecord ? '#fffde7' : '#1a1000',
+                color: showRecord ? '#fffde7' : '#3a7d44',
                 boxShadow: `5px 5px 0 ${showRecord ? '#2a5c34' : '#3a7d44'}`,
                 transition: 'background 0.2s, color 0.2s, border-color 0.2s',
                 whiteSpace: 'nowrap',
