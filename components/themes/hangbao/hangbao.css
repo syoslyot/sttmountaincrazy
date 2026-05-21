@@ -1163,10 +1163,8 @@
 }
 
 .hangbao-fullscreen-btn {
-  font-size: 16px !important;
-  padding: 0 !important;
-  width: 26px !important;
-  height: 26px !important;
+  font-size: 13px !important;
+  padding: 4px 8px !important;
   cursor: pointer;
   line-height: 1 !important;
   background: var(--bg) !important;
