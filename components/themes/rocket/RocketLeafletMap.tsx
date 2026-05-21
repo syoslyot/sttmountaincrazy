@@ -261,6 +261,17 @@ async function fetchAndParse(path: string): Promise<ParsedTrack | null> {
   }
 }
 
+function ensureTooltipStyle(color: string): string {
+  const cls = `rocket-wpt-tip-${color.replace('#', '')}`
+  if (!document.getElementById(cls)) {
+    const s = document.createElement('style')
+    s.id = cls
+    s.textContent = `.${cls}{background:#fffde7!important;color:#1a1000!important;border:2px solid ${color}!important;border-radius:0!important;font-family:'Bebas Neue',sans-serif!important;font-size:13px!important;letter-spacing:.08em!important;padding:3px 10px!important;box-shadow:3px 3px 0 ${color}!important;white-space:nowrap}.${cls}::before{border-top-color:${color}!important}`
+    document.head.appendChild(s)
+  }
+  return cls
+}
+
 function addTrackLayers(
   map: any, L: any, parsed: ParsedTrack, color: string, single: boolean
 ): any[] {
@@ -307,7 +318,7 @@ function addTrackLayers(
       iconSize: [12, 12], iconAnchor: [6, 6],
     })
     const marker = L.marker([wpt.lat, wpt.lng], { icon: wptIcon })
-      .bindTooltip(wpt.name, { direction: 'top', offset: [0, -8], className: 'rocket-wpt-tip' })
+      .bindTooltip(wpt.name, { direction: 'top', offset: [0, -8], className: ensureTooltipStyle(wptBg) })
     marker.addTo(map)
     layers.push(marker)
   }
@@ -409,13 +420,6 @@ export function RocketLeafletMap({ activeGpxes }: Props) {
         },
       })
       new FullscreenCtrl().addTo(map)
-
-      if (!document.getElementById('rocket-wpt-style')) {
-        const s = document.createElement('style')
-        s.id = 'rocket-wpt-style'
-        s.textContent = `.rocket-wpt-tip{background:#fffde7!important;color:#1a1000!important;border:2px solid #e65100!important;border-radius:0!important;font-family:'Bebas Neue',sans-serif!important;font-size:13px!important;letter-spacing:.08em!important;padding:3px 10px!important;box-shadow:3px 3px 0 #e65100!important;white-space:nowrap}.rocket-wpt-tip::before{border-top-color:#e65100!important}`
-        document.head.appendChild(s)
-      }
 
       map.setView([23.5, 121], 7)
 
