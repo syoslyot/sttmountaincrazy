@@ -54,8 +54,9 @@ export function useExpeditions(filter: ExpeditionFilter) {
     try {
       const res  = await fetch(`/api/expeditions?${buildParams(filterRef.current, page)}`)
       const data = await res.json()
-      setExps(prev => reset ? data.expeditions : [...prev, ...data.expeditions])
-      setTotal(data.total)
+      if (!res.ok) throw new Error(data.error ?? 'Failed to load expeditions')
+      setExps(prev => reset ? (data.expeditions ?? []) : [...prev, ...(data.expeditions ?? [])])
+      setTotal(data.total ?? 0)
       pageRef.current = page + 1
     } finally {
       setLoading(false)
