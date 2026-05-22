@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { openFile } from '@/lib/openFile'
 import { ThemeBadge } from '@/components/ThemeBadge'
 
 const RocketLeafletMap = dynamic(
@@ -194,7 +195,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
   const downloadableRecords = records.filter(r => r.file_path)
 
   const openInNewTab = (rec: RecordFile) => {
-    window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
+    openFile(rec.file_path!, rec.filename, 'records')
   }
 
   useEffect(() => {
@@ -295,7 +296,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               color="#e65100"
               open={pdfOpen}
               onToggle={() => { setPdfOpen(o => !o); setGpxOpen(false); setRecOpen(false) }}
-              onSelect={i => window.open(`/api/pdf?file=${encodeURIComponent(pdfFiles[i].file_path)}`, '_blank')}
+              onSelect={i => openFile(pdfFiles[i].file_path, pdfFiles[i].filename, 'maps')}
               rot={0.8}
             />
           )}
