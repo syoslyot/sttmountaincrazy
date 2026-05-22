@@ -528,7 +528,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
                           onClick={() => toggleGpx(g.file_path)}
                         >
                           <span style={{
-                            width: 12, height: 12, borderRadius: '50%', flexShrink: 0,
+                            width: 13, height: 13, borderRadius: '50%', flexShrink: 0,
                             background: isSelected ? dotColor : 'transparent',
                             border: `2px solid ${dotColor}`,
                             display: 'inline-block',
