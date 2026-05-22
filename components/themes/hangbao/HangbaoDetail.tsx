@@ -83,6 +83,44 @@ function parseKmlHangbao(text: string): { latlngs: [number, number][]; waypoints
   return { latlngs, waypoints: [] }
 }
 
+const TW_COORDS: Record<string, [number, number]> = {
+  '仁愛鄉': [23.98, 121.10], '信義鄉': [23.68, 120.85], '魚池鄉': [23.88, 120.93],
+  '國姓鄉': [24.06, 120.87], '埔里鎮': [23.97, 120.97], '竹山鎮': [23.75, 120.67],
+  '鹿谷鄉': [23.73, 120.77], '集集鎮': [23.83, 120.79], '水里鄉': [23.81, 120.85],
+  '名間鄉': [23.82, 120.67], '中寮鄉': [23.87, 120.73], '草屯鎮': [23.97, 120.67],
+  '秀林鄉': [24.15, 121.55], '萬榮鄉': [23.72, 121.40], '卓溪鄉': [23.33, 121.27],
+  '花蓮市': [23.97, 121.60], '新城鄉': [24.13, 121.65], '吉安鄉': [23.96, 121.57],
+  '壽豐鄉': [23.83, 121.53], '鳳林鎮': [23.74, 121.48], '光復鄉': [23.66, 121.43],
+  '瑞穗鄉': [23.50, 121.37], '富里鄉': [23.19, 121.26], '玉里鎮': [23.33, 121.31],
+  '海端鄉': [23.12, 121.07], '延平鄉': [23.22, 121.02], '金峰鄉': [22.60, 120.89],
+  '達仁鄉': [22.48, 120.87], '台東市': [22.75, 121.14], '臺東市': [22.75, 121.14],
+  '長濱鄉': [23.33, 121.44], '太麻里鄉': [22.63, 121.03], '池上鄉': [23.10, 121.22],
+  '關山鎮': [23.05, 121.17], '鹿野鄉': [22.92, 121.16], '卑南鄉': [22.79, 121.08],
+  '大同鄉': [24.62, 121.40], '南澳鄉': [24.51, 121.68], '三星鄉': [24.66, 121.65],
+  '員山鄉': [24.77, 121.67], '礁溪鄉': [24.83, 121.76], '頭城鎮': [24.86, 121.82],
+  '羅東鎮': [24.68, 121.77], '冬山鄉': [24.66, 121.78], '蘇澳鎮': [24.60, 121.85],
+  '復興區': [24.79, 121.37],
+  '尖石鄉': [24.73, 121.30], '五峰鄉': [24.65, 121.08], '關西鎮': [24.79, 121.18],
+  '橫山鄉': [24.72, 121.12],
+  '泰安鄉': [24.48, 121.05], '南庄鄉': [24.62, 120.97], '獅潭鄉': [24.57, 120.86],
+  '大湖鄉': [24.41, 120.87],
+  '和平區': [24.38, 121.00],
+  '阿里山鄉': [23.52, 120.73], '番路鄉': [23.53, 120.60], '梅山鄉': [23.58, 120.57],
+  '竹崎鄉': [23.52, 120.59],
+  '桃源區': [23.20, 120.80], '茂林區': [22.91, 120.72], '那瑪夏區': [23.33, 120.72],
+  '甲仙區': [23.08, 120.61], '六龜區': [22.99, 120.63],
+  '三地門鄉': [22.72, 120.66], '霧台鄉': [22.73, 120.75], '瑪家鄉': [22.70, 120.68],
+  '泰武鄉': [22.68, 120.68], '來義鄉': [22.61, 120.66], '春日鄉': [22.54, 120.71],
+  '獅子鄉': [22.50, 120.73], '牡丹鄉': [22.44, 120.81],
+  '南投縣': [23.83, 120.97], '花蓮縣': [23.70, 121.45], '台東縣': [22.93, 121.06],
+  '臺東縣': [22.93, 121.06], '宜蘭縣': [24.70, 121.75], '桃園市': [24.99, 121.30],
+  '新竹縣': [24.70, 121.15], '苗栗縣': [24.50, 120.82], '台中市': [24.15, 120.68],
+  '臺中市': [24.15, 120.68], '嘉義縣': [23.46, 120.45], '高雄市': [22.63, 120.30],
+  '屏東縣': [22.55, 120.55], '新北市': [25.01, 121.46], '基隆市': [25.13, 121.74],
+  '新竹市': [24.80, 120.97], '彰化縣': [23.99, 120.57], '雲林縣': [23.71, 120.43],
+  '嘉義市': [23.48, 120.45], '台南市': [23.00, 120.21], '臺南市': [23.00, 120.21],
+}
+
 function ensureWptTipStyle(color: string): string {
   const cls = `hangbao-wpt-tip-${color.replace('#', '')}`
   if (!document.querySelector(`style[data-hwpt="${cls}"]`)) {
@@ -94,7 +132,7 @@ function ensureWptTipStyle(color: string): string {
   return cls
 }
 
-function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap: Record<string, string> }) {
+function HangbaoMap({ activePaths, colorMap, entryTown, entryCounty }: { activePaths: string[], colorMap: Record<string, string>, entryTown?: string | null, entryCounty?: string | null }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const trackLayersRef = useRef<Map<string, any[]>>(new Map())
@@ -167,7 +205,12 @@ function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap
       })
       new FullscreenCtrl().addTo(map)
 
-      map.setView([23.5, 121], 7)
+      const initCoords = TW_COORDS[entryTown ?? ''] ?? TW_COORDS[entryCounty ?? ''] ?? null
+      if (initCoords && activePaths.length === 0) {
+        map.setView(initCoords, 11)
+      } else {
+        map.setView([23.5, 121], 7)
+      }
     })
 
     return () => {
@@ -175,7 +218,7 @@ function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap
       mapRef.current?.remove()
       mapRef.current = null
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Manage tracks when activePaths changes
   useEffect(() => {
@@ -486,7 +529,12 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
           </div>
 
           <div className="d-map-wrap">
-            <HangbaoMap activePaths={[...activeGpxes]} colorMap={gpxColorMap} />
+            <HangbaoMap
+              activePaths={[...activeGpxes]}
+              colorMap={gpxColorMap}
+              entryTown={exp.region}
+              entryCounty={exp.county}
+            />
           </div>
           <div className="d-map-corner">山協 siak-phānn</div>
 
