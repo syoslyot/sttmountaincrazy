@@ -174,6 +174,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
   const [recOpen, setRecOpen] = useState(false)
   const [recBoxOpen, setRecBoxOpen] = useState(false)
   const dropdownsRef = useRef<HTMLDivElement>(null)
+  const recBoxRef = useRef<HTMLDivElement>(null)
 
   const pdfFiles = mapFiles.filter(f => f.file_path.toLowerCase().endsWith('.pdf'))
   const p1Image = exp.preview_image
@@ -203,10 +204,15 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownsRef.current && !dropdownsRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const insideBar = dropdownsRef.current?.contains(target)
+      const insideBox = recBoxRef.current?.contains(target)
+      if (!insideBar && !insideBox) {
         setGpxOpen(false)
         setPdfOpen(false)
         setRecOpen(false)
+        setRecBoxOpen(false)
+      } else if (!insideBox) {
         setRecBoxOpen(false)
       }
     }
@@ -227,8 +233,8 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
         @keyframes risoGrain { 0%,100%{opacity:.06} 50%{opacity:.09} }
         @keyframes bubbleFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-4px) rotate(-0.5deg)} }
         .riso-det-bubble::after {
-          content:''; position:absolute; bottom:-20px; left:21px;
-          border:11px solid transparent; border-top-color:#3a7d44;
+          content:''; position:absolute; bottom:-22px; left:23px;
+          border:12px solid transparent; border-top-color:#3a7d44;
         }
         .riso-det-bubble-open::after { border-top-color: #2a5c34; }
       `}</style>
@@ -372,7 +378,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
       {records.length > 0 && (
         <>
           {showRecord && (
-            <div style={{
+            <div ref={recBoxRef} style={{
               position: 'fixed', top: '10.5%', bottom: '15%', left: '62%', right: '1%',
               display: 'flex', flexDirection: 'column',
               background: '#fffde7',
@@ -386,12 +392,10 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               color: '#1a1000',
             }}>
               {/* Header：標題 + 切換下拉 */}
-              <div
-                onMouseDown={e => e.stopPropagation()}
-                style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-                  padding: '1rem 1.2rem 0.5rem', flexShrink: 0,
-                }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                padding: '1rem 1.2rem 0.5rem', flexShrink: 0,
+              }}>
                 <div style={{
                   fontFamily: "'Bebas Neue', sans-serif",
                   fontSize: '1.275rem', color: '#e65100',
@@ -434,16 +438,16 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               style={{
                 background: showRecord ? '#3a7d44' : '#fffde7',
                 border: `2px solid ${showRecord ? '#2a5c34' : '#3a7d44'}`,
-                padding: '12px 21px',
+                padding: '13px 23px',
                 position: 'relative',
                 fontFamily: "'Noto Sans TC', sans-serif",
-                fontSize: '1.08rem', lineHeight: 1,
+                fontSize: '1.19rem', lineHeight: 1,
                 color: showRecord ? '#fffde7' : '#3a7d44',
                 boxShadow: `4px 4px 0 ${showRecord ? '#2a5c34' : '#3a7d44'}`,
                 transition: 'background 0.2s, color 0.2s, border-color 0.2s',
                 whiteSpace: 'nowrap',
               }}>
-              {showRecord ? '收起 ▲' : '點我看紀錄 ▼'}
+              {showRecord ? '收起' : '點我看紀錄'}
             </div>
           </div>
         </>
