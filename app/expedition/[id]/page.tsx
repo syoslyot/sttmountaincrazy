@@ -22,6 +22,7 @@ export default async function ExpeditionPage({ params }: Props) {
         gpxFiles={exp.gpx_files}
         mapFiles={exp.map_files}
         records={exp.records}
+        storageBase={`${process.env.SUPABASE_URL}/storage/v1/object/public`}
       />
     </>
   )

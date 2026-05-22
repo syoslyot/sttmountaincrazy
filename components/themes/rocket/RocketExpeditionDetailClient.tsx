@@ -14,11 +14,14 @@ const REC_ROTS = [-0.5, 1.2, -1.0, 0.8]
 
 interface GpxFile { file_path: string; filename: string }
 
+interface RecordFile { filename: string; content: string; file_path: string | null }
+
 interface Props {
   exp: Record<string, unknown>
   gpxFiles: GpxFile[]
   mapFiles: { file_path: string; filename: string }[]
-  records: { filename: string; content: string }[]
+  records: RecordFile[]
+  storageBase: string
 }
 
 const TRACK_COLORS = [
@@ -160,7 +163,7 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
   )
 }
 
-export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records }: Props) {
+export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records, storageBase }: Props) {
   const [activeGpxes, setActiveGpxes] = useState<Set<string>>(
     () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
   )
@@ -169,6 +172,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
   const [gpxOpen, setGpxOpen] = useState(false)
   const [pdfOpen, setPdfOpen] = useState(false)
   const [recOpen, setRecOpen] = useState(false)
+  const [recBoxOpen, setRecBoxOpen] = useState(false)
   const dropdownsRef = useRef<HTMLDivElement>(null)
 
   const pdfFiles = mapFiles.filter(f => f.file_path.toLowerCase().endsWith('.pdf'))
@@ -188,12 +192,24 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
     setGpxOpen(false)
   }
 
+  const openInNewTab = (rec: RecordFile) => {
+    if (rec.file_path) {
+      window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
+    } else {
+      const blob = new Blob([rec.content], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    }
+  }
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownsRef.current && !dropdownsRef.current.contains(e.target as Node)) {
         setGpxOpen(false)
         setPdfOpen(false)
         setRecOpen(false)
+        setRecBoxOpen(false)
       }
     }
     document.addEventListener('mousedown', handler)
@@ -213,8 +229,8 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
         @keyframes risoGrain { 0%,100%{opacity:.06} 50%{opacity:.09} }
         @keyframes bubbleFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-4px) rotate(-0.5deg)} }
         .riso-det-bubble::after {
-          content:''; position:absolute; bottom:-23px; left:25px;
-          border:12px solid transparent; border-top-color:#3a7d44;
+          content:''; position:absolute; bottom:-19px; left:20px;
+          border:10px solid transparent; border-top-color:#3a7d44;
         }
         .riso-det-bubble-open::after { border-top-color: #2a5c34; }
       `}</style>
@@ -293,7 +309,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
               color="#3a7d44"
               open={recOpen}
               onToggle={() => { setRecOpen(o => !o); setGpxOpen(false); setPdfOpen(false) }}
-              onSelect={i => setSelectedRecord(i)}
+              onSelect={i => { openInNewTab(records[i]); setRecOpen(false) }}
               rot={-0.5}
               isActive={records.length > 0}
               activeIndex={selectedRecord}
@@ -362,28 +378,48 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
           {showRecord && (
             <div style={{
               position: 'fixed', top: '10.5%', bottom: '15%', left: '62%', right: '1%',
-              overflow: 'auto',
+              display: 'flex', flexDirection: 'column',
               background: '#fffde7',
               border: '5px solid #3a7d44',
               boxShadow: '4px 4px 0 #3a7d44',
               transform: 'rotate(-3deg)',
               transformOrigin: 'center center',
               zIndex: 1100,
-              padding: '1rem 1.2rem',
               fontFamily: "'Noto Sans TC', sans-serif",
               fontSize: '1.1rem', lineHeight: 1.8,
               color: '#1a1000',
             }}>
+              {/* Header：標題 + 切換下拉 */}
               <div style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '1.275rem', color: '#e65100',
-                letterSpacing: '0.1em', marginBottom: '0.5rem',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                padding: '1rem 1.2rem 0.5rem', flexShrink: 0,
               }}>
-                {records[selectedRecord]?.filename}
+                <div style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: '1.275rem', color: '#e65100',
+                  letterSpacing: '0.1em',
+                }}>
+                  {records[selectedRecord]?.filename}
+                </div>
+                {records.length > 1 && (
+                  <RisoDropdown
+                    label={records[selectedRecord]?.filename ?? '紀錄'}
+                    options={records.map(r => r.filename)}
+                    color="#3a7d44"
+                    open={recBoxOpen}
+                    onToggle={() => setRecBoxOpen(o => !o)}
+                    onSelect={i => { setSelectedRecord(i); setRecBoxOpen(false) }}
+                    activeIndex={selectedRecord}
+                    maxWidth="10rem"
+                  />
+                )}
               </div>
-              <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit', fontSize: 'inherit' }}>
-                {records[selectedRecord]?.content}
-              </pre>
+              {/* 可捲動內容區 */}
+              <div style={{ overflow: 'auto', flex: 1, padding: '0 1.2rem 1rem' }}>
+                <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit', fontSize: 'inherit' }}>
+                  {records[selectedRecord]?.content}
+                </pre>
+              </div>
             </div>
           )}
 
@@ -399,13 +435,13 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records 
               className={showRecord ? 'riso-det-bubble riso-det-bubble-open' : 'riso-det-bubble'}
               style={{
                 background: showRecord ? '#3a7d44' : '#fffde7',
-                border: `3px solid ${showRecord ? '#2a5c34' : '#3a7d44'}`,
-                padding: '14px 25px',
+                border: `2px solid ${showRecord ? '#2a5c34' : '#3a7d44'}`,
+                padding: '11px 20px',
                 position: 'relative',
                 fontFamily: "'Noto Sans TC', sans-serif",
-                fontSize: '1.29rem', lineHeight: 1,
+                fontSize: '1.03rem', lineHeight: 1,
                 color: showRecord ? '#fffde7' : '#3a7d44',
-                boxShadow: `5px 5px 0 ${showRecord ? '#2a5c34' : '#3a7d44'}`,
+                boxShadow: `4px 4px 0 ${showRecord ? '#2a5c34' : '#3a7d44'}`,
                 transition: 'background 0.2s, color 0.2s, border-color 0.2s',
                 whiteSpace: 'nowrap',
               }}>
