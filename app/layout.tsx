@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { ThemeBadge } from '@/components/ThemeBadge'
 import '@/styles/globals.css'
 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <ThemeBadge />
+        <GoogleAnalytics gaId="G-22DPL2TKN2" />
       </body>
     </html>
   )
