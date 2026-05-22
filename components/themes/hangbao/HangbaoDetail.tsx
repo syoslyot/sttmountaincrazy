@@ -6,6 +6,11 @@ import Link from 'next/link'
 import 'leaflet/dist/leaflet.css'
 import './hangbao.css'
 
+const TRACK_COLORS = [
+  '#e8185a', '#00a896', '#f0a500', '#8bc34a', '#e64a19',
+  '#7e57c2', '#039be5', '#d81b60', '#43a047', '#ef6c00',
+]
+
 export interface ExpData {
   id: number
   name: string
@@ -78,10 +83,65 @@ function parseKmlHangbao(text: string): { latlngs: [number, number][]; waypoints
   return { latlngs, waypoints: [] }
 }
 
-function HangbaoMap({ activePath }: { activePath: string }) {
+const TW_COORDS: Record<string, [number, number]> = {
+  '仁愛鄉': [23.98, 121.10], '信義鄉': [23.68, 120.85], '魚池鄉': [23.88, 120.93],
+  '國姓鄉': [24.06, 120.87], '埔里鎮': [23.97, 120.97], '竹山鎮': [23.75, 120.67],
+  '鹿谷鄉': [23.73, 120.77], '集集鎮': [23.83, 120.79], '水里鄉': [23.81, 120.85],
+  '名間鄉': [23.82, 120.67], '中寮鄉': [23.87, 120.73], '草屯鎮': [23.97, 120.67],
+  '秀林鄉': [24.15, 121.55], '萬榮鄉': [23.72, 121.40], '卓溪鄉': [23.33, 121.27],
+  '花蓮市': [23.97, 121.60], '新城鄉': [24.13, 121.65], '吉安鄉': [23.96, 121.57],
+  '壽豐鄉': [23.83, 121.53], '鳳林鎮': [23.74, 121.48], '光復鄉': [23.66, 121.43],
+  '瑞穗鄉': [23.50, 121.37], '富里鄉': [23.19, 121.26], '玉里鎮': [23.33, 121.31],
+  '海端鄉': [23.12, 121.07], '延平鄉': [23.22, 121.02], '金峰鄉': [22.60, 120.89],
+  '達仁鄉': [22.48, 120.87], '台東市': [22.75, 121.14], '臺東市': [22.75, 121.14],
+  '長濱鄉': [23.33, 121.44], '太麻里鄉': [22.63, 121.03], '池上鄉': [23.10, 121.22],
+  '關山鎮': [23.05, 121.17], '鹿野鄉': [22.92, 121.16], '卑南鄉': [22.79, 121.08],
+  '大同鄉': [24.62, 121.40], '南澳鄉': [24.51, 121.68], '三星鄉': [24.66, 121.65],
+  '員山鄉': [24.77, 121.67], '礁溪鄉': [24.83, 121.76], '頭城鎮': [24.86, 121.82],
+  '羅東鎮': [24.68, 121.77], '冬山鄉': [24.66, 121.78], '蘇澳鎮': [24.60, 121.85],
+  '復興區': [24.79, 121.37],
+  '尖石鄉': [24.73, 121.30], '五峰鄉': [24.65, 121.08], '關西鎮': [24.79, 121.18],
+  '橫山鄉': [24.72, 121.12],
+  '泰安鄉': [24.48, 121.05], '南庄鄉': [24.62, 120.97], '獅潭鄉': [24.57, 120.86],
+  '大湖鄉': [24.41, 120.87],
+  '和平區': [24.38, 121.00],
+  '阿里山鄉': [23.52, 120.73], '番路鄉': [23.53, 120.60], '梅山鄉': [23.58, 120.57],
+  '竹崎鄉': [23.52, 120.59],
+  '桃源區': [23.20, 120.80], '茂林區': [22.91, 120.72], '那瑪夏區': [23.33, 120.72],
+  '甲仙區': [23.08, 120.61], '六龜區': [22.99, 120.63],
+  '三地門鄉': [22.72, 120.66], '霧台鄉': [22.73, 120.75], '瑪家鄉': [22.70, 120.68],
+  '泰武鄉': [22.68, 120.68], '來義鄉': [22.61, 120.66], '春日鄉': [22.54, 120.71],
+  '獅子鄉': [22.50, 120.73], '牡丹鄉': [22.44, 120.81],
+  '南投縣': [23.83, 120.97], '花蓮縣': [23.70, 121.45], '台東縣': [22.93, 121.06],
+  '臺東縣': [22.93, 121.06], '宜蘭縣': [24.70, 121.75], '桃園市': [24.99, 121.30],
+  '新竹縣': [24.70, 121.15], '苗栗縣': [24.50, 120.82], '台中市': [24.15, 120.68],
+  '臺中市': [24.15, 120.68], '嘉義縣': [23.46, 120.45], '高雄市': [22.63, 120.30],
+  '屏東縣': [22.55, 120.55], '新北市': [25.01, 121.46], '基隆市': [25.13, 121.74],
+  '新竹市': [24.80, 120.97], '彰化縣': [23.99, 120.57], '雲林縣': [23.71, 120.43],
+  '嘉義市': [23.48, 120.45], '台南市': [23.00, 120.21], '臺南市': [23.00, 120.21],
+}
+
+function ensureWptTipStyle(color: string): string {
+  const cls = `hangbao-wpt-tip-${color.replace('#', '')}`
+  if (!document.querySelector(`style[data-hwpt="${cls}"]`)) {
+    const s = document.createElement('style')
+    s.dataset.hwpt = cls
+    s.textContent = `.${cls}{background:#1a0030!important;color:${color}!important;border:2px solid ${color}!important;border-radius:0!important;font-weight:700;font-size:13px;}`
+    document.head.appendChild(s)
+  }
+  return cls
+}
+
+function HangbaoMap({ activePaths, colorMap, entryTown, entryCounty }: { activePaths: string[], colorMap: Record<string, string>, entryTown?: string | null, entryCounty?: string | null }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef       = useRef<any>(null)
-  const trackLayersRef = useRef<any[]>([])
+  const mapRef = useRef<any>(null)
+  const trackLayersRef = useRef<Map<string, any[]>>(new Map())
+  const trackPolylinesRef = useRef<Map<string, any>>(new Map())
+  const prevPathsRef = useRef<string[]>([])
+  const colorMapRef = useRef(colorMap)
+  const [loadingCount, setLoadingCount] = useState(0)
+
+  colorMapRef.current = colorMap
 
   // Init map once
   useEffect(() => {
@@ -96,7 +156,7 @@ function HangbaoMap({ activePath }: { activePath: string }) {
       const openTopo = L.tileLayer(
         'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
         { maxZoom: 17, attribution: '© OpenStreetMap, © OpenTopoMap' }
-      ).addTo(map)
+      )
       const nlscEmap = L.tileLayer(
         'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}',
         { maxZoom: 20, attribution: '© 國土測繪中心' }
@@ -104,7 +164,7 @@ function HangbaoMap({ activePath }: { activePath: string }) {
       const nlscSatellite = L.tileLayer(
         'https://wmts.nlsc.gov.tw/wmts/PHOTO_MIX/default/GoogleMapsCompatible/{z}/{y}/{x}',
         { maxZoom: 20, attribution: '© 國土測繪中心' }
-      )
+      ).addTo(map)
       const osm = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         { maxZoom: 19, attribution: '© OpenStreetMap' }
@@ -133,7 +193,7 @@ function HangbaoMap({ activePath }: { activePath: string }) {
         options: { position: 'topleft' as const },
         onAdd() {
           const btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control hangbao-fullscreen-btn')
-          btn.innerHTML = '⛶'
+          btn.innerHTML = '全螢幕'
           btn.title = '全螢幕'
           L.DomEvent.on(btn, 'click', () => {
             const el = map.getContainer()
@@ -145,7 +205,12 @@ function HangbaoMap({ activePath }: { activePath: string }) {
       })
       new FullscreenCtrl().addTo(map)
 
-      map.setView([23.5, 121], 7)
+      const initCoords = TW_COORDS[entryTown ?? ''] ?? TW_COORDS[entryCounty ?? ''] ?? null
+      if (initCoords && activePaths.length === 0) {
+        map.setView(initCoords, 11)
+      } else {
+        map.setView([23.5, 121], 7)
+      }
     })
 
     return () => {
@@ -153,75 +218,114 @@ function HangbaoMap({ activePath }: { activePath: string }) {
       mapRef.current?.remove()
       mapRef.current = null
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load track whenever activePath changes
+  // Manage tracks when activePaths changes
   useEffect(() => {
-    if (!activePath) return
-    const isKml = activePath.toLowerCase().endsWith('.kml')
-
-    const doLoad = async () => {
+    const doManage = async () => {
       const map = mapRef.current
       if (!map) return
-      // Clear previous track layers
-      trackLayersRef.current.forEach(layer => { try { layer.remove() } catch (_) {} })
-      trackLayersRef.current = []
 
-      let L: any
-      try {
-        L = (await import('leaflet')).default ?? await import('leaflet')
-      } catch { return }
+      const prev = new Set(prevPathsRef.current)
+      const next = new Set(activePaths)
+      prevPathsRef.current = activePaths
 
-      try {
-        const res = await fetch(`/api/gpx?file=${encodeURIComponent(activePath)}`)
-        if (!res.ok) return
-        const text = await res.text()
-        const { latlngs, waypoints } = isKml ? parseKmlHangbao(text) : parseGpxHangbao(text)
-        if (latlngs.length === 0) return
+      // Remove tracks no longer active
+      for (const [path, layers] of trackLayersRef.current) {
+        if (!next.has(path)) {
+          layers.forEach(l => { try { l.remove() } catch (_) {} })
+          trackLayersRef.current.delete(path)
+          trackPolylinesRef.current.delete(path)
+        }
+      }
 
-        const track = L.polyline(latlngs, { color: '#ff006e', weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(map)
-        trackLayersRef.current.push(track)
+      const toLoad = activePaths.filter(p => !prev.has(p))
 
-        const mkStart = L.divIcon({
-          className: '',
-          html: '<div style="background:#00f5d4;color:#e63946;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">起</div>',
-          iconSize: [40, 30], iconAnchor: [20, 15],
-        })
-        const mkEnd = L.divIcon({
-          className: '',
-          html: '<div style="background:#ffd60a;color:#1a0030;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);font-size:13px;">終</div>',
-          iconSize: [40, 30], iconAnchor: [20, 15],
-        })
-        const mStart = L.marker(latlngs[0], { icon: mkStart }).addTo(map)
-        const mEnd   = L.marker(latlngs[latlngs.length - 1], { icon: mkEnd }).addTo(map)
-        trackLayersRef.current.push(mStart, mEnd)
+      if (toLoad.length > 0) {
+        setLoadingCount(c => c + toLoad.length)
 
-        waypoints.forEach(w => {
-          const icon = L.divIcon({
-            className: '',
-            html: '<div class="hangbao-wpt-dot"></div>',
-            iconSize: [16, 16], iconAnchor: [8, 8],
-          })
-          const wm = L.marker([w.lat, w.lng], { icon })
-            .bindTooltip(w.name, { direction: 'top', offset: [0, -10], className: 'hangbao-wpt-tip' })
-            .addTo(map)
-          trackLayersRef.current.push(wm)
-        })
+        await Promise.all(toLoad.map(async path => {
+          const isKml = path.toLowerCase().endsWith('.kml')
+          try {
+            const L = (await import('leaflet')).default ?? await import('leaflet')
+            const res = await fetch(`/api/gpx?file=${encodeURIComponent(path)}`)
+            if (!res.ok) return
+            const text = await res.text()
+            const { latlngs, waypoints } = isKml ? parseKmlHangbao(text) : parseGpxHangbao(text)
+            if (latlngs.length === 0) return
 
-        map.fitBounds(track.getBounds(), { padding: [40, 40] })
-      } catch { /* leave at default view */ }
+            const color = colorMapRef.current[path] ?? TRACK_COLORS[0]
+            const layers: any[] = []
+
+            const polyline = L.polyline(latlngs, { color, weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(map)
+            layers.push(polyline)
+            trackPolylinesRef.current.set(path, polyline)
+
+            const mkStart = L.divIcon({
+              className: '',
+              html: `<div style="background:${color};color:#1a0030;padding:4px 8px;font-weight:900;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.5);font-size:13px;">起</div>`,
+              iconSize: [40, 30], iconAnchor: [20, 15],
+            })
+            const mkEnd = L.divIcon({
+              className: '',
+              html: `<div style="background:#1a0030;color:${color};border:2px solid ${color};padding:4px 8px;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,0.5);font-size:13px;">終</div>`,
+              iconSize: [40, 30], iconAnchor: [20, 15],
+            })
+            layers.push(L.marker(latlngs[0], { icon: mkStart }).addTo(map))
+            layers.push(L.marker(latlngs[latlngs.length - 1], { icon: mkEnd }).addTo(map))
+
+            waypoints.forEach(w => {
+              const icon = L.divIcon({
+                className: '',
+                html: `<div style="width:16px;height:16px;background:${color};border:2px solid #ffd60a;transform:rotate(45deg);box-shadow:0 0 8px ${color},0 0 2px #ffd60a;cursor:pointer;"></div>`,
+                iconSize: [16, 16], iconAnchor: [8, 8],
+              })
+              layers.push(L.marker([w.lat, w.lng], { icon })
+                .bindTooltip(w.name, { direction: 'top', offset: [0, -10], className: ensureWptTipStyle(color) })
+                .addTo(map))
+            })
+
+            trackLayersRef.current.set(path, layers)
+          } catch (_) {
+            // ignore load errors
+          } finally {
+            setLoadingCount(c => c - 1)
+          }
+        }))
+      }
+
+      // Fit to all currently loaded tracks
+      const polys = [...trackPolylinesRef.current.values()]
+      if (polys.length > 0) {
+        try {
+          let bounds = polys[0].getBounds()
+          for (const p of polys.slice(1)) bounds = bounds.extend(p.getBounds())
+          map.fitBounds(bounds, { padding: [40, 40] })
+        } catch (_) {}
+      }
     }
 
-    // Wait briefly if map isn't ready yet (first render)
     if (mapRef.current) {
-      doLoad()
+      doManage()
     } else {
-      const t = setTimeout(doLoad, 600)
+      const t = setTimeout(doManage, 600)
       return () => clearTimeout(t)
     }
-  }, [activePath])
+  }, [activePaths])
 
-  return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+  return (
+    <div style={{ position: 'absolute', inset: 0 }}>
+      <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      {loadingCount > 0 && (
+        <div className="hangbao-map-loading">
+          <div className="hangbao-map-loading-inner">
+            <div className="hangbao-map-loading-text">LOADING</div>
+            <div className="hangbao-map-loading-sub">航跡載入中</div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 
@@ -235,7 +339,7 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
   records: RecordItem[]
 }) {
   const [pos, setPos] = useState(() => {
-    const w = Math.min(460, window.innerWidth - 40)
+    const w = Math.min(620, window.innerWidth - 40)
     return { x: Math.max(20, window.innerWidth - w - 32), y: 60 }
   })
   const [minimized, setMinimized] = useState(false)
@@ -304,20 +408,39 @@ const REC_SHAPES = ['rs-square','rs-rect','rs-circle','rs-ellipse','rs-blob','rs
 
 export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
   const [openRec, setOpenRec]     = useState<number | null>(null)
-  const [activeGpxIdx, setActiveGpxIdx] = useState(0)
+  const [activeGpxes, setActiveGpxes] = useState<Set<string>>(
+    () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
+  )
   const [gpxOpen, setGpxOpen]     = useState(false)
   const [pdfOpen, setPdfOpen]     = useState(false)
   const mapSectionRef  = useRef<HTMLDivElement>(null)
+  const gpxDropRef     = useRef<HTMLDivElement>(null)
   const actionsDropRef = useRef<HTMLDivElement>(null)
 
-  const activeGpxPath = gpxFiles[activeGpxIdx]?.file_path ?? ''
+  const gpxColorMap = Object.fromEntries(
+    gpxFiles.map((g, i) => [g.file_path, TRACK_COLORS[i % TRACK_COLORS.length]])
+  )
+
+  const toggleGpx = (path: string) => {
+    setActiveGpxes(prev => {
+      const next = new Set(prev)
+      if (next.has(path) && next.size === 1) return prev
+      next.has(path) ? next.delete(path) : next.add(path)
+      return next
+    })
+    setGpxOpen(false)
+  }
+
+  const gpxCount = activeGpxes.size
+  const gpxLabel = gpxCount === 1
+    ? (gpxFiles.find(g => activeGpxes.has(g.file_path))?.filename ?? 'GPX')
+    : `地圖航跡（${gpxCount}）`
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (actionsDropRef.current && !actionsDropRef.current.contains(e.target as Node)) {
-        setGpxOpen(false)
-        setPdfOpen(false)
-      }
+      const t = e.target as Node
+      if (gpxDropRef.current && !gpxDropRef.current.contains(t)) setGpxOpen(false)
+      if (actionsDropRef.current && !actionsDropRef.current.contains(t)) setPdfOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -330,7 +453,6 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
     }
   }
 
-  // Collect screenshot images: preview_image first, then image map_files
   const screenshots: string[] = []
   if (exp.preview_image) {
     const name = String(exp.preview_image).split('/').pop() ?? ''
@@ -358,51 +480,70 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
 
         {/* Map */}
         <section className="d-map-section" ref={mapSectionRef}>
-          <div className="d-map-label">★ 地圖 MAP ★</div>
-          <div className="d-map-wrap">
-            <HangbaoMap activePath={activeGpxPath} />
-          </div>
-          <div className="d-map-corner">山協 siak-phānn</div>
-          <div className="d-map-actions" ref={actionsDropRef}>
-            {/* GPX dropdown */}
+          {/* Label row: "★ 地圖 MAP ★" + GPX dropdown overlapping from the right */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', marginBottom: '30px', marginLeft: '2%', position: 'relative', zIndex: 5 }}>
+            <div className="d-map-label" style={{ margin: 0, flexShrink: 0 }}>★ 地圖 MAP ★</div>
             {gpxFiles.length > 0 && (
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', marginLeft: '-10px', zIndex: 6 }} ref={gpxDropRef}>
                 <button
                   className="d-dl-btn b2"
                   onClick={() => { setGpxOpen(o => !o); setPdfOpen(false) }}
                 >
-                  <span className="big">{gpxFiles[activeGpxIdx]?.filename || 'GPX'} {gpxOpen ? '▲' : '▼'}</span>
+                  <span className="big">{gpxLabel} {gpxOpen ? '▲' : '▼'}</span>
                 </button>
                 {gpxOpen && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, zIndex: 50,
-                    background: 'var(--bg)', border: '4px solid var(--bg)',
-                    boxShadow: '6px 6px 0 var(--hot)', minWidth: '100%',
+                    background: 'var(--bg)', border: '4px solid var(--hot)',
+                    boxShadow: '6px 6px 0 var(--yellow)', minWidth: '100%',
                   }}>
-                    {gpxFiles.map((g, i) => (
-                      <button key={i}
-                        className="d-dl-item"
-                        style={{
-                          display: 'block', width: '100%', padding: '10px 16px',
-                          background: i === activeGpxIdx ? 'var(--hot)' : 'var(--yellow)',
-                          color: 'var(--bg)', border: 'none', cursor: 'pointer',
-                          textAlign: 'left',
-                        }}
-                        onClick={() => { setActiveGpxIdx(i); setGpxOpen(false) }}
-                      >
-                        {g.filename}
-                      </button>
-                    ))}
+                    {gpxFiles.map((g, i) => {
+                      const isSelected = activeGpxes.has(g.file_path)
+                      const dotColor = TRACK_COLORS[i % TRACK_COLORS.length]
+                      return (
+                        <button key={i}
+                          className="d-dl-item"
+                          style={{
+                            display: 'flex', width: '100%', padding: '10px 16px',
+                            alignItems: 'center', gap: '10px',
+                            background: isSelected ? 'var(--hot)' : 'var(--yellow)',
+                            color: 'var(--bg)', border: 'none', cursor: 'pointer',
+                            textAlign: 'left', fontFamily: 'inherit',
+                          }}
+                          onClick={() => toggleGpx(g.file_path)}
+                        >
+                          <span style={{
+                            width: 12, height: 12, borderRadius: '50%', flexShrink: 0,
+                            background: isSelected ? dotColor : 'transparent',
+                            border: `2px solid ${dotColor}`,
+                            display: 'inline-block',
+                          }} />
+                          {g.filename}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
             )}
+          </div>
 
-            {/* PDF dropdown */}
-            {(() => {
-              const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.filename))
-              if (mapFileItems.length === 0) return null
-              return (
+          <div className="d-map-wrap">
+            <HangbaoMap
+              activePaths={[...activeGpxes]}
+              colorMap={gpxColorMap}
+              entryTown={exp.region}
+              entryCounty={exp.county}
+            />
+          </div>
+          <div className="d-map-corner">山協 siak-phānn</div>
+
+          {/* PDF dropdown below map */}
+          {(() => {
+            const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.filename))
+            if (mapFileItems.length === 0) return null
+            return (
+              <div className="d-map-actions" ref={actionsDropRef}>
                 <div style={{ position: 'relative' }}>
                   <button
                     className="d-dl-btn b3"
@@ -438,9 +579,9 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
                     </div>
                   )}
                 </div>
-              )
-            })()}
-          </div>
+              </div>
+            )
+          })()}
         </section>
 
         {/* 出隊資料（左）+ 沿途紀錄（右）兩欄 */}
