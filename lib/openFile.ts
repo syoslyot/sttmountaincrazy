@@ -9,16 +9,7 @@ export async function openFile(
   const blob = await res.blob()
   const objectUrl = URL.createObjectURL(blob)
 
-  if (/\.pdf$/i.test(filename)) {
-    window.open(objectUrl, '_blank')
-  } else {
-    const a = document.createElement('a')
-    a.href = objectUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
+  window.open(objectUrl, '_blank')
 
   setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000)
 }
