@@ -618,7 +618,7 @@
   position: relative; z-index: 5;
 }
 .d-map-wrap {
-  height: 70vh; min-height: 540px;
+  height: 80.5vh; min-height: 621px;
   position: relative;
   border: 6px solid var(--bg);
   box-shadow: 14px 14px 0 var(--hot), 28px 28px 0 var(--cyan);
@@ -819,7 +819,7 @@
 }
 .d-float-window {
   position: fixed;
-  width: min(460px, calc(100vw - 40px));
+  width: min(580px, calc(100vw - 40px));
   max-height: calc(100vh - 40px);
   z-index: 9000;
   background: white; color: var(--bg);
@@ -881,7 +881,7 @@
 .d-modal-ribbon {
   display: inline-block;
   background: var(--lime); color: var(--bg);
-  padding: 6px 12px; font-weight: 900; font-size: 12px;
+  padding: 6px 12px; font-weight: 900; font-size: 17px;
   letter-spacing: 0.08em;
   border: 3px solid var(--bg); box-shadow: 3px 3px 0 var(--hot);
   transform: rotate(-2deg);
@@ -912,7 +912,7 @@
 .d-modal-text {
   margin: 0;
   font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-  font-size: 14px; line-height: 1.8;
+  font-size: 18px; line-height: 1.8;
   white-space: pre-wrap; word-break: break-word;
   color: var(--bg);
   background: repeating-linear-gradient(180deg, transparent 0 26px, rgba(255,0,110,0.08) 26px 27px);
@@ -1138,14 +1138,80 @@
 .hangbao-wpt-tip::before {
   border-top-color: #ff006e !important;
 }
+/* Leaflet zoom + fullscreen buttons — Hangbao style */
+#hangbao-root .d-map-wrap .leaflet-bar {
+  border: 3px solid var(--hot) !important;
+  box-shadow: 3px 3px 0 var(--yellow) !important;
+  border-radius: 0 !important;
+}
+#hangbao-root .d-map-wrap .leaflet-bar a,
+#hangbao-root .d-map-wrap .leaflet-bar button {
+  background: var(--bg) !important;
+  color: var(--yellow) !important;
+  border-bottom: 1px solid var(--hot) !important;
+  border-radius: 0 !important;
+  font-weight: 900;
+  line-height: 26px !important;
+}
+#hangbao-root .d-map-wrap .leaflet-bar a:last-child {
+  border-bottom: none !important;
+}
+#hangbao-root .d-map-wrap .leaflet-bar a:hover,
+#hangbao-root .d-map-wrap .leaflet-bar button:hover {
+  background: var(--hot) !important;
+  color: #1a0030 !important;
+}
+
 .hangbao-fullscreen-btn {
-  font-size: 16px !important;
+  font-size: 13px !important;
   padding: 4px 8px !important;
   cursor: pointer;
   line-height: 1 !important;
-  background: white;
+  background: var(--bg) !important;
+  color: var(--yellow) !important;
   border: none;
   display: flex !important;
   align-items: center;
   justify-content: center;
+  font-weight: 900;
+}
+.hangbao-fullscreen-btn:hover {
+  background: var(--hot) !important;
+  color: #1a0030 !important;
+}
+
+/* Loading overlay */
+.hangbao-map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(26, 0, 48, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.hangbao-map-loading-inner { text-align: center; }
+.hangbao-map-loading-text {
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  color: var(--hot);
+  text-shadow: 3px 0 var(--cyan), -3px 0 var(--yellow);
+  animation: hangbao-glitch 0.7s infinite;
+  font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+}
+.hangbao-map-loading-sub {
+  color: var(--cyan);
+  font-size: 15px;
+  letter-spacing: 0.25em;
+  margin-top: 14px;
+  animation: hangbao-glitch 0.7s infinite 0.35s;
+}
+@keyframes hangbao-glitch {
+  0%, 100% { opacity: 1; transform: none; }
+  20%  { opacity: 0.85; transform: translateX(3px); }
+  40%  { opacity: 0.95; transform: translateX(-2px); }
+  60%  { opacity: 0.9;  transform: translateX(2px) skewX(-2deg); }
+  80%  { opacity: 1;    transform: none; }
 }

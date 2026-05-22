@@ -103,9 +103,9 @@ export function RocketHome() {
         {tab === 'map' && selectedCounties.length > 0 && (
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', pointerEvents: 'auto' }}>
             {selectedCounties.map(c => (
-              <div key={c} style={{ border: '2px solid #e65100', padding: '0.25rem 0.7rem', transform: 'rotate(-0.8deg)', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,253,231,0.9)' }}>
+              <div key={c} onClick={() => setSelectedCounties(prev => prev.filter(x => x !== c))} style={{ border: '2px solid #e65100', padding: '0.25rem 0.7rem', transform: 'rotate(-0.8deg)', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,253,231,0.9)', cursor: 'pointer' }}>
                 <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1rem', letterSpacing: '0.1em', color: '#e65100' }}>{c}</span>
-                <button onClick={() => setSelectedCounties(prev => prev.filter(x => x !== c))} style={{ background: 'none', border: 'none', color: '#e65100', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', lineHeight: 1 }}>×</button>
+                <span style={{ color: '#e65100', fontWeight: 700, fontSize: '1rem', lineHeight: 1 }}>×</span>
               </div>
             ))}
             <button onClick={() => setSelectedCounties([])} style={{ border: '2px dashed #e65100', background: 'transparent', color: '#e65100', padding: '0.25rem 0.6rem', fontFamily: "'Bebas Neue',sans-serif", fontSize: '0.75rem', cursor: 'pointer', letterSpacing: '0.1em' }}>清除</button>
