@@ -25,7 +25,7 @@ export interface ExpData {
   preview_image: string | null
 }
 
-interface RecordItem { filename: string; content: string }
+interface RecordItem { filename: string; content: string; file_path: string | null }
 
 interface GpxFile { file_path: string; filename: string }
 
@@ -34,6 +34,7 @@ interface Props {
   gpxFiles: GpxFile[]
   records: RecordItem[]
   mapFiles: { file_path: string; filename: string }[]
+  storageBase: string
 }
 
 function fmtDate(d: string | null | undefined): string {
@@ -406,16 +407,18 @@ const IMG_ROTS = [-1.5, 1.2, -2, 0.8, -1, 1.8]
 const TITLE_ROTS = [-4, 3, -6, 2, -3, 5, -2, 4, -5, 2]
 const REC_SHAPES = ['rs-square','rs-rect','rs-circle','rs-ellipse','rs-blob','rs-skew','rs-tall','rs-wide']
 
-export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
+export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }: Props) {
   const [openRec, setOpenRec]     = useState<number | null>(null)
   const [activeGpxes, setActiveGpxes] = useState<Set<string>>(
     () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
   )
   const [gpxOpen, setGpxOpen]     = useState(false)
   const [pdfOpen, setPdfOpen]     = useState(false)
+  const [recOpen, setRecOpen]     = useState(false)
   const mapSectionRef  = useRef<HTMLDivElement>(null)
   const gpxDropRef     = useRef<HTMLDivElement>(null)
   const actionsDropRef = useRef<HTMLDivElement>(null)
+  const recDropRef     = useRef<HTMLDivElement>(null)
 
   const gpxColorMap = Object.fromEntries(
     gpxFiles.map((g, i) => [g.file_path, TRACK_COLORS[i % TRACK_COLORS.length]])
@@ -436,11 +439,23 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
     ? (gpxFiles.find(g => activeGpxes.has(g.file_path))?.filename ?? 'GPX')
     : `地圖航跡（${gpxCount}）`
 
+  const openRecordInNewTab = (rec: RecordItem) => {
+    if (rec.file_path) {
+      window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
+    } else {
+      const blob = new Blob([rec.content], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    }
+  }
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const t = e.target as Node
       if (gpxDropRef.current && !gpxDropRef.current.contains(t)) setGpxOpen(false)
       if (actionsDropRef.current && !actionsDropRef.current.contains(t)) setPdfOpen(false)
+      if (recDropRef.current && !recDropRef.current.contains(t)) setRecOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -538,47 +553,81 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles }: Props) {
           </div>
           <div className="d-map-corner">山協 siak-phānn</div>
 
-          {/* PDF dropdown below map */}
+          {/* 地圖 DOWNLOAD + 紀錄 DOWNLOAD dropdowns below map */}
           {(() => {
             const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.filename))
-            if (mapFileItems.length === 0) return null
+            if (mapFileItems.length === 0 && records.length === 0) return null
             return (
-              <div className="d-map-actions" ref={actionsDropRef}>
-                <div style={{ position: 'relative' }}>
-                  <button
-                    className="d-dl-btn b3"
-                    onClick={() => { setPdfOpen(o => !o); setGpxOpen(false) }}
-                  >
-                    <span className="big">地圖 {pdfOpen ? '▲' : '▼'}</span>
-                  </button>
-                  {pdfOpen && (
-                    <div style={{
-                      position: 'absolute', top: '100%', left: 0, zIndex: 50,
-                      background: 'var(--bg)', border: '4px solid var(--bg)',
-                      boxShadow: '6px 6px 0 var(--cyan)', minWidth: '100%',
-                    }}>
-                      {mapFileItems.map((f, i) => {
-                        const isPdf = /\.pdf$/i.test(f.filename)
-                        const url = isPdf
-                          ? `/api/pdf?file=${encodeURIComponent(f.file_path)}`
-                          : `/api/preview?file=${encodeURIComponent(f.file_path.split('/').pop() ?? '')}`
-                        return (
+              <div className="d-map-actions">
+                {mapFileItems.length > 0 && (
+                  <div style={{ position: 'relative' }} ref={actionsDropRef}>
+                    <button
+                      className="d-dl-btn b3"
+                      onClick={() => { setPdfOpen(o => !o); setGpxOpen(false); setRecOpen(false) }}
+                    >
+                      <span className="big">地圖 DOWNLOAD {pdfOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {pdfOpen && (
+                      <div style={{
+                        position: 'absolute', top: '100%', left: 0, zIndex: 50,
+                        background: 'var(--bg)', border: '4px solid var(--bg)',
+                        boxShadow: '6px 6px 0 var(--cyan)', minWidth: '100%',
+                      }}>
+                        {mapFileItems.map((f, i) => {
+                          const isPdf = /\.pdf$/i.test(f.filename)
+                          const url = isPdf
+                            ? `/api/pdf?file=${encodeURIComponent(f.file_path)}`
+                            : `/api/preview?file=${encodeURIComponent(f.file_path.split('/').pop() ?? '')}`
+                          return (
+                            <button key={i}
+                              className="d-dl-item"
+                              style={{
+                                display: 'block', width: '100%', padding: '10px 16px',
+                                background: 'var(--cyan)', color: 'var(--bg)',
+                                border: 'none', cursor: 'pointer', textAlign: 'left',
+                              }}
+                              onClick={() => { window.open(url, '_blank'); setPdfOpen(false) }}
+                            >
+                              {f.filename}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {records.length > 0 && (
+                  <div style={{ position: 'relative' }} ref={recDropRef}>
+                    <button
+                      className="d-dl-btn b1"
+                      onClick={() => { setRecOpen(o => !o); setGpxOpen(false); setPdfOpen(false) }}
+                    >
+                      <span className="big">紀錄 DOWNLOAD {recOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {recOpen && (
+                      <div style={{
+                        position: 'absolute', top: '100%', left: 0, zIndex: 50,
+                        background: 'var(--bg)', border: '4px solid var(--hot)',
+                        boxShadow: '6px 6px 0 var(--yellow)', minWidth: '100%',
+                      }}>
+                        {records.map((r, i) => (
                           <button key={i}
                             className="d-dl-item"
                             style={{
                               display: 'block', width: '100%', padding: '10px 16px',
-                              background: 'var(--cyan)', color: 'var(--bg)',
+                              background: 'var(--hot)', color: 'white',
                               border: 'none', cursor: 'pointer', textAlign: 'left',
                             }}
-                            onClick={() => { window.open(url, '_blank'); setPdfOpen(false) }}
+                            onClick={() => { openRecordInNewTab(r); setRecOpen(false) }}
                           >
-                            {f.filename}
+                            {r.filename}
                           </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })()}
