@@ -307,10 +307,8 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               color="#3a7d44"
               open={recOpen}
               onToggle={() => { setRecOpen(o => !o); setGpxOpen(false); setPdfOpen(false) }}
-              onSelect={i => { openInNewTab(records[i]); setRecOpen(false) }}
+              onSelect={i => openInNewTab(records[i])}
               rot={-0.5}
-              isActive={records.length > 0}
-              activeIndex={selectedRecord}
               maxWidth="16rem"
             />
           )}
@@ -388,10 +386,12 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               color: '#1a1000',
             }}>
               {/* Header：標題 + 切換下拉 */}
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-                padding: '1rem 1.2rem 0.5rem', flexShrink: 0,
-              }}>
+              <div
+                onMouseDown={e => e.stopPropagation()}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                  padding: '1rem 1.2rem 0.5rem', flexShrink: 0,
+                }}>
                 <div style={{
                   fontFamily: "'Bebas Neue', sans-serif",
                   fontSize: '1.275rem', color: '#e65100',
