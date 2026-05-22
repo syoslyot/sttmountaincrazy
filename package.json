@@ -10,6 +10,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@next/third-parties": "^16.2.6",
     "@supabase/supabase-js": "^2.106.1",
     "d3": "^7.9.0",
     "leaflet": "^1.9.4",
