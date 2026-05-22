@@ -194,7 +194,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
   const downloadableRecords = records.filter(r => r.file_path)
 
   const openInNewTab = (rec: RecordFile) => {
-    window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
+    window.open(`/api/file?bucket=records&path=${encodeURIComponent(rec.file_path!)}&name=${encodeURIComponent(rec.filename)}`, '_blank')
   }
 
   useEffect(() => {
@@ -295,7 +295,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               color="#e65100"
               open={pdfOpen}
               onToggle={() => { setPdfOpen(o => !o); setGpxOpen(false); setRecOpen(false) }}
-              onSelect={i => window.open(`/api/pdf?file=${encodeURIComponent(pdfFiles[i].file_path)}`, '_blank')}
+              onSelect={i => window.open(`/api/file?bucket=maps&path=${encodeURIComponent(pdfFiles[i].file_path)}&name=${encodeURIComponent(pdfFiles[i].filename)}`, '_blank')}
               rot={0.8}
             />
           )}

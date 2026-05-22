@@ -442,7 +442,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
   const downloadableRecords = records.filter(r => r.file_path)
 
   const openRecordInNewTab = (rec: RecordItem) => {
-    window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
+    window.open(`/api/file?bucket=records&path=${encodeURIComponent(rec.file_path!)}&name=${encodeURIComponent(rec.filename)}`, '_blank')
   }
 
   useEffect(() => {
@@ -569,10 +569,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
                         boxShadow: '6px 6px 0 var(--cyan)', minWidth: '100%',
                       }}>
                         {mapFileItems.map((f, i) => {
-                          const isPdf = /\.pdf$/i.test(f.filename)
-                          const url = isPdf
-                            ? `/api/pdf?file=${encodeURIComponent(f.file_path)}`
-                            : `/api/preview?file=${encodeURIComponent(f.file_path.split('/').pop() ?? '')}`
+                          const url = `/api/file?bucket=maps&path=${encodeURIComponent(f.file_path)}&name=${encodeURIComponent(f.filename)}`
                           return (
                             <button key={i}
                               className="d-dl-item"
