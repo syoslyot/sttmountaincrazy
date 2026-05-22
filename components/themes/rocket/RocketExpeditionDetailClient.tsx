@@ -180,8 +180,6 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
     ? (String(exp.preview_image).split('/').pop() ?? null)
     : null
 
-  const activeRecName = records[selectedRecord]?.filename ?? '紀錄'
-
   const toggleGpx = (path: string) => {
     setActiveGpxes(prev => {
       const next = new Set(prev)
@@ -229,8 +227,8 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
         @keyframes risoGrain { 0%,100%{opacity:.06} 50%{opacity:.09} }
         @keyframes bubbleFloat { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-4px) rotate(-0.5deg)} }
         .riso-det-bubble::after {
-          content:''; position:absolute; bottom:-19px; left:20px;
-          border:10px solid transparent; border-top-color:#3a7d44;
+          content:''; position:absolute; bottom:-20px; left:21px;
+          border:11px solid transparent; border-top-color:#3a7d44;
         }
         .riso-det-bubble-open::after { border-top-color: #2a5c34; }
       `}</style>
@@ -291,7 +289,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
           {/* PDF dropdown */}
           {pdfFiles.length > 0 && (
             <RisoDropdown
-              label="地圖 PDF"
+              label="地圖 Download"
               options={pdfFiles.map(f => f.filename)}
               color="#e65100"
               open={pdfOpen}
@@ -304,7 +302,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
           {/* Records dropdown */}
           {records.length > 0 && (
             <RisoDropdown
-              label={activeRecName}
+              label="紀錄 Download"
               options={records.map(r => r.filename)}
               color="#3a7d44"
               open={recOpen}
@@ -408,7 +406,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
                     color="#3a7d44"
                     open={recBoxOpen}
                     onToggle={() => setRecBoxOpen(o => !o)}
-                    onSelect={i => { setSelectedRecord(i); setRecBoxOpen(false) }}
+                    onSelect={i => setSelectedRecord(i)}
                     activeIndex={selectedRecord}
                     maxWidth="10rem"
                   />
@@ -436,10 +434,10 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               style={{
                 background: showRecord ? '#3a7d44' : '#fffde7',
                 border: `2px solid ${showRecord ? '#2a5c34' : '#3a7d44'}`,
-                padding: '11px 20px',
+                padding: '12px 21px',
                 position: 'relative',
                 fontFamily: "'Noto Sans TC', sans-serif",
-                fontSize: '1.03rem', lineHeight: 1,
+                fontSize: '1.08rem', lineHeight: 1,
                 color: showRecord ? '#fffde7' : '#3a7d44',
                 boxShadow: `4px 4px 0 ${showRecord ? '#2a5c34' : '#3a7d44'}`,
                 transition: 'background 0.2s, color 0.2s, border-color 0.2s',
