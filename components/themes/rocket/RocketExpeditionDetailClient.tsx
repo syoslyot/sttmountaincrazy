@@ -148,7 +148,7 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
                   color, cursor: 'pointer', textAlign: 'left', letterSpacing: '0.08em',
                 }}>
                 <span style={{
-                  width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                  width: 11, height: 11, borderRadius: '50%', flexShrink: 0,
                   background: isSelected ? dotColor : 'transparent',
                   border: `2px solid ${dotColor}`,
                   display: 'inline-block',
@@ -411,6 +411,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
                     open={recBoxOpen}
                     onToggle={() => setRecBoxOpen(o => !o)}
                     onSelect={i => setSelectedRecord(i)}
+                    isActive={true}
                     activeIndex={selectedRecord}
                     maxWidth="10rem"
                   />
