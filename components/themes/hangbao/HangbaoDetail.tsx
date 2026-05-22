@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { openFile } from '@/lib/openFile'
 import 'leaflet/dist/leaflet.css'
 import './hangbao.css'
 
@@ -442,7 +443,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
   const downloadableRecords = records.filter(r => r.file_path)
 
   const openRecordInNewTab = (rec: RecordItem) => {
-    window.open(`/api/file?bucket=records&path=${encodeURIComponent(rec.file_path!)}&name=${encodeURIComponent(rec.filename)}`, '_blank')
+    openFile(rec.file_path!, rec.filename, 'records')
   }
 
   useEffect(() => {
@@ -568,22 +569,19 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
                         background: 'var(--bg)', border: '4px solid var(--bg)',
                         boxShadow: '6px 6px 0 var(--cyan)', minWidth: '100%',
                       }}>
-                        {mapFileItems.map((f, i) => {
-                          const url = `/api/file?bucket=maps&path=${encodeURIComponent(f.file_path)}&name=${encodeURIComponent(f.filename)}`
-                          return (
-                            <button key={i}
-                              className="d-dl-item"
-                              style={{
-                                display: 'block', width: '100%', padding: '10px 16px',
-                                background: 'var(--cyan)', color: 'var(--bg)',
-                                border: 'none', cursor: 'pointer', textAlign: 'left',
-                              }}
-                              onClick={() => { window.open(url, '_blank'); setPdfOpen(false) }}
-                            >
-                              {f.filename}
-                            </button>
-                          )
-                        })}
+                        {mapFileItems.map((f, i) => (
+                          <button key={i}
+                            className="d-dl-item"
+                            style={{
+                              display: 'block', width: '100%', padding: '10px 16px',
+                              background: 'var(--cyan)', color: 'var(--bg)',
+                              border: 'none', cursor: 'pointer', textAlign: 'left',
+                            }}
+                            onClick={() => { openFile(f.file_path, f.filename, 'maps'); setPdfOpen(false) }}
+                          >
+                            {f.filename}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
