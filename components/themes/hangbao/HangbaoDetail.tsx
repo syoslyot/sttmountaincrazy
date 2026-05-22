@@ -118,7 +118,7 @@ function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap
       const openTopo = L.tileLayer(
         'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
         { maxZoom: 17, attribution: '© OpenStreetMap, © OpenTopoMap' }
-      ).addTo(map)
+      )
       const nlscEmap = L.tileLayer(
         'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}',
         { maxZoom: 20, attribution: '© 國土測繪中心' }
@@ -126,7 +126,7 @@ function HangbaoMap({ activePaths, colorMap }: { activePaths: string[], colorMap
       const nlscSatellite = L.tileLayer(
         'https://wmts.nlsc.gov.tw/wmts/PHOTO_MIX/default/GoogleMapsCompatible/{z}/{y}/{x}',
         { maxZoom: 20, attribution: '© 國土測繪中心' }
-      )
+      ).addTo(map)
       const osm = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         { maxZoom: 19, attribution: '© OpenStreetMap' }
@@ -296,7 +296,7 @@ function FloatingRecordWindow({ record, tripTitle, index, total, onClose, onSwit
   records: RecordItem[]
 }) {
   const [pos, setPos] = useState(() => {
-    const w = Math.min(580, window.innerWidth - 40)
+    const w = Math.min(620, window.innerWidth - 40)
     return { x: Math.max(20, window.innerWidth - w - 32), y: 60 }
   })
   const [minimized, setMinimized] = useState(false)
