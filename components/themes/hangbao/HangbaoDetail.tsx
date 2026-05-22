@@ -439,15 +439,10 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
     ? (gpxFiles.find(g => activeGpxes.has(g.file_path))?.filename ?? 'GPX')
     : `地圖航跡（${gpxCount}）`
 
+  const downloadableRecords = records.filter(r => r.file_path)
+
   const openRecordInNewTab = (rec: RecordItem) => {
-    if (rec.file_path) {
-      window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
-    } else {
-      const blob = new Blob([rec.content], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-    }
+    window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
   }
 
   useEffect(() => {
@@ -556,7 +551,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
           {/* 地圖 DOWNLOAD + 紀錄 DOWNLOAD dropdowns below map */}
           {(() => {
             const mapFileItems = mapFiles.filter(f => /\.(pdf|png|jpg|jpeg|webp)$/i.test(f.filename))
-            if (mapFileItems.length === 0 && records.length === 0) return null
+            if (mapFileItems.length === 0 && downloadableRecords.length === 0) return null
             return (
               <div className="d-map-actions">
                 {mapFileItems.length > 0 && (
@@ -597,7 +592,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
                   </div>
                 )}
 
-                {records.length > 0 && (
+                {downloadableRecords.length > 0 && (
                   <div style={{ position: 'relative' }} ref={recDropRef}>
                     <button
                       className="d-dl-btn b1"
@@ -611,7 +606,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
                         background: 'var(--bg)', border: '4px solid var(--hot)',
                         boxShadow: '6px 6px 0 var(--yellow)', minWidth: '100%',
                       }}>
-                        {records.map((r, i) => (
+                        {downloadableRecords.map((r, i) => (
                           <button key={i}
                             className="d-dl-item"
                             style={{
