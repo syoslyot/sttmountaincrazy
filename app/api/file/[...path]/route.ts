@@ -3,19 +3,21 @@ import { NextRequest, NextResponse } from 'next/server'
 const STORAGE_BASE = `${process.env.SUPABASE_URL}/storage/v1/object/public`
 const ALLOWED_BUCKETS = new Set(['records', 'maps', 'gpx'])
 
+// URL 結構：/api/file/{bucket}/{...actualPath}/{displayName}
+// 例：/api/file/records/27/d3de645703a9.docx/丹大Day6-8.docx
 export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ name: string }> },
+  _req: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { name } = await params
-  const bucket = req.nextUrl.searchParams.get('bucket')
-  const filePath = req.nextUrl.searchParams.get('path')
+  const { path } = await params
+  if (path.length < 3) return NextResponse.json({ error: 'invalid path' }, { status: 400 })
 
-  if (!bucket || !filePath) return NextResponse.json({ error: 'missing params' }, { status: 400 })
+  const bucket = path[0]
+  const displayName = path[path.length - 1]
+  const filePath = path.slice(1, -1).join('/')
+
   if (!ALLOWED_BUCKETS.has(bucket)) return NextResponse.json({ error: 'invalid bucket' }, { status: 400 })
-  if (filePath.includes('..') || filePath.startsWith('/')) {
-    return NextResponse.json({ error: 'invalid path' }, { status: 400 })
-  }
+  if (filePath.includes('..')) return NextResponse.json({ error: 'invalid path' }, { status: 400 })
 
   let upstream: Response
   try {
@@ -32,7 +34,7 @@ export async function GET(
   return new NextResponse(buffer, {
     headers: {
       'Content-Type': contentType,
-      'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(decodeURIComponent(name))}`,
+      'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(decodeURIComponent(displayName))}`,
     },
   })
 }
