@@ -191,15 +191,10 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
     setGpxOpen(false)
   }
 
+  const downloadableRecords = records.filter(r => r.file_path)
+
   const openInNewTab = (rec: RecordFile) => {
-    if (rec.file_path) {
-      window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
-    } else {
-      const blob = new Blob([rec.content], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-    }
+    window.open(`${storageBase}/records/${rec.file_path}`, '_blank')
   }
 
   useEffect(() => {
@@ -306,14 +301,14 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
           )}
 
           {/* Records dropdown */}
-          {records.length > 0 && (
+          {downloadableRecords.length > 0 && (
             <RisoDropdown
               label="紀錄 Download"
-              options={records.map(r => r.filename)}
+              options={downloadableRecords.map(r => r.filename)}
               color="#3a7d44"
               open={recOpen}
               onToggle={() => { setRecOpen(o => !o); setGpxOpen(false); setPdfOpen(false) }}
-              onSelect={i => openInNewTab(records[i])}
+              onSelect={i => openInNewTab(downloadableRecords[i])}
               rot={-0.5}
               maxWidth="16rem"
             />
