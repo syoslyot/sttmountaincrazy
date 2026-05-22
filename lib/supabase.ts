@@ -15,7 +15,7 @@ const supabaseAdmin = createClient(
 
 export type GpxFile = { file_path: string; filename: string }
 export type MapFile = { file_path: string; filename: string }
-type Record = { filename: string; content: string }
+export type RecordFile = { filename: string; content: string; file_path: string | null }
 type County = { county: string }
 
 export interface ExpeditionDetail {
@@ -33,13 +33,13 @@ export interface ExpeditionDetail {
   gpx_files: GpxFile[]
   all_counties: string | null
   map_files: MapFile[]
-  records: Record[]
+  records: RecordFile[]
 }
 
 export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail | null> {
   const { data, error } = await supabaseAdmin
     .from('expeditions')
-    .select('*, gpx_files(file_path, filename), map_files(file_path, filename), records(filename, content), expedition_counties(county)')
+    .select('*, gpx_files(file_path, filename), map_files(file_path, filename), records(filename, content, file_path), expedition_counties(county)')
     .eq('id', id)
     .single()
 
@@ -60,6 +60,6 @@ export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail 
     gpx_files:     data.gpx_files as GpxFile[],
     all_counties:  (data.expedition_counties as County[]).map(ec => ec.county).join(',') || null,
     map_files:     data.map_files as MapFile[],
-    records:       data.records as Record[],
+    records:       data.records as RecordFile[],
   }
 }
