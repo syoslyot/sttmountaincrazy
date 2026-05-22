@@ -881,7 +881,7 @@
 .d-modal-ribbon {
   display: inline-block;
   background: var(--lime); color: var(--bg);
-  padding: 6px 12px; font-weight: 900; font-size: 12px;
+  padding: 6px 12px; font-weight: 900; font-size: 15px;
   letter-spacing: 0.08em;
   border: 3px solid var(--bg); box-shadow: 3px 3px 0 var(--hot);
   transform: rotate(-2deg);
@@ -912,7 +912,7 @@
 .d-modal-text {
   margin: 0;
   font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-  font-size: 14px; line-height: 1.8;
+  font-size: 16px; line-height: 1.8;
   white-space: pre-wrap; word-break: break-word;
   color: var(--bg);
   background: repeating-linear-gradient(180deg, transparent 0 26px, rgba(255,0,110,0.08) 26px 27px);
