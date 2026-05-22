@@ -17,16 +17,22 @@ export async function GET(
     return NextResponse.json({ error: 'invalid path' }, { status: 400 })
   }
 
-  const upstream = await fetch(`${STORAGE_BASE}/${bucket}/${filePath}`)
+  let upstream: Response
+  try {
+    upstream = await fetch(`${STORAGE_BASE}/${bucket}/${filePath}`)
+  } catch (e) {
+    console.error('[api/file] fetch error', e)
+    return NextResponse.json({ error: 'fetch failed' }, { status: 502 })
+  }
   if (!upstream.ok) return NextResponse.json({ error: 'file not found' }, { status: upstream.status })
 
   const contentType = upstream.headers.get('Content-Type') ?? 'application/octet-stream'
-  const displayName = decodeURIComponent(name)
+  const buffer = await upstream.arrayBuffer()
 
-  return new NextResponse(upstream.body, {
+  return new NextResponse(buffer, {
     headers: {
       'Content-Type': contentType,
-      'Content-Disposition': `inline; filename="${displayName}"`,
+      'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(decodeURIComponent(name))}`,
     },
   })
 }
