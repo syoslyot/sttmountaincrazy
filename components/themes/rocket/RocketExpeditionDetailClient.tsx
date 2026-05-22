@@ -388,7 +388,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
               transformOrigin: 'center center',
               zIndex: 1100,
               fontFamily: "'Noto Sans TC', sans-serif",
-              fontSize: '1.1rem', lineHeight: 1.8,
+              fontSize: '0.99rem', lineHeight: 1.8,
               color: '#1a1000',
             }}>
               {/* Header：標題 + 切換下拉 */}
