@@ -141,7 +141,7 @@ function HangbaoMap({ activePaths, colorMap, entryTown, entryCounty }: { activeP
   const colorMapRef = useRef(colorMap)
   const [loadingCount, setLoadingCount] = useState(0)
 
-  colorMapRef.current = colorMap
+  useEffect(() => { colorMapRef.current = colorMap }, [colorMap])
 
   // Init map once
   useEffect(() => {
