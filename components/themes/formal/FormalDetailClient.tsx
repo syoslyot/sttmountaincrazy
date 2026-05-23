@@ -345,11 +345,12 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             borderTop: '0.5px solid var(--border)',
           }}>
             {/* Pill handle — tap to collapse / expand */}
-            <div onClick={() => setSheetOpen(o => !o)}
-              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center',
-                       padding: '7px 0 5px', cursor: 'pointer' }}>
+            <button onClick={() => setSheetOpen(o => !o)}
+              style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center',
+                       padding: '8px 0 6px', cursor: 'pointer', touchAction: 'manipulation',
+                       background: 'transparent', border: 'none' }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)' }} />
-            </div>
+            </button>
             {/* Tab bar */}
             <div style={{ display: 'flex', borderBottom: sheetOpen ? '0.5px solid var(--border)' : 'none' }}>
               {([
@@ -372,8 +373,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             {sheetOpen && (
             <div className="formal-sheet-content"
               style={{ padding: mobileSheet === 'elev' ? '10px 0 0' : '4px 14px 10px',
-                       height: mobileSheet === 'elev' ? 126 : 160,
-                       boxSizing: 'border-box' }}>
+                       height: 126, boxSizing: 'border-box' }}>
               {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <FormalElevationChart
                   points={elevPoints}
@@ -400,8 +400,13 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                       <input type="checkbox"
                         checked={activeGpxes.includes(f.file_path)}
                         onChange={() => toggleGpx(f.file_path)}
-                        style={{ accentColor: colorMap[f.file_path], width: 11, height: 11,
-                                 borderRadius: 0, cursor: 'pointer', flexShrink: 0 }}
+                        style={{
+                          WebkitAppearance: 'none', appearance: 'none',
+                          width: 11, height: 11, margin: 0, padding: 0,
+                          borderRadius: 0, flexShrink: 0, cursor: 'pointer',
+                          border: `1.5px solid ${activeGpxes.includes(f.file_path) ? colorMap[f.file_path] : 'rgba(26,25,22,0.35)'}`,
+                          background: activeGpxes.includes(f.file_path) ? colorMap[f.file_path] : 'transparent',
+                        } as React.CSSProperties}
                       />
                       <span style={{ width: 11, height: 11, background: colorMap[f.file_path], flexShrink: 0 }} />
                       <span style={{ flex: 1, fontFamily: 'var(--serif)', fontSize: 13,

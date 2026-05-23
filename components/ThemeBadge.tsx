@@ -17,7 +17,7 @@ const ROCKET_STYLE: React.CSSProperties = {
 const ROCKET_DOT_STYLE: React.CSSProperties = { background: '#0066cc' }
 const DEFAULT_LINK_STYLE: React.CSSProperties = { position: 'static', textDecoration: 'none' }
 
-export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSProperties } = {}) {
+export function ThemeBadge({ containerStyle, exclude }: { containerStyle?: React.CSSProperties; exclude?: string } = {}) {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
@@ -47,11 +47,13 @@ export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSPrope
   const defaultStyle: React.CSSProperties = {
     position: 'fixed', bottom: '0.75rem', right: '0.75rem',
     display: 'flex', gap: '5px', zIndex: 9001,
+    alignItems: 'flex-end',
+    transform: 'scale(0.9)', transformOrigin: 'bottom right',
   }
 
   return (
     <div className="theme-badge-wrap" style={containerStyle ?? defaultStyle}>
-      {LINKS.filter(t => t.href !== currentBase).map(t => {
+      {LINKS.filter(t => t.href !== currentBase && t.href !== exclude).map(t => {
         const isRocket = t.href === '/rocket'
         return (
           <Link key={t.href} href={t.href}
