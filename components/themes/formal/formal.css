@@ -259,6 +259,21 @@
 .formal-accent { color: var(--accent); }
 .formal-muted  { color: var(--muted); }
 
+/* ─── Loading spinner ───────────────────────────────────────────────── */
+
+@keyframes formal-spin {
+  to { transform: rotate(360deg); }
+}
+
+.formal-spinner {
+  width: 36px;
+  height: 36px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: formal-spin 0.7s linear infinite;
+}
+
 /* ─── Detail page ───────────────────────────────────────────────────── */
 
 .formal-map-area {

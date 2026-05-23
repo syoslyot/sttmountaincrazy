@@ -279,6 +279,9 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
       } else setElevPoints([])
       return
     }
+    // Only show spinner for uncached tracks
+    const needsFetch = toAdd.some(p => !formalGpxCache.has(p))
+    if (needsFetch) setLoading(true)
     Promise.all(toAdd.map(async path => {
       const c = colorMapRef.current?.[path] ?? colorAssignRef.current.get(path) ?? '#9b4f1c'
       if (!colorAssignRef.current.has(path)) { colorAssignRef.current.set(path, c); nextColorRef.current++ }
@@ -288,6 +291,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
       return parsed
     })).then(() => {
       if (cancelled) return
+      setLoading(false)
       if (activeGpxes.length === 1) {
         const cached = formalGpxCache.get(activeGpxes[0])
         if (cached) setElevPoints(cached.elevs)
@@ -302,10 +306,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
       {loading && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       zIndex: 1000, pointerEvents: 'none' }}>
-          <div style={{ background: 'var(--bg)', border: '0.5px solid var(--border)', padding: '10px 24px',
-                        fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.2em' }}>
-            LOADING…
-          </div>
+          <div className="formal-spinner" />
         </div>
       )}
     </div>

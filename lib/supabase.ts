@@ -25,6 +25,7 @@ export interface ExpeditionDetail {
   date_end: string | null
   county: string | null
   region: string | null
+  county_exit: string | null
   region_exit: string | null
   leader: string | null
   description: string | null
@@ -52,6 +53,7 @@ export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail 
     date_end:      data.date_end,
     county:        data.region_entry_county,
     region:        data.region_entry_town,
+    county_exit:   data.region_exit_county,
     region_exit:   data.region_exit_town,
     leader:        data.leader,
     description:   null,

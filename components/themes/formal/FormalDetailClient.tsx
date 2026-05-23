@@ -142,9 +142,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
       {/* Header row 1: back | NO. | name | date */}
       <header className="formal-detail-header">
         <Link href="/formal" style={{
-          fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)',
-          letterSpacing: '.1em', textDecoration: 'none', flexShrink: 0,
-        }}>← 返回索引</Link>
+          fontFamily: 'var(--mono)', fontSize: 14, color: 'var(--muted)',
+          letterSpacing: '.08em', textDecoration: 'none', flexShrink: 0,
+        }}>← 返回</Link>
 
         <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
                        letterSpacing: '.1em', flexShrink: 0 }}>
@@ -171,9 +171,13 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         <div className="formal-detail-stats-left">
           {(exp.county || exp.region) && (
             <span>
-              {exp.county}{exp.region ? `·${exp.region}` : ''}
+              {exp.county}{exp.region ? exp.region : ''}
               {exp.region_exit && (
-                <> <span style={{ color: 'var(--accent)' }}>→</span>{' '}{exp.region_exit}</>
+                <>
+                  {' '}<span style={{ color: 'var(--accent)' }}>→</span>{' '}
+                  {exp.county_exit && exp.county_exit !== exp.county ? `${exp.county_exit}` : ''}
+                  {exp.region_exit}
+                </>
               )}
             </span>
           )}
