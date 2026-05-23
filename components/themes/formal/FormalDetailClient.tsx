@@ -147,7 +147,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           <header style={{ padding: '8px 22px 12px', borderBottom: '0.5px solid var(--border)',
                            display: 'flex', alignItems: 'center', gap: 10 }}>
             <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)',
-                                          letterSpacing: '.06em', textDecoration: 'none', flexShrink: 0 }}>← 返回</Link>
+                                          letterSpacing: '.06em', textDecoration: 'none', flexShrink: 0 }}>←</Link>
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 14, fontWeight: 500, margin: 0,
                          flex: 1, minWidth: 0, letterSpacing: '.01em',
                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -157,7 +157,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           <div style={{ padding: '6px 18px 8px', borderBottom: '0.5px solid var(--border)',
                         display: 'flex', gap: 10, fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--muted)' }}>
             <span style={{ color: 'var(--fg)' }}>
-              {exp.date_start.slice(5)}{exp.date_end ? `~${exp.date_end.slice(5)}` : ''}
+              {exp.date_start.slice(5)}{exp.date_end ? `-${exp.date_end.slice(5)}` : ''}
             </span>
             <span>·</span>
             <span>
@@ -347,7 +347,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)' }}>
               {([
                 ['elev', '海拔圖'],
-                ...(exp.gpx_files.length > 0 ? [['gpx', 'GPX/KML']] : []),
+                ...(exp.gpx_files.length > 0 ? [['gpx', 'gpx / kml']] : []),
                 ...(hasFiles ? [['dl', '下載']] : []),
               ] as ['elev' | 'gpx' | 'dl', string][]).map(([v, l]) => (
                 <button key={v} onClick={() => setMobileSheet(v)}
@@ -369,6 +369,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                     points={elevPoints}
                     onHover={pt => mapHoverRef.current?.(pt)}
                     onLeave={() => mapLeaveRef.current?.()}
+                    height={78}
                   />
                 </div>
               )}
@@ -389,9 +390,10 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                       <input type="checkbox"
                         checked={activeGpxes.includes(f.file_path)}
                         onChange={() => toggleGpx(f.file_path)}
-                        style={{ accentColor: colorMap[f.file_path] }}
+                        style={{ accentColor: colorMap[f.file_path], width: 11, height: 11,
+                                 borderRadius: 0, cursor: 'pointer', flexShrink: 0 }}
                       />
-                      <span style={{ width: 8, height: 8, background: colorMap[f.file_path], flexShrink: 0 }} />
+                      <span style={{ width: 11, height: 11, background: colorMap[f.file_path], flexShrink: 0 }} />
                       <span style={{ flex: 1, fontFamily: 'var(--serif)', fontSize: 13,
                                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {f.filename}
@@ -427,6 +429,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
               points={elevPoints}
               onHover={pt => mapHoverRef.current?.(pt)}
               onLeave={() => mapLeaveRef.current?.()}
+              showHeader
               style={{
                 background: 'color-mix(in oklch, var(--bg) 92%, transparent)',
                 backdropFilter: 'blur(6px)',
