@@ -354,7 +354,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             <div style={{ display: 'flex', borderBottom: sheetOpen ? '0.5px solid var(--border)' : 'none' }}>
               {([
                 ['elev', '海拔圖'],
-                ...(exp.gpx_files.length > 0 ? [['gpx', 'gpx / kml']] : []),
+                ...(exp.gpx_files.length > 0 ? [['gpx', 'GPX / KML']] : []),
                 ...(hasFiles ? [['dl', '下載']] : []),
               ] as ['elev' | 'gpx' | 'dl', string][]).map(([v, l]) => (
                 <button key={v} onClick={() => { setMobileSheet(v); if (!sheetOpen) setSheetOpen(true) }}
@@ -371,7 +371,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             {/* Sheet content */}
             {sheetOpen && (
             <div className="formal-sheet-content"
-              style={{ padding: mobileSheet === 'elev' ? '10px 14px 0' : '4px 14px 10px',
+              style={{ padding: mobileSheet === 'elev' ? '10px 0 0' : '4px 14px 10px',
                        height: mobileSheet === 'elev' ? 126 : 160,
                        boxSizing: 'border-box' }}>
               {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
