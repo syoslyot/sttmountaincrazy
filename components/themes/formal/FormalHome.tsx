@@ -2,13 +2,13 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useExpeditions, type Expedition } from '@/lib/useExpeditions'
 import './formal.css'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const PREFIX_RE = /^[\[［](\d+)([ABCDabcd])(活|探|溯|雪|訓|勘)[\]］]\s*/
-const DATE_SUFFIX_RE = /\s+\d{6,8}$/
 
 function parseName(raw: string): { name: string; grade: string | null; days: number | null } {
   const m = PREFIX_RE.exec(raw)
@@ -231,7 +231,9 @@ export function FormalHome() {
   const [debouncedQ, setDebouncedQ]   = useState('')
   const [counties, setCounties]       = useState<string[]>([])
   const [year, setYear]               = useState('all')
-  const [isMobile, setIsMobile]       = useState(false)
+  const [isMobile, setIsMobile]       = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
+  )
   const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderRef                     = useRef<HTMLDivElement>(null)
 
@@ -242,10 +244,17 @@ export function FormalHome() {
   }, [])
 
   const filter = useMemo(() => {
-    if (debouncedQ) return { mode: 'search' as const, query: debouncedQ }
-    if (counties.length) return { mode: 'counties' as const, counties }
+    const selectedYear = year !== 'all'
+      ? { start: `${year}-01-01`, end: `${year}-12-31` }
+      : {}
+    if (debouncedQ) {
+      return { mode: 'search' as const, query: debouncedQ, counties, ...selectedYear }
+    }
+    if (counties.length) {
+      return { mode: 'counties' as const, counties, ...selectedYear }
+    }
     if (year !== 'all') {
-      return { mode: 'date' as const, months: (new Date().getFullYear() - parseInt(year, 10)) * 12 + new Date().getMonth() + 1 }
+      return { mode: 'date' as const, ...selectedYear }
     }
     return { mode: 'recent' as const, months: 24 }
   }, [debouncedQ, counties, year])
@@ -259,7 +268,6 @@ export function FormalHome() {
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 680px)')
-    setIsMobile(mq.matches)
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
@@ -288,13 +296,17 @@ export function FormalHome() {
             成大山協
           </h1>
           <nav style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'baseline' }}>
-            {(['關於', '投稿', '出隊紀錄'] as const).map(tab => (
-              <span key={tab} style={{
+            {[
+              { label: '關於', href: '/formal/about' },
+              { label: '投稿', href: '/formal/submit' },
+              { label: '出隊紀錄', href: '/formal' },
+            ].map(tab => (
+              <Link key={tab.href} href={tab.href} style={{
                 fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em', cursor: 'default',
-                color: tab === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
-                borderBottom: tab === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
-                paddingBottom: 1,
-              }}>{tab}</span>
+                color: tab.label === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
+                borderBottom: tab.label === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
+                paddingBottom: 1, textDecoration: 'none',
+              }}>{tab.label}</Link>
             ))}
           </nav>
         </header>
@@ -367,13 +379,17 @@ export function FormalHome() {
           </span>
         </div>
         <nav style={{ display: 'flex', gap: 24, alignItems: 'baseline' }}>
-          {(['關於', '投稿', '出隊紀錄'] as const).map(tab => (
-            <span key={tab} style={{
+          {[
+            { label: '關於', href: '/formal/about' },
+            { label: '投稿', href: '/formal/submit' },
+            { label: '出隊紀錄', href: '/formal' },
+          ].map(tab => (
+            <Link key={tab.href} href={tab.href} style={{
               fontFamily: 'var(--serif)', fontSize: 14, letterSpacing: '.04em', cursor: 'default',
-              color: tab === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
-              borderBottom: tab === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
-              paddingBottom: 1,
-            }}>{tab}</span>
+              color: tab.label === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
+              borderBottom: tab.label === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
+              paddingBottom: 1, textDecoration: 'none',
+            }}>{tab.label}</Link>
           ))}
         </nav>
       </header>
@@ -424,7 +440,7 @@ export function FormalHome() {
           <div>
             <div className="formal-filter-label">難度 · GRADE</div>
             <div className="formal-grade-chips">
-              {['A', 'B', 'C', 'D', '訓'].map(g => (
+              {['A', 'B', 'C', 'D'].map(g => (
                 <span key={g} className="formal-grade-chip">{g}</span>
               ))}
             </div>
