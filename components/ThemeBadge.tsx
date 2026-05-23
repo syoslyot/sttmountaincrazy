@@ -48,7 +48,6 @@ export function ThemeBadge({ containerStyle, exclude }: { containerStyle?: React
     position: 'fixed', bottom: '0.75rem', right: '0.75rem',
     display: 'flex', gap: '5px', zIndex: 9001,
     alignItems: 'flex-end',
-    transform: 'scale(0.9)', transformOrigin: 'bottom right',
   }
 
   return (
