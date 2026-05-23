@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { openFile } from '@/lib/openFile'
 import type { ExpeditionDetail } from '@/lib/supabase'
 import type { TileLayerKey } from '@/components/themes/formal/FormalLeafletMap'
+import { FormalElevationChart, type ElevPoint } from '@/components/themes/formal/FormalElevationChart'
 import './formal.css'
 
 const FormalLeafletMap = dynamic(
@@ -106,6 +107,10 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
     exp.gpx_files.map(f => f.file_path)
   )
   const [tileLayer, setTileLayer] = useState<TileLayerKey>('topo')
+  const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
+  const mapHoverRef = useRef<((pt: ElevPoint) => void) | undefined>(undefined)
+  const mapLeaveRef = useRef<(() => void) | undefined>(undefined)
+  const handleElevationData = useCallback((pts: ElevPoint[]) => setElevPoints(pts), [])
 
   const colorMap: Record<string, string> = {}
   exp.gpx_files.forEach((f, i) => {
@@ -211,6 +216,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           entryTown={exp.region}
           entryCounty={exp.county}
           tileLayer={tileLayer}
+          onElevationData={handleElevationData}
+          mapHoverRef={mapHoverRef}
+          mapLeaveRef={mapLeaveRef}
         />
 
         {/* GPX selector */}
@@ -256,6 +264,15 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           </CollapsiblePanel>
         )}
       </div>
+
+      {/* Elevation chart — outside the map container, full-width section */}
+      {elevPoints.length >= 2 && activeGpxes.length === 1 && (
+        <FormalElevationChart
+          points={elevPoints}
+          onHover={pt => mapHoverRef.current?.(pt)}
+          onLeave={() => mapLeaveRef.current?.()}
+        />
+      )}
     </div>
   )
 }

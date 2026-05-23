@@ -3,8 +3,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
+import type { ElevPoint } from './FormalElevationChart'
 
-interface ElevPoint { dist: number; ele: number; lat: number; lng: number }
 interface Waypoint  { lat: number; lng: number; name: string }
 interface ParsedTrack { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] }
 
@@ -16,6 +16,9 @@ interface Props {
   entryTown?: string | null
   entryCounty?: string | null
   tileLayer?: TileLayerKey
+  onElevationData?: (points: ElevPoint[]) => void
+  mapHoverRef?: React.MutableRefObject<((pt: ElevPoint) => void) | undefined>
+  mapLeaveRef?: React.MutableRefObject<(() => void) | undefined>
 }
 
 const TW_COORDS: Record<string, [number, number]> = {
@@ -38,6 +41,9 @@ const TW_COORDS: Record<string, [number, number]> = {
 }
 
 const formalGpxCache = new Map<string, ParsedTrack>()
+
+// ─── ElevPoint re-export (defined in FormalElevationChart) ───────────────────
+export type { ElevPoint }
 
 function haversineDist(a: [number, number], b: [number, number]) {
   const R = 6371000, dLat = (b[0]-a[0])*Math.PI/180, dLon = (b[1]-a[1])*Math.PI/180
@@ -101,12 +107,6 @@ function rdpSimplify(pts: [number, number][], eps: number): [number, number][] {
   return pts.filter((_,i) => keep[i])
 }
 
-function subsample(pts: ElevPoint[], max: number) {
-  if (pts.length <= max) return pts
-  const step = Math.ceil(pts.length / max)
-  return pts.filter((_,i) => i % step === 0 || i === pts.length-1)
-}
-
 async function fetchAndParse(path: string): Promise<ParsedTrack | null> {
   if (formalGpxCache.has(path)) return formalGpxCache.get(path)!
   try {
@@ -151,88 +151,6 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
   return layers
 }
 
-// ─── Elevation Chart ──────────────────────────────────────────────────────────
-
-function FormalElevationChart({ points, onHover, onLeave }: {
-  points: ElevPoint[]
-  onHover?: (pt: ElevPoint) => void
-  onLeave?: () => void
-}) {
-  const [hoverPt, setHoverPt] = useState<ElevPoint | null>(null)
-  if (points.length < 2) return null
-
-  const W = 600, H = 130
-  const PAD = { top: 12, right: 14, bottom: 26, left: 48 }
-  const iW = W - PAD.left - PAD.right
-  const iH = H - PAD.top - PAD.bottom
-  const maxDist = points[points.length-1].dist
-  const eles = points.map(p => p.ele)
-  const minE = Math.min(...eles), maxE = Math.max(...eles), eRange = maxE - minE || 1
-  const sx = (d: number) => PAD.left + (d/maxDist)*iW
-  const sy = (e: number) => PAD.top + iH - ((e-minE)/eRange)*iH
-  const chartPts = subsample(points, 600)
-  const pathD = chartPts.map((p,i) => `${i===0?'M':'L'}${sx(p.dist).toFixed(1)},${sy(p.ele).toFixed(1)}`).join(' ')
-  const areaD = `${pathD} L${sx(maxDist).toFixed(1)},${(PAD.top+iH).toFixed(1)} L${PAD.left},${(PAD.top+iH).toFixed(1)} Z`
-
-  let gain = 0, loss = 0, prev = points[0].ele
-  for (let i = 1; i < points.length; i++) {
-    const d = points[i].ele - prev
-    if (Math.abs(d) > 5) { d > 0 ? gain+=d : loss-=d; prev = points[i].ele }
-  }
-
-  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const r = e.currentTarget.getBoundingClientRect()
-    const tgt = Math.max(0, Math.min(maxDist, ((e.clientX-r.left)/r.width*W - PAD.left)/iW*maxDist))
-    const best = points.reduce((a,p) => Math.abs(p.dist-tgt) < Math.abs(a.dist-tgt) ? p : a)
-    setHoverPt(best); onHover?.(best)
-  }
-
-  return (
-    <div style={{ background: 'color-mix(in oklch, var(--bg) 94%, transparent)', backdropFilter: 'blur(6px)',
-                  borderTop: '0.5px solid var(--border)', padding: '0' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-                    padding: '6px 14px 4px', fontFamily: 'var(--mono)', fontSize: 9,
-                    letterSpacing: '.18em', color: 'var(--muted)' }}>
-        <span>海拔圖 · ELEVATION</span>
-        <span style={{ display: 'flex', gap: 16, color: 'var(--muted)' }}>
-          <span>↔ {(maxDist/1000).toFixed(1)} km</span>
-          <span>↑ {Math.round(gain)} m</span>
-          <span>↓ {Math.round(loss)} m</span>
-          <span>▲ {Math.round(maxE)} m</span>
-        </span>
-      </div>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H}
-        style={{ display: 'block', cursor: 'crosshair' }}
-        onMouseMove={onMove} onMouseLeave={() => { setHoverPt(null); onLeave?.() }}>
-        <path d={areaD} fill="color-mix(in oklch, var(--accent) 18%, transparent)" />
-        <path d={pathD} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinejoin="round" />
-        {[0,1,2,3].map(i => {
-          const e = minE + eRange*i/3, y = sy(e)
-          return <g key={i}>
-            <line x1={PAD.left} y1={y} x2={PAD.left+iW} y2={y} stroke="var(--border)" strokeWidth="1" />
-            <text x={PAD.left-4} y={y+4} textAnchor="end" fontSize="9" fill="var(--muted)" fontFamily="var(--mono)">{Math.round(e)}</text>
-          </g>
-        })}
-        {[0,1,2,3,4].map(i => {
-          const d = maxDist*i/4
-          return <text key={i} x={sx(d)} y={H-6} textAnchor="middle" fontSize="9" fill="var(--muted)" fontFamily="var(--mono)">{(d/1000).toFixed(0)}k</text>
-        })}
-        {hoverPt && (() => {
-          const hx = sx(hoverPt.dist), hy = sy(hoverPt.ele)
-          const lbl = `${(hoverPt.dist/1000).toFixed(1)}km · ${Math.round(hoverPt.ele)}m`
-          const tw = lbl.length*5.5+10, tx = hx+6+tw>W ? hx-tw-6 : hx+6
-          return <g>
-            <line x1={hx} y1={PAD.top} x2={hx} y2={PAD.top+iH} stroke="var(--accent)" strokeWidth="1" strokeDasharray="3,2" />
-            <circle cx={hx} cy={hy} r={3.5} fill="var(--accent)" stroke="var(--bg)" strokeWidth="1.5" />
-            <rect x={tx} y={hy-16} width={tw} height={13} fill="var(--bg)" stroke="var(--accent)" strokeWidth="0.5" rx={1} />
-            <text x={tx+5} y={hy-6} fontSize="9" fill="var(--accent)" fontFamily="var(--mono)">{lbl}</text>
-          </g>
-        })()}
-      </svg>
-    </div>
-  )
-}
-
 // ─── Main Map Component ───────────────────────────────────────────────────────
 
 const TILE_URLS: Record<TileLayerKey, { url: string; attr: string; maxZoom: number }> = {
@@ -241,7 +159,7 @@ const TILE_URLS: Record<TileLayerKey, { url: string; attr: string; maxZoom: numb
   osm:  { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',    attr: '© OpenStreetMap', maxZoom: 19 },
 }
 
-export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty, tileLayer = 'topo' }: Props) {
+export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty, tileLayer = 'topo', onElevationData, mapHoverRef, mapLeaveRef }: Props) {
   const containerRef      = useRef<HTMLDivElement>(null)
   const mapRef            = useRef<any>(null)
   const leafletRef        = useRef<any>(null)
@@ -267,6 +185,15 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     }).addTo(mapRef.current)
   }, [])
   const onChartLeave = useCallback(() => { hoverMarkerRef.current?.remove(); hoverMarkerRef.current = null }, [])
+
+  // Expose hover handlers to parent
+  useEffect(() => {
+    if (mapHoverRef) mapHoverRef.current = onChartHover
+    if (mapLeaveRef) mapLeaveRef.current = onChartLeave
+  })
+
+  // Notify parent when elevation data changes
+  useEffect(() => { onElevationData?.(elevPoints) }, [elevPoints, onElevationData])
 
   // Switch tile layer
   useEffect(() => {
@@ -367,21 +294,16 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
   }, [activeGpxes])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
-      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-        <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-        {loading && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        zIndex: 1000, pointerEvents: 'none' }}>
-            <div style={{ background: 'var(--bg)', border: '0.5px solid var(--border)', padding: '10px 24px',
-                          fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.2em' }}>
-              LOADING…
-            </div>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      {loading && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      zIndex: 1000, pointerEvents: 'none' }}>
+          <div style={{ background: 'var(--bg)', border: '0.5px solid var(--border)', padding: '10px 24px',
+                        fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.2em' }}>
+            LOADING…
           </div>
-        )}
-      </div>
-      {elevPoints.length >= 2 && activeGpxes.length === 1 && (
-        <FormalElevationChart points={elevPoints} onHover={onChartHover} onLeave={onChartLeave} />
+        </div>
       )}
     </div>
   )
