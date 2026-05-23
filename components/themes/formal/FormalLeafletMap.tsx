@@ -273,10 +273,13 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     // Add new
     const toAdd = activeGpxes.filter(p => !prev.has(p))
     if (!toAdd.length) {
+      // Update elevation data when settling on a single track
       if (activeGpxes.length === 1) {
         const cached = formalGpxCache.get(activeGpxes[0])
         if (cached) setElevPoints(cached.elevs)
-      } else setElevPoints([])
+      }
+      // When multiple tracks active, keep last single-track elevation data;
+      // the parent gates display on activeGpxes.length === 1 anyway.
       return
     }
     // Only show spinner for uncached tracks
@@ -295,7 +298,8 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
       if (activeGpxes.length === 1) {
         const cached = formalGpxCache.get(activeGpxes[0])
         if (cached) setElevPoints(cached.elevs)
-      } else setElevPoints([])
+      }
+      // Don't clear when multiple tracks — parent controls visibility
     })
     return () => { cancelled = true }
   }, [activeGpxes])
