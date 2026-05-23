@@ -200,9 +200,9 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
 
       {/* Date */}
       <div style={{ display: 'flex', flexDirection: 'column', alignSelf: 'stretch' }}>
-        <div className="formal-card-date">{exp.date_start}</div>
+        <div className="formal-card-date">{exp.date_start} - {exp.date_end}</div>
         {exp.leader && (
-          <div className="formal-card-date-end" style={{ marginTop: 4 }}>領隊 {fmtLeader(exp.leader)}</div>
+          <div className="formal-card-date-end" style={{ marginTop: 10 }}>領隊 {fmtLeader(exp.leader)}</div>
         )}
         {(exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0) && (
           <div style={{ marginTop: 'auto', paddingTop: 3, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

@@ -77,6 +77,7 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
       )}
       {/* Chart */}
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H}
+        preserveAspectRatio="none"
         style={{ display: 'block', cursor: 'crosshair' }}
         onMouseMove={onMove}
         onMouseLeave={() => { setHoverPt(null); onLeave?.() }}>
