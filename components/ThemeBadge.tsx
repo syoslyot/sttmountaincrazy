@@ -38,6 +38,11 @@ export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSPrope
     pathname.startsWith('/expedition')
   )) return null
 
+  const currentBase = pathname.startsWith('/formal') ? '/formal'
+    : pathname.startsWith('/rocket') ? '/rocket'
+    : pathname.startsWith('/hangbao') ? '/hangbao'
+    : null
+
   const defaultStyle: React.CSSProperties = {
     position: 'fixed', bottom: '0.75rem', right: '0.75rem',
     display: 'flex', gap: '5px', zIndex: 9001,
@@ -45,7 +50,7 @@ export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSPrope
 
   return (
     <div className="theme-badge-wrap" style={containerStyle ?? defaultStyle}>
-      {LINKS.map(t => {
+      {LINKS.filter(t => t.href !== currentBase).map(t => {
         const isRocket = t.href === '/rocket'
         return (
           <Link key={t.href} href={t.href}
