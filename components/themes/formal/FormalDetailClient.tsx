@@ -383,7 +383,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             {/* Sheet content */}
             {sheetOpen && (
             <div className="formal-sheet-content"
-              style={{ padding: mobileSheet === 'elev' ? '10px 0 0' : '4px 14px 10px',
+              style={{ padding: mobileSheet === 'elev' ? '10px 14px 0 14px' : '4px 14px 10px',
                        height: 126, boxSizing: 'border-box' }}>
               {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <FormalElevationChart
