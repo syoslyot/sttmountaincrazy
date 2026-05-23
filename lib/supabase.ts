@@ -37,6 +37,21 @@ export interface ExpeditionDetail {
   records: RecordFile[]
 }
 
+export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, { gpx: number; map: number; rec: number }>> {
+  if (ids.length === 0) return new Map()
+  const [gpxRes, mapRes, recRes] = await Promise.all([
+    supabaseAdmin.from('gpx_files').select('expedition_id').in('expedition_id', ids),
+    supabaseAdmin.from('map_files').select('expedition_id').in('expedition_id', ids),
+    supabaseAdmin.from('records').select('expedition_id').in('expedition_id', ids),
+  ])
+  const result = new Map<number, { gpx: number; map: number; rec: number }>()
+  ids.forEach(id => result.set(id, { gpx: 0, map: 0, rec: 0 }))
+  gpxRes.data?.forEach((r: { expedition_id: number }) => { const c = result.get(r.expedition_id); if (c) c.gpx++ })
+  mapRes.data?.forEach((r: { expedition_id: number }) => { const c = result.get(r.expedition_id); if (c) c.map++ })
+  recRes.data?.forEach((r: { expedition_id: number }) => { const c = result.get(r.expedition_id); if (c) c.rec++ })
+  return result
+}
+
 export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail | null> {
   const { data, error } = await supabaseAdmin
     .from('expeditions')
