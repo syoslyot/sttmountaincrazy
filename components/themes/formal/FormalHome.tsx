@@ -42,7 +42,7 @@ const COUNTY_GRID: Record<string, { r: number; c: number }> = {
   '屏東': { r: 10, c: 2.4 },
 }
 
-// ─── CountyGrid ───────────────────────────────────────────────────────────────
+// ─── CountyGrid (desktop) ────────────────────────────────────────────────────
 
 function CountyGrid({ selected, onToggle }: { selected: string[]; onToggle: (c: string) => void }) {
   const SIZE = 24, GAP = 10
@@ -75,6 +75,81 @@ function CountyGrid({ selected, onToggle }: { selected: string[]; onToggle: (c: 
           </button>
         )
       })}
+    </div>
+  )
+}
+
+// ─── BigCountyGridMobile ─────────────────────────────────────────────────────
+
+function BigCountyGridMobile({ selected, populated, onToggle }: {
+  selected: string[]; populated: Set<string>; onToggle: (c: string) => void
+}) {
+  const entries = Object.entries(COUNTY_GRID)
+  const maxR = Math.max(...entries.map(([, v]) => v.r))
+  const maxC = Math.max(...entries.map(([, v]) => v.c))
+  const cell = 26, gap = 4
+  const W = (maxC + 1) * (cell + gap) + 20
+  const H = (maxR + 1) * (cell + gap) + 4
+  return (
+    <div style={{ position: 'relative', width: W, height: H }}>
+      {entries.map(([name, { r, c }]) => {
+        const active = selected.includes(name)
+        const has = populated.has(name)
+        return (
+          <button key={name} onClick={() => has && onToggle(name)} disabled={!has}
+            style={{
+              position: 'absolute',
+              left: c * (cell + gap), top: r * (cell + gap),
+              width: cell, height: cell, padding: 0,
+              border: active ? '1.5px solid var(--accent)' : has ? '0.5px solid var(--fg)' : '0.5px dashed var(--border)',
+              cursor: has ? 'pointer' : 'default',
+              background: active ? 'var(--accent)' : has ? 'var(--bg)' : 'transparent',
+              color: active ? 'var(--bg)' : has ? 'var(--fg)' : 'var(--muted)',
+              fontFamily: 'var(--serif)', fontSize: 9, fontWeight: active ? 600 : 500,
+              opacity: has ? 1 : 0.4,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>{name}</button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── MobileExpCard ────────────────────────────────────────────────────────────
+
+function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void }) {
+  const { grade } = parseName(exp.name)
+  const period = calcDays(exp.date_start, exp.date_end)
+  const days = period?.days
+  const sameRegion = exp.region_entry_county === exp.region_exit_county
+    && exp.region_entry_town === exp.region_exit_town
+
+  return (
+    <div onClick={onClick} style={{ padding: '12px 18px', borderBottom: '0.5px solid var(--border)', cursor: 'pointer' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', letterSpacing: '.06em' }}>
+          REC.{String(exp.id).padStart(3, '0')}{grade ? `　·　${grade}級` : ''}
+        </span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg)', letterSpacing: '.02em' }}>
+          {exp.date_start}{exp.date_end ? ` – ${exp.date_end.slice(5)}` : ''}
+        </span>
+      </div>
+      <h3 style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 500, margin: 0,
+                   lineHeight: 1.25, letterSpacing: '.01em' }}>
+        {exp.name}
+      </h3>
+      <div style={{ marginTop: 6, fontFamily: 'var(--serif)', fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+        {exp.region_entry_county && exp.region_entry_town
+          ? `${exp.region_entry_county}${exp.region_entry_town}`
+          : null}
+        {!sameRegion && exp.region_exit_county && exp.region_exit_town
+          ? <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.region_exit_county}{exp.region_exit_town}</>
+          : sameRegion && exp.region_entry_county
+            ? <span style={{ color: 'var(--muted)' }}>（環線）</span>
+            : null}
+        {exp.leader && <span>　·　領隊 {exp.leader}</span>}
+        {days && <span>　·　{days}D</span>}
+      </div>
     </div>
   )
 }
@@ -136,6 +211,7 @@ export function FormalHome() {
   const [debouncedQ, setDebouncedQ]   = useState('')
   const [counties, setCounties]       = useState<string[]>([])
   const [year, setYear]               = useState('all')
+  const [isMobile, setIsMobile]       = useState(false)
   const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderRef                     = useRef<HTMLDivElement>(null)
 
@@ -160,6 +236,23 @@ export function FormalHome() {
     setCounties(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
   }, [])
 
+  const populated = useMemo(() => {
+    const s = new Set<string>()
+    exps.forEach(e => {
+      if (e.region_entry_county) s.add(e.region_entry_county)
+      if (e.region_exit_county) s.add(e.region_exit_county)
+    })
+    return s
+  }, [exps])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 680px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
   // Infinite scroll
   useEffect(() => {
     const el = loaderRef.current
@@ -170,6 +263,78 @@ export function FormalHome() {
     obs.observe(el)
     return () => obs.disconnect()
   }, [loadMore])
+
+  if (isMobile) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100dvh',
+        background: 'var(--bg)', color: 'var(--fg)', fontFamily: 'var(--serif)',
+      }}>
+        <header style={{ padding: '6px 18px 10px', borderBottom: '0.5px solid var(--border)',
+                         display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <h1 style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 500, margin: 0, letterSpacing: '.04em' }}>
+            成大山協
+          </h1>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 8.5, color: 'var(--muted)', letterSpacing: '.16em' }}>
+            ATLAS
+          </span>
+          <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>⌕</span>
+        </header>
+
+        <section style={{ padding: '14px 18px', borderBottom: '0.5px solid var(--border)',
+                          display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ flexShrink: 0 }}>
+            <BigCountyGridMobile selected={counties} populated={populated} onToggle={toggleCounty} />
+          </div>
+          <div style={{ flex: 1, textAlign: 'right' }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.2em', color: 'var(--muted)', marginBottom: 6 }}>
+              INDEX · BY COUNTY
+            </div>
+            <h2 style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 500, margin: 0,
+                         lineHeight: 1.3, letterSpacing: '.02em' }}>
+              選擇縣市<br />以索引<br />
+              <span style={{ color: 'var(--accent)', fontStyle: 'italic' }}>歷年出隊。</span>
+            </h2>
+          </div>
+        </section>
+
+        <div style={{ padding: '10px 18px', borderBottom: '0.5px solid var(--border)',
+                      display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.15em', color: 'var(--muted)' }}>
+            EXPEDITIONS
+          </span>
+          <span style={{ fontFamily: 'var(--serif)', fontSize: 15, fontWeight: 500 }}>
+            {exps.length}
+          </span>
+          {counties.length > 0 && (
+            <span style={{ marginLeft: 'auto', fontFamily: 'var(--serif)', fontSize: 11, color: 'var(--accent)' }}>
+              {counties.join('、')}
+            </span>
+          )}
+        </div>
+
+        <div>
+          {exps.map(exp => (
+            <MobileExpCard key={exp.id} exp={exp} onClick={() => router.push(`/formal/${exp.id}`)} />
+          ))}
+          <div ref={loaderRef} style={{ height: 1 }} />
+          {loading && (
+            <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: 'var(--mono)',
+                          fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em' }}>
+              LOADING…
+            </div>
+          )}
+          {!loading && exps.length === 0 && (
+            <div style={{ padding: '60px 0', textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--muted)' }}>
+                沒有符合條件的出隊紀錄
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="formal-root scrollable">

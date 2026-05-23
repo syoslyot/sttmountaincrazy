@@ -139,36 +139,63 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
 
   return (
     <div className="formal-root">
-      {/* Header row 1: back | NO. | name | date */}
-      <header className="formal-detail-header">
-        <Link href="/formal" style={{
-          fontFamily: 'var(--mono)', fontSize: 14, color: 'var(--muted)',
-          letterSpacing: '.08em', textDecoration: 'none', flexShrink: 0,
-        }}>← 返回</Link>
+      {isMobile ? (
+        <>
+          <header style={{ padding: '6px 18px 10px', borderBottom: '0.5px solid var(--border)',
+                           display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 14, color: 'var(--muted)',
+                                          letterSpacing: '.08em', textDecoration: 'none', flexShrink: 0 }}>←</Link>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)',
+                           letterSpacing: '.1em', flexShrink: 0 }}>
+              NO.{String(exp.id).padStart(3, '0')}
+            </span>
+            <h1 style={{ fontFamily: 'var(--serif)', fontSize: 14, fontWeight: 500, margin: 0,
+                         flex: 1, minWidth: 0, letterSpacing: '.01em',
+                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {exp.name}
+            </h1>
+          </header>
+          <div style={{ padding: '6px 18px 8px', borderBottom: '0.5px solid var(--border)',
+                        display: 'flex', gap: 10, fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--muted)' }}>
+            <span style={{ color: 'var(--fg)' }}>
+              {exp.date_start.slice(5)}{exp.date_end ? `~${exp.date_end.slice(5)}` : ''}
+            </span>
+            <span>·</span>
+            <span>
+              {exp.county || ''}{exp.region ? `·${exp.region}` : ''}
+              {(exp.county_exit || exp.region_exit) && (
+                <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.county_exit || ''}{exp.region_exit ? `·${exp.region_exit}` : ''}</>
+              )}
+            </span>
+            {exp.leader && <span style={{ marginLeft: 'auto' }}>領隊 {exp.leader}</span>}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Header row 1: back | NO. | name | date */}
+          <header className="formal-detail-header">
+            <Link href="/formal" style={{
+              fontFamily: 'var(--mono)', fontSize: 14, color: 'var(--muted)',
+              letterSpacing: '.08em', textDecoration: 'none', flexShrink: 0,
+            }}>← 返回</Link>
 
-        {/* NO. 編號暫時隱藏，保留供日後使用 */}
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
-                       letterSpacing: '.1em', flexShrink: 0, display: 'none' }}>
-          NO.{String(exp.id).padStart(3, '0')}
-        </span>
+            <h1 style={{
+              fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 500, margin: 0,
+              letterSpacing: '.01em', flex: 1, minWidth: 0,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {exp.name}
+            </h1>
 
-        <h1 style={{
-          fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 500, margin: 0,
-          letterSpacing: '.01em', flex: 1, minWidth: 0,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {exp.name}
-        </h1>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 11.55, color: 'var(--muted)',
+                           letterSpacing: '.04em', flexShrink: 0 }}>
+              {exp.date_start}{exp.date_end ? ` – ${exp.date_end}` : ''}
+              {days ? ` · ${days}D` : ''}
+            </span>
+          </header>
 
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 11.55, color: 'var(--muted)',
-                       letterSpacing: '.04em', flexShrink: 0 }}>
-          {exp.date_start}{exp.date_end ? ` – ${exp.date_end}` : ''}
-          {days ? ` · ${days}D` : ''}
-        </span>
-      </header>
-
-      {/* Stats bar: region · leader · grade | tile switcher */}
-      <div className="formal-detail-stats">
+          {/* Stats bar: region · leader · grade | tile switcher */}
+          <div className="formal-detail-stats">
         <div className="formal-detail-stats-left">
           {(exp.county || exp.region) && (() => {
             const samePlace = exp.county === exp.county_exit && exp.region === exp.region_exit
@@ -217,7 +244,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             </button>
           ))}
         </div>
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Map */}
       <div className="formal-map-area">
