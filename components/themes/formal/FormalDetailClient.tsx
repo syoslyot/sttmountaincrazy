@@ -146,7 +146,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         <>
           <header style={{ padding: '8px 22px 12px', borderBottom: '0.5px solid var(--border)',
                            display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)',
+            <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 16, color: 'var(--muted)',
                                           letterSpacing: '.06em', textDecoration: 'none', flexShrink: 0 }}>←</Link>
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 14, fontWeight: 500, margin: 0,
                          flex: 1, minWidth: 0, letterSpacing: '.01em',
@@ -157,13 +157,13 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           <div style={{ padding: '6px 18px 8px', borderBottom: '0.5px solid var(--border)',
                         display: 'flex', gap: 10, fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--muted)' }}>
             <span style={{ color: 'var(--fg)' }}>
-              {exp.date_start.slice(5)}{exp.date_end ? `-${exp.date_end.slice(5)}` : ''}
+              {exp.date_start.slice(5)}{exp.date_end ? ` → ${exp.date_end.slice(5)}` : ''}
             </span>
-            <span>·</span>
+            <span>/</span>
             <span>
-              {exp.county || ''}{exp.region ? `·${exp.region}` : ''}
+              {exp.county || ''}{exp.region ? `${exp.region}` : ''}
               {(exp.county_exit || exp.region_exit) && (
-                <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.county_exit || ''}{exp.region_exit ? `·${exp.region_exit}` : ''}</>
+                <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.county_exit || ''}{exp.region_exit ? `${exp.region_exit}` : ''}</>
               )}
             </span>
             {exp.leader && <span style={{ marginLeft: 'auto' }}>領隊 {exp.leader.length > 5 ? '？' : exp.leader}</span>}
@@ -204,7 +204,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                 {exp.county}{exp.region}
                 {hasExit && (
                   <>
-                    {' '}<span style={{ color: 'var(--accent)' }}>→</span>{' '}
+                    {' '}<span style={{ color: 'var(--accent)' }}> → </span>{' '}
                     {exp.county_exit}{exp.region_exit}
                   </>
                 )}
@@ -362,16 +362,14 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
               ))}
             </div>
             {/* Sheet content */}
-            <div style={{ padding: '10px 14px' }}>
+            <div style={{ padding: '10px 14px', height: 136, boxSizing: 'border-box', overflow: 'hidden' }}>
               {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
-                <div>
-                  <FormalElevationChart
-                    points={elevPoints}
-                    onHover={pt => mapHoverRef.current?.(pt)}
-                    onLeave={() => mapLeaveRef.current?.()}
-                    height={78}
-                  />
-                </div>
+                <FormalElevationChart
+                  points={elevPoints}
+                  onHover={pt => mapHoverRef.current?.(pt)}
+                  onLeave={() => mapLeaveRef.current?.()}
+                  height={116}
+                />
               )}
               {mobileSheet === 'elev' && (elevPoints.length < 2 || activeGpxes.length !== 1) && (
                 <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)',

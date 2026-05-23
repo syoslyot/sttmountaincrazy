@@ -134,7 +134,7 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
     <div onClick={onClick} style={{ padding: '12px 18px', borderBottom: '0.5px solid var(--border)', cursor: 'pointer' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
         <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', letterSpacing: '.06em', paddingTop: 1 }}>
-          REC.{String(exp.id).padStart(3, '0')}{grade ? `　·　${grade}級` : ''}
+          REC.{String(exp.id).padStart(3, '0')}{exp.leader && <span> / 領隊 {fmtLeader(exp.leader)}</span>}
         </span>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg)', letterSpacing: '.02em' }}>
@@ -152,12 +152,7 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
           {exp.region_entry_county && exp.region_entry_town
             ? `${exp.region_entry_county}${exp.region_entry_town}`
             : null}
-          {!sameRegion && exp.region_exit_county && exp.region_exit_town
-            ? <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.region_exit_county}{exp.region_exit_town}</>
-            : sameRegion && exp.region_entry_county
-              ? <span style={{ color: 'var(--muted)' }}>（環線）</span>
-              : null}
-          {exp.leader && <span>　·　領隊 {fmtLeader(exp.leader)}</span>}
+          
         </span>
         {hasBadges && (
           <span style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
@@ -201,22 +196,19 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
             <> <span className="formal-accent">→</span> {exp.region_exit_county}{exp.region_exit_town}</>
           )}
         </div>
-        <div className="formal-card-meta">
-          {exp.leader && <>領隊{' '}{fmtLeader(exp.leader)}</>}
-        </div>
       </div>
 
       {/* Date */}
       <div style={{ display: 'flex', flexDirection: 'column', alignSelf: 'stretch' }}>
         <div className="formal-card-date">{exp.date_start}</div>
-        {exp.date_end && (
-          <div className="formal-card-date-end">–&nbsp;{exp.date_end.slice(5)}</div>
+        {exp.leader && (
+          <div className="formal-card-date-end" style={{ marginTop: 4 }}>領隊 {fmtLeader(exp.leader)}</div>
         )}
         {(exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0) && (
-          <div style={{ marginTop: 'auto', paddingTop: 6, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX·{exp.gpx_count}</span>}
-            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
-            {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--accent)', letterSpacing: '.04em' }}>REC·{exp.rec_count}</span>}
+          <div style={{ marginTop: 'auto', paddingTop: 3, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>gpx / kml: {exp.gpx_count}</span>}
+            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>map: {exp.map_count}</span>}
+            {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>REC: {exp.rec_count}</span>}
           </div>
         )}
       </div>
