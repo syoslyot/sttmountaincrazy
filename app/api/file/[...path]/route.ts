@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const STORAGE_BASE = `${process.env.SUPABASE_URL}/storage/v1/object/public`
-const ALLOWED_BUCKETS = new Set(['records', 'maps', 'gpx'])
+const ALLOWED_BUCKETS = new Set(['records', 'maps', 'gpx', 'previews'])
 
 // URL 結構：/api/file/{bucket}/{...actualPath}/{displayName}
 // 例：/api/file/records/27/d3de645703a9.docx/丹大Day6-8.docx

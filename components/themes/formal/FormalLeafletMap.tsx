@@ -132,21 +132,21 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
     html: `<div style="background:${bg};color:${fg};padding:3px 7px;font-family:var(--mono,monospace);font-size:11px;border:1px solid ${fg};letter-spacing:.06em">${label}</div>`,
     iconSize: [28, 22], iconAnchor: [14, 11],
   })
-  if (latlngs[0]) {
-    L.marker(latlngs[0], { icon: mkIcon(single ? '#3a7d44' : color, '#f6f4ef', '起') }).addTo(map).also?.(layers.push)
-    layers.push(L.marker(latlngs[0], { icon: mkIcon(single ? '#3a7d44' : color, '#f6f4ef', '起') }).addTo(map))
-  }
-  if (latlngs.at(-1)) {
-    layers.push(L.marker(latlngs.at(-1)!, { icon: mkIcon(single ? color : '#f6f4ef', single ? '#f6f4ef' : color, '終') }).addTo(map))
-  }
+  // Waypoints first so start/end render on top
   for (const w of waypoints) {
     if (!w.name) continue
     const icon = L.divIcon({
       className: '',
-      html: `<div style="width:10px;height:10px;background:${color};border:1.5px solid #f6f4ef;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`,
-      iconSize: [10,10], iconAnchor: [5,5],
+      html: `<div style="width:11px;height:11px;background:${color};border:1.5px solid #f6f4ef;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`,
+      iconSize: [11,11], iconAnchor: [5.5,5.5],
     })
     layers.push(L.marker([w.lat,w.lng],{icon}).bindTooltip(w.name,{direction:'top',offset:[0,-6]}).addTo(map))
+  }
+  if (latlngs[0]) {
+    layers.push(L.marker(latlngs[0], { icon: mkIcon(single ? '#3a7d44' : color, '#f6f4ef', '起'), zIndexOffset: 1000 }).addTo(map))
+  }
+  if (latlngs.at(-1)) {
+    layers.push(L.marker(latlngs.at(-1)!, { icon: mkIcon(single ? color : '#f6f4ef', single ? '#f6f4ef' : color, '終'), zIndexOffset: 1000 }).addTo(map))
   }
   return layers
 }
