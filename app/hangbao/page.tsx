@@ -1,5 +1,11 @@
 import { HangbaoHome } from '@/components/themes/hangbao/HangbaoHome'
+import { MobileRedirect } from '@/components/MobileRedirect'
 
 export default function HangbaoPage() {
-  return <HangbaoHome />
+  return (
+    <>
+      <MobileRedirect to="/formal" />
+      <HangbaoHome />
+    </>
+  )
 }

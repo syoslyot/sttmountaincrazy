@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -18,6 +19,17 @@ const DEFAULT_LINK_STYLE: React.CSSProperties = { position: 'static', textDecora
 
 export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSProperties } = {}) {
   const pathname = usePathname()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 680px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  if (isMobile) return null
 
   // Layout-level badge: suppress when page handles its own (rocket home, expedition detail, and / which is just redirecting)
   if (!containerStyle && (
