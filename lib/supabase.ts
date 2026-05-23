@@ -37,6 +37,16 @@ export interface ExpeditionDetail {
   records: RecordFile[]
 }
 
+export async function fetchExpeditionYears(): Promise<string[]> {
+  const { data } = await supabaseAdmin
+    .from('expeditions')
+    .select('date_start')
+    .order('date_start', { ascending: false })
+  if (!data) return []
+  const years = [...new Set(data.map((r: { date_start: string }) => r.date_start.slice(0, 4)))]
+  return years
+}
+
 export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, { gpx: number; map: number; rec: number }>> {
   if (ids.length === 0) return new Map()
   const [gpxRes, mapRes, recRes] = await Promise.all([

@@ -22,6 +22,8 @@ function calcDays(start: string, end: string | null): { days: number; nights: nu
   return d > 0 ? { days: d + 1, nights: d } : null
 }
 
+function fmtLeader(l: string) { return l.length > 5 ? '？' : l }
+
 const COUNTY_GRID: Record<string, { r: number; c: number }> = {
   '基隆': { r: 0, c: 4   },
   '台北': { r: 0, c: 3   },
@@ -160,7 +162,7 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
           : sameRegion && exp.region_entry_county
             ? <span style={{ color: 'var(--muted)' }}>（環線）</span>
             : null}
-        {exp.leader && <span>　·　領隊 {exp.leader}</span>}
+        {exp.leader && <span>　·　領隊 {fmtLeader(exp.leader)}</span>}
         {days && <span>　·　{days}D</span>}
       </div>
     </div>
@@ -198,19 +200,18 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
           )}
         </div>
         <div className="formal-card-meta">
-          {exp.leader && <>領隊{' '}{exp.leader}</>}
-          {days != null && <>{'　·　'}{days}{' '}日{nights != null ? <>{' '}{nights}{' '}夜</> : null}</>}
+          {exp.leader && <>領隊{' '}{fmtLeader(exp.leader)}</>}
         </div>
       </div>
 
       {/* Date */}
-      <div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignSelf: 'stretch' }}>
         <div className="formal-card-date">{exp.date_start}</div>
         {exp.date_end && (
           <div className="formal-card-date-end">–&nbsp;{exp.date_end.slice(5)}</div>
         )}
         {(exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0) && (
-          <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <div style={{ marginTop: 'auto', paddingTop: 6, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX·{exp.gpx_count}</span>}
             {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
             {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--accent)', letterSpacing: '.04em' }}>REC·{exp.rec_count}</span>}
@@ -223,9 +224,7 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-const YEARS = ['2026', '2025', '2024', '2023']
-
-export function FormalHome() {
+export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years?: string[] }) {
   const router = useRouter()
   const [query, setQuery]             = useState('')
   const [debouncedQ, setDebouncedQ]   = useState('')
@@ -256,7 +255,7 @@ export function FormalHome() {
     if (year !== 'all') {
       return { mode: 'date' as const, ...selectedYear }
     }
-    return { mode: 'recent' as const, months: 24 }
+    return { mode: 'recent' as const }
   }, [debouncedQ, counties, year])
 
   const { exps, total, loading, loadMore } = useExpeditions(filter)
@@ -427,7 +426,7 @@ export function FormalHome() {
           <div>
             <div className="formal-filter-label">年份 · YEAR</div>
             <div className="formal-year-chips">
-              {['all', ...YEARS].map(y => (
+              {['all', ...years].map(y => (
                 <button key={y} className={`formal-year-chip${year === y ? ' active' : ''}`}
                   onClick={() => setYear(y)}>
                   {y === 'all' ? 'ALL' : y}

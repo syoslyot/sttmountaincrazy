@@ -78,7 +78,7 @@ function CollapsiblePanel({
 // ─── DLRow ────────────────────────────────────────────────────────────────────
 
 function DLRow({ label, filename, filePath, bucket }: {
-  label: string; filename: string; filePath: string | null; bucket: 'records' | 'maps'
+  label: string; filename: string; filePath: string | null; bucket: 'records' | 'maps' | 'previews'
 }) {
   if (!filePath) return null
   return (
@@ -136,7 +136,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
 
   const grade = parseGrade(exp.name)
   const days = calcDays(exp.date_start, exp.date_end)
-  const hasFiles = exp.map_files.length + exp.records.length > 0
+  const previewBasename = exp.preview_image ? exp.preview_image.split('/').pop() ?? null : null
+  const previewFilename = `${exp.name.replace(PREFIX_RE, '')}.png`
+  const hasFiles = exp.map_files.length + exp.records.length > 0 || !!previewBasename
 
   return (
     <div className="formal-root">
@@ -168,7 +170,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                 <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.county_exit || ''}{exp.region_exit ? `·${exp.region_exit}` : ''}</>
               )}
             </span>
-            {exp.leader && <span style={{ marginLeft: 'auto' }}>領隊 {exp.leader}</span>}
+            {exp.leader && <span style={{ marginLeft: 'auto' }}>領隊 {exp.leader.length > 5 ? '？' : exp.leader}</span>}
           </div>
         </>
       ) : (
@@ -215,7 +217,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           })()}
           {exp.leader && (
             <span style={{ color: 'var(--muted)' }}>
-              領隊{' '}<span style={{ color: 'var(--fg)' }}>{exp.leader}</span>
+              領隊{' '}<span style={{ color: 'var(--fg)' }}>{exp.leader.length > 5 ? '？' : exp.leader}</span>
             </span>
           )}
           {grade && (
@@ -294,9 +296,12 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         {!isMobile && hasFiles && (
           <CollapsiblePanel
             title="下載"
-            badge={String(exp.map_files.length + exp.records.length)}
+            badge={String((previewBasename ? 1 : 0) + exp.map_files.length + exp.records.length)}
             defaultOpen={false}
             style={{ top: 12, right: 12, width: 'clamp(130px, 38vw, 260px)' }}>
+            {previewBasename && (
+              <DLRow label="直企" filename={previewFilename} filePath={previewBasename} bucket="previews" />
+            )}
             {exp.map_files.map(f => (
               <DLRow key={f.file_path} label="地圖" filename={f.filename} filePath={f.file_path} bucket="maps" />
             ))}
@@ -405,6 +410,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
               )}
               {mobileSheet === 'dl' && (
                 <div>
+                  {previewBasename && (
+                    <DLRow label="直企" filename={previewFilename} filePath={previewBasename} bucket="previews" />
+                  )}
                   {exp.map_files.map(f => (
                     <DLRow key={f.file_path} label="地圖" filename={f.filename} filePath={f.file_path} bucket="maps" />
                   ))}
