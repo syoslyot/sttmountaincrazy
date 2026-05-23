@@ -276,7 +276,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
       // Update elevation data when settling on a single track
       if (activeGpxes.length === 1) {
         const cached = formalGpxCache.get(activeGpxes[0])
-        if (cached) setElevPoints(cached.elevs)
+        if (cached) queueMicrotask(() => setElevPoints(cached.elevs))
       }
       // When multiple tracks active, keep last single-track elevation data;
       // the parent gates display on activeGpxes.length === 1 anyway.

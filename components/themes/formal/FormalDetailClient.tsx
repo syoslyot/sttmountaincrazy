@@ -109,14 +109,15 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   const [tileLayer, setTileLayer] = useState<TileLayerKey>('emap')
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
   const [mobileSheet, setMobileSheet] = useState<'elev' | 'gpx' | 'dl'>('elev')
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
+  )
   const mapHoverRef = useRef<((pt: ElevPoint) => void) | undefined>(undefined)
   const mapLeaveRef = useRef<(() => void) | undefined>(undefined)
   const handleElevationData = useCallback((pts: ElevPoint[]) => setElevPoints(pts), [])
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 680px)')
-    setIsMobile(mq.matches)
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
