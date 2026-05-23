@@ -344,6 +344,12 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             borderTop: '0.5px solid var(--border)',
           }}>
+            {/* Pill handle — tap to collapse / expand */}
+            <div onClick={() => setSheetOpen(o => !o)}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center',
+                       padding: '7px 0 5px', cursor: 'pointer' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border)' }} />
+            </div>
             {/* Tab bar */}
             <div style={{ display: 'flex', borderBottom: sheetOpen ? '0.5px solid var(--border)' : 'none' }}>
               {([
@@ -361,23 +367,19 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                     cursor: 'pointer',
                   }}>{l}</button>
               ))}
-              <button onClick={() => setSheetOpen(o => !o)}
-                style={{
-                  padding: '9px 14px', background: 'transparent', border: 'none',
-                  borderBottom: '1.5px solid transparent',
-                  fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)',
-                  cursor: 'pointer', flexShrink: 0, lineHeight: 1,
-                }}>{sheetOpen ? '▾' : '▴'}</button>
             </div>
             {/* Sheet content */}
             {sheetOpen && (
-            <div style={{ padding: '10px 14px 0', height: 136, boxSizing: 'border-box', overflow: 'hidden' }}>
+            <div className="formal-sheet-content"
+              style={{ padding: mobileSheet === 'elev' ? '10px 14px 0' : '4px 14px 10px',
+                       height: mobileSheet === 'elev' ? 126 : 160,
+                       boxSizing: 'border-box' }}>
               {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <FormalElevationChart
                   points={elevPoints}
                   onHover={pt => mapHoverRef.current?.(pt)}
                   onLeave={() => mapLeaveRef.current?.()}
-                  height={126}
+                  height={116}
                   style={{ borderTop: 'none' }}
                 />
               )}

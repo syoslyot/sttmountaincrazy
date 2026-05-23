@@ -51,6 +51,12 @@
 
 .formal-sidebar::-webkit-scrollbar { display: none; }
 
+.formal-sheet-content {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.formal-sheet-content::-webkit-scrollbar { display: none; }
+
 .formal-filter-label {
   font-family: var(--mono);
   font-size: 9px;
