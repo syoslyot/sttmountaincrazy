@@ -104,9 +104,9 @@ function DLRow({ label, filename, filePath, bucket }: {
 
 export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   const [activeGpxes, setActiveGpxes] = useState<string[]>(
-    exp.gpx_files.map(f => f.file_path)
+    exp.gpx_files.length > 0 ? [exp.gpx_files[0].file_path] : []
   )
-  const [tileLayer, setTileLayer] = useState<TileLayerKey>('topo')
+  const [tileLayer, setTileLayer] = useState<TileLayerKey>('emap')
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
   const [mobileSheet, setMobileSheet] = useState<'elev' | 'gpx' | 'dl'>('elev')
   const [isMobile, setIsMobile] = useState(false)
@@ -227,8 +227,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         {/* Desktop: GPX selector */}
         {!isMobile && exp.gpx_files.length > 0 && (
           <CollapsiblePanel
-            title="航跡 GPX"
+            title="航跡 GPX/KML"
             badge={`${activeGpxes.length}/${exp.gpx_files.length}`}
+            defaultOpen={false}
             style={{ top: 12, left: 12, width: 'clamp(160px, 44vw, 240px)' }}>
             {exp.gpx_files.map((f, i) => (
               <label key={f.file_path} style={{
@@ -307,7 +308,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)' }}>
               {([
                 ['elev', '海拔圖'],
-                ...(exp.gpx_files.length > 0 ? [['gpx', '航跡']] : []),
+                ...(exp.gpx_files.length > 0 ? [['gpx', 'GPX/KML']] : []),
                 ...(hasFiles ? [['dl', '下載']] : []),
               ] as ['elev' | 'gpx' | 'dl', string][]).map(([v, l]) => (
                 <button key={v} onClick={() => setMobileSheet(v)}
@@ -377,17 +378,26 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             </div>
           </div>
         )}
+        {/* Desktop: elevation chart — z-layer at bottom-center of map */}
+        {!isMobile && elevPoints.length >= 2 && activeGpxes.length === 1 && (
+          <div style={{
+            position: 'absolute', bottom: 0,
+            left: '50%', transform: 'translateX(-50%)',
+            width: '50%', zIndex: 1000,
+          }}>
+            <FormalElevationChart
+              points={elevPoints}
+              onHover={pt => mapHoverRef.current?.(pt)}
+              onLeave={() => mapLeaveRef.current?.()}
+              style={{
+                background: 'color-mix(in oklch, var(--bg) 92%, transparent)',
+                backdropFilter: 'blur(6px)',
+                WebkitBackdropFilter: 'blur(6px)',
+              }}
+            />
+          </div>
+        )}
       </div>
-
-      {/* Desktop: elevation chart below map */}
-      {!isMobile && elevPoints.length >= 2 && activeGpxes.length === 1 && (
-        <FormalElevationChart
-          points={elevPoints}
-          onHover={pt => mapHoverRef.current?.(pt)}
-          onLeave={() => mapLeaveRef.current?.()}
-          style={{ width: '50%' }}
-        />
-      )}
     </div>
   )
 }
