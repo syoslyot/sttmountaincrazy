@@ -385,6 +385,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           points={elevPoints}
           onHover={pt => mapHoverRef.current?.(pt)}
           onLeave={() => mapLeaveRef.current?.()}
+          style={{ width: '50%' }}
         />
       )}
     </div>

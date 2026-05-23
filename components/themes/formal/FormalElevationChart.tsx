@@ -10,10 +10,11 @@ function subsample(pts: ElevPoint[], max: number) {
   return pts.filter((_,i) => i % step === 0 || i === pts.length-1)
 }
 
-export function FormalElevationChart({ points, onHover, onLeave }: {
+export function FormalElevationChart({ points, onHover, onLeave, style }: {
   points: ElevPoint[]
   onHover?: (pt: ElevPoint) => void
   onLeave?: () => void
+  style?: React.CSSProperties
 }) {
   const [hoverPt, setHoverPt] = useState<ElevPoint | null>(null)
   if (points.length < 2) return null
@@ -55,6 +56,7 @@ export function FormalElevationChart({ points, onHover, onLeave }: {
       flexShrink: 0,
       background: 'var(--bg)',
       borderTop: '0.5px solid var(--border)',
+      ...style,
     }}>
       {/* Header */}
       <div style={{
