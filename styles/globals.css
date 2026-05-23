@@ -240,7 +240,7 @@ html, body {
 
 /* formal page: scale all 3 buttons slightly smaller + move left */
 [data-theme="formal"] .theme-badge-wrap {
-  transform: scale(0.82);
+  transform: scale(0.85);
   transform-origin: bottom right;
   right: 1.25rem !important;
 }
@@ -264,6 +264,7 @@ html, body {
   letter-spacing: 0.05em;
   transform: scale(1.3);
   transform-origin: bottom center;
+  margin-right: 10px;
   opacity: 1 !important;
   transition: background-color 0.12s, color 0.12s, border-color 0.12s;
 }
@@ -271,12 +272,12 @@ html, body {
   background-color: #4a6741;
   color: #fff;
   border-color: #4a6741;
-  opacity: 1 !important;
+  opacity: 0.9 !important;
 }
 
 /* formal page: 10% larger formal badge */
 [data-theme="formal"] .formal-badge-link {
-  transform: scale(1.43);
+  transform: scale(1.6);
   transform-origin: bottom center;
 }
 [data-theme="formal"] .formal-badge-link:hover {
