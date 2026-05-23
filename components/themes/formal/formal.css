@@ -160,7 +160,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px 36px 24px;
+  scrollbar-width: none;
 }
+
+.formal-result-list::-webkit-scrollbar { display: none; }
 
 /* Specimen card */
 .formal-card {
@@ -305,6 +308,11 @@
 /* Mobile: stack layout, allow scrolling */
 @media (max-width: 680px) {
   .formal-root {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .formal-root.scrollable {
     height: auto;
     min-height: 100dvh;
     overflow-y: auto;
@@ -354,11 +362,11 @@
     display: none;
   }
 
-  /* Detail page map: fixed height on mobile */
+  /* Detail page map: fill remaining space on mobile (bottom sheet overlays it) */
   .formal-map-area {
-    flex: unset;
-    height: 50dvh;
-    min-height: 260px;
+    flex: 1;
+    min-height: 0;
+    height: auto;
   }
 
   /* Detail header: wrap, smaller padding */

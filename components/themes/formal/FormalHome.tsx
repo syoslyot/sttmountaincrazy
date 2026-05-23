@@ -3,7 +3,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useExpeditions, type Expedition } from '@/lib/useExpeditions'
-import { ThemeBadge } from '@/components/ThemeBadge'
 import './formal.css'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -174,7 +173,7 @@ export function FormalHome() {
   }, [loadMore])
 
   return (
-    <div className="formal-root">
+    <div className="formal-root scrollable">
       {/* Header */}
       <header className="formal-header">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
@@ -185,7 +184,6 @@ export function FormalHome() {
             NCKU&nbsp;MTN.&nbsp;·&nbsp;EXPEDITION&nbsp;ARCHIVE
           </span>
         </div>
-        <ThemeBadge containerStyle={{ display: 'flex', gap: '0.5rem' }} />
       </header>
 
       <div className="formal-body">

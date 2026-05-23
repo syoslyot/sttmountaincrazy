@@ -236,18 +236,19 @@ html, body {
 .rocket-badge-link:hover { transform: rotate(0deg) translate(-2px, -2px); opacity: 1; }
 .rocket-badge-link .theme-badge-dot { background: #0066cc; }
 .formal-badge-link {
-  background: #1a2744;
-  color: #e8d5a3;
-  font-weight: 700;
-  font-size: 14px;
-  padding: 7px 16px;
-  border: 2px solid #e8d5a3;
-  border-radius: 2px;
-  letter-spacing: 0.12em;
+  background: var(--bg, #f6f4ef);
+  color: var(--fg, #1a1916);
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  font-weight: 400;
+  font-size: 10px;
+  padding: 5px 11px;
+  border: 0.5px solid var(--border, rgba(26,25,22,0.16));
+  border-radius: 0;
+  letter-spacing: 0.1em;
   opacity: 1 !important;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.12s, color 0.12s;
 }
-.formal-badge-link:hover { background: #e8d5a3; color: #1a2744; opacity: 1 !important; }
+.formal-badge-link:hover { background: var(--fg, #1a1916); color: var(--bg, #f6f4ef); opacity: 1 !important; }
 
 /* 出隊詳細 */
 .detail-layout {

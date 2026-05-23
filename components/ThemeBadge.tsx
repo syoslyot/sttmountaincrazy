@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const LINKS = [
+  { href: '/formal',  label: '成大山協', badgeClass: 'formal-badge-link',  hasDot: false },
   { href: '/rocket',  label: '火箭羊羊', badgeClass: 'rocket-badge-link',  hasDot: true },
   { href: '/hangbao', label: '登山夯爆', badgeClass: 'hangbao-badge-link', hasDot: false },
-  { href: '/formal',  label: '成大山協', badgeClass: 'formal-badge-link',  hasDot: false },
 ]
 
 const ROCKET_STYLE: React.CSSProperties = {
@@ -23,13 +23,12 @@ export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSPrope
   if (!containerStyle && (
     pathname === '/' ||
     pathname.startsWith('/rocket') ||
-    pathname.startsWith('/expedition') ||
-    pathname.startsWith('/formal')
+    pathname.startsWith('/expedition')
   )) return null
 
   const defaultStyle: React.CSSProperties = {
-    position: 'fixed', bottom: '1rem', right: '1rem',
-    display: 'flex', gap: '0.5rem', zIndex: 9001,
+    position: 'fixed', bottom: '0.75rem', right: '0.75rem',
+    display: 'flex', gap: '5px', zIndex: 9001,
   }
 
   return (

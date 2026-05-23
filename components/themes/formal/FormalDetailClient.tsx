@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { openFile } from '@/lib/openFile'
@@ -49,16 +49,16 @@ function CollapsiblePanel({
     }}>
       <button onClick={() => setOpen(o => !o)} style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        width: '100%', padding: open ? '10px 14px 8px' : '8px 14px',
+        width: '100%', padding: open ? '11px 16px 9px' : '9px 16px',
         background: 'transparent', border: 'none', cursor: 'pointer',
         borderBottom: open ? '0.5px solid var(--border)' : 'none',
-        fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.2em',
+        fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.2em',
         color: 'var(--muted)', textAlign: 'left',
       }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <span>{title}</span>
           {badge && (
-            <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--accent)',
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)',
                            letterSpacing: '.06em', borderLeft: '0.5px solid var(--border)', paddingLeft: 8 }}>
               {badge}
             </span>
@@ -70,7 +70,7 @@ function CollapsiblePanel({
           ▾
         </span>
       </button>
-      {open && <div style={{ padding: '8px 14px 12px' }}>{children}</div>}
+      {open && <div style={{ padding: '9px 16px 13px' }}>{children}</div>}
     </div>
   )
 }
@@ -87,10 +87,10 @@ function DLRow({ label, filename, filePath, bucket }: {
         display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 8, alignItems: 'baseline',
         padding: '6px 0', borderBottom: '0.5px dotted var(--border)', cursor: 'pointer',
       }}>
-      <span style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.12em',
+      <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.12em',
                      color: 'var(--accent)', paddingRight: 4 }}>{label.toUpperCase()}</span>
       <div style={{ overflow: 'hidden' }}>
-        <div style={{ fontFamily: 'var(--serif)', fontSize: 11.5,
+        <div style={{ fontFamily: 'var(--serif)', fontSize: 12.5,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {filename}
         </div>
@@ -108,9 +108,19 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   )
   const [tileLayer, setTileLayer] = useState<TileLayerKey>('topo')
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
+  const [mobileSheet, setMobileSheet] = useState<'elev' | 'gpx' | 'dl'>('elev')
+  const [isMobile, setIsMobile] = useState(false)
   const mapHoverRef = useRef<((pt: ElevPoint) => void) | undefined>(undefined)
   const mapLeaveRef = useRef<(() => void) | undefined>(undefined)
   const handleElevationData = useCallback((pts: ElevPoint[]) => setElevPoints(pts), [])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 680px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   const colorMap: Record<string, string> = {}
   exp.gpx_files.forEach((f, i) => {
@@ -183,16 +193,19 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)',
                          letterSpacing: '.15em' }}>底圖</span>
-          {(['topo', 'sat', 'osm'] as TileLayerKey[]).map(key => (
+          {([
+            ['topo', '地形'], ['emap', 'EMAP'], ['sat', '衛星'],
+            ['osm', 'OSM'], ['carto', 'Carto'], ['stamen', 'Terrain'],
+          ] as [TileLayerKey, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setTileLayer(key)} style={{
               background: tileLayer === key ? 'var(--accent)' : 'transparent',
               color: tileLayer === key ? 'var(--bg)' : 'var(--muted)',
               border: `0.5px solid ${tileLayer === key ? 'var(--accent)' : 'var(--border)'}`,
-              padding: '3px 10px',
-              fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.08em',
+              padding: '3px 8px',
+              fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.06em',
               cursor: 'pointer',
             }}>
-              {key.toUpperCase()}
+              {label}
             </button>
           ))}
         </div>
@@ -211,8 +224,8 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           mapLeaveRef={mapLeaveRef}
         />
 
-        {/* GPX selector */}
-        {exp.gpx_files.length > 0 && (
+        {/* Desktop: GPX selector */}
+        {!isMobile && exp.gpx_files.length > 0 && (
           <CollapsiblePanel
             title="航跡 GPX"
             badge={`${activeGpxes.length}/${exp.gpx_files.length}`}
@@ -229,7 +242,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                   style={{ accentColor: colorMap[f.file_path] }}
                 />
                 <span style={{ width: 10, height: 10, background: colorMap[f.file_path], flexShrink: 0 }} />
-                <span style={{ flex: 1, fontFamily: 'var(--serif)', fontSize: 12,
+                <span style={{ flex: 1, fontFamily: 'var(--serif)', fontSize: 13,
                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {f.filename}
                 </span>
@@ -238,8 +251,8 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           </CollapsiblePanel>
         )}
 
-        {/* Downloads */}
-        {hasFiles && (
+        {/* Desktop: Downloads */}
+        {!isMobile && hasFiles && (
           <CollapsiblePanel
             title="下載"
             badge={String(exp.map_files.length + exp.records.length)}
@@ -253,10 +266,121 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             ))}
           </CollapsiblePanel>
         )}
+
+        {/* Mobile: top-left stats overlay */}
+        {isMobile && elevPoints.length >= 2 && activeGpxes.length === 1 && (() => {
+          const eles = elevPoints.map(p => p.ele)
+          const maxDist = elevPoints[elevPoints.length - 1].dist
+          const maxE = Math.max(...eles)
+          let gain = 0, prev = elevPoints[0].ele
+          for (let i = 1; i < elevPoints.length; i++) {
+            const d = elevPoints[i].ele - prev
+            if (d > 5) { gain += d; prev = elevPoints[i].ele }
+            else if (Math.abs(d) > 5) prev = elevPoints[i].ele
+          }
+          return (
+            <div style={{
+              position: 'absolute', top: 10, left: 10, zIndex: 1000,
+              background: 'color-mix(in oklch, var(--bg) 92%, transparent)',
+              backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+              border: '0.5px solid var(--border)',
+              padding: '5px 10px',
+              fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)',
+              display: 'flex', gap: 10, letterSpacing: '.04em',
+            }}>
+              <span><span style={{ color: 'var(--accent)' }}>↔</span> <span style={{ color: 'var(--fg)' }}>{(maxDist/1000).toFixed(1)}</span>k</span>
+              <span><span style={{ color: 'var(--accent)' }}>↑</span> <span style={{ color: 'var(--fg)' }}>{Math.round(gain)}</span></span>
+              <span><span style={{ color: 'var(--accent)' }}>▲</span> <span style={{ color: 'var(--fg)' }}>{Math.round(maxE)}</span></span>
+            </div>
+          )
+        })()}
+
+        {/* Mobile: bottom sheet */}
+        {isMobile && (
+          <div style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 1000,
+            background: 'color-mix(in oklch, var(--bg) 95%, transparent)',
+            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            borderTop: '0.5px solid var(--border)',
+          }}>
+            {/* Tab bar */}
+            <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)' }}>
+              {([
+                ['elev', '海拔圖'],
+                ...(exp.gpx_files.length > 0 ? [['gpx', '航跡']] : []),
+                ...(hasFiles ? [['dl', '下載']] : []),
+              ] as ['elev' | 'gpx' | 'dl', string][]).map(([v, l]) => (
+                <button key={v} onClick={() => setMobileSheet(v)}
+                  style={{
+                    flex: 1, padding: '9px 0',
+                    background: 'transparent', border: 'none',
+                    borderBottom: mobileSheet === v ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                    fontFamily: 'var(--serif)', fontSize: 12,
+                    color: mobileSheet === v ? 'var(--fg)' : 'var(--muted)',
+                    cursor: 'pointer',
+                  }}>{l}</button>
+              ))}
+            </div>
+            {/* Sheet content */}
+            <div style={{ padding: '10px 14px' }}>
+              {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
+                <div>
+                  <div style={{ marginBottom: 4, fontFamily: 'var(--mono)', fontSize: 9,
+                                color: 'var(--muted)', letterSpacing: '.1em', textAlign: 'right' }}>
+                    按住拖曳查看 ←→
+                  </div>
+                  <FormalElevationChart
+                    points={elevPoints}
+                    onHover={pt => mapHoverRef.current?.(pt)}
+                    onLeave={() => mapLeaveRef.current?.()}
+                  />
+                </div>
+              )}
+              {mobileSheet === 'elev' && (elevPoints.length < 2 || activeGpxes.length !== 1) && (
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)',
+                              letterSpacing: '.1em', padding: '8px 0', textAlign: 'center' }}>
+                  {activeGpxes.length === 0 ? '未選取航跡' : activeGpxes.length > 1 ? '選取單一航跡以顯示剖面圖' : '載入中…'}
+                </div>
+              )}
+              {mobileSheet === 'gpx' && (
+                <div>
+                  {exp.gpx_files.map((f, i) => (
+                    <label key={f.file_path} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
+                      borderBottom: i < exp.gpx_files.length - 1 ? '0.5px dotted var(--border)' : 'none',
+                      cursor: 'pointer',
+                    }}>
+                      <input type="checkbox"
+                        checked={activeGpxes.includes(f.file_path)}
+                        onChange={() => toggleGpx(f.file_path)}
+                        style={{ accentColor: colorMap[f.file_path] }}
+                      />
+                      <span style={{ width: 8, height: 8, background: colorMap[f.file_path], flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontFamily: 'var(--serif)', fontSize: 13,
+                                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {f.filename}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              {mobileSheet === 'dl' && (
+                <div>
+                  {exp.map_files.map(f => (
+                    <DLRow key={f.file_path} label="地圖" filename={f.filename} filePath={f.file_path} bucket="maps" />
+                  ))}
+                  {exp.records.map(f => (
+                    <DLRow key={f.file_path} label="紀錄" filename={f.filename} filePath={f.file_path ?? null} bucket="records" />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Elevation chart — outside the map container, full-width section */}
-      {elevPoints.length >= 2 && activeGpxes.length === 1 && (
+      {/* Desktop: elevation chart below map */}
+      {!isMobile && elevPoints.length >= 2 && activeGpxes.length === 1 && (
         <FormalElevationChart
           points={elevPoints}
           onHover={pt => mapHoverRef.current?.(pt)}

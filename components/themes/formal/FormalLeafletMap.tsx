@@ -8,7 +8,7 @@ import type { ElevPoint } from './FormalElevationChart'
 interface Waypoint  { lat: number; lng: number; name: string }
 interface ParsedTrack { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] }
 
-export type TileLayerKey = 'topo' | 'sat' | 'osm'
+export type TileLayerKey = 'topo' | 'sat' | 'osm' | 'emap' | 'carto' | 'stamen'
 
 interface Props {
   activeGpxes: string[]
@@ -153,10 +153,13 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
 
 // ─── Main Map Component ───────────────────────────────────────────────────────
 
-const TILE_URLS: Record<TileLayerKey, { url: string; attr: string; maxZoom: number }> = {
-  topo: { url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',      attr: '© OpenTopoMap', maxZoom: 17 },
-  sat:  { url: 'https://wmts.nlsc.gov.tw/wmts/PHOTO_MIX/default/GoogleMapsCompatible/{z}/{y}/{x}', attr: '© 國土測繪中心', maxZoom: 20 },
-  osm:  { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',    attr: '© OpenStreetMap', maxZoom: 19 },
+const TILE_URLS: Record<TileLayerKey, { url: string; attr: string; maxZoom: number; subdomains?: string }> = {
+  topo:  { url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',      attr: '© OpenTopoMap', maxZoom: 17 },
+  sat:   { url: 'https://wmts.nlsc.gov.tw/wmts/PHOTO_MIX/default/GoogleMapsCompatible/{z}/{y}/{x}', attr: '© 國土測繪中心', maxZoom: 20 },
+  osm:   { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',    attr: '© OpenStreetMap', maxZoom: 19 },
+  emap:  { url: 'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}',     attr: '© 國土測繪中心 EMAP', maxZoom: 20 },
+  carto: { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attr: '© CartoDB', maxZoom: 20, subdomains: 'abcd' },
+  stamen:{ url: 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png', attr: '© Stadia Maps / Stamen', maxZoom: 18 },
 }
 
 export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty, tileLayer = 'topo', onElevationData, mapHoverRef, mapLeaveRef }: Props) {
@@ -181,7 +184,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     const L = leafletRef.current
     if (hoverMarkerRef.current) hoverMarkerRef.current.setLatLng([pt.lat, pt.lng])
     else hoverMarkerRef.current = L.circleMarker([pt.lat, pt.lng], {
-      radius: 6, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 2,
+      radius: 12, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 2.5,
     }).addTo(mapRef.current)
   }, [])
   const onChartLeave = useCallback(() => { hoverMarkerRef.current?.remove(); hoverMarkerRef.current = null }, [])
@@ -202,7 +205,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     if (!map || !L) return
     if (tileLayerRef.current) { tileLayerRef.current.remove(); tileLayerRef.current = null }
     const cfg = TILE_URLS[tileLayer]
-    tileLayerRef.current = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: cfg.maxZoom }).addTo(map)
+    tileLayerRef.current = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: cfg.maxZoom, subdomains: cfg.subdomains ?? 'abc' }).addTo(map)
   }, [tileLayer])
 
   // Init map
@@ -217,7 +220,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
       mapRef.current = map
 
       const cfg = TILE_URLS[tileLayer]
-      tileLayerRef.current = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: cfg.maxZoom }).addTo(map)
+      tileLayerRef.current = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: cfg.maxZoom, subdomains: cfg.subdomains ?? 'abc' }).addTo(map)
       L.control.scale({ metric: true, imperial: false }).addTo(map)
 
       const initCoords = TW_COORDS[entryTown ?? ''] ?? TW_COORDS[entryCounty ?? ''] ?? null

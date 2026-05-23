@@ -18,7 +18,7 @@ export function FormalElevationChart({ points, onHover, onLeave }: {
   const [hoverPt, setHoverPt] = useState<ElevPoint | null>(null)
   if (points.length < 2) return null
 
-  const W = 800, H = 160
+  const W = 800, H = 112
   const PAD = { top: 14, right: 16, bottom: 30, left: 54 }
   const iW = W - PAD.left - PAD.right
   const iH = H - PAD.top - PAD.bottom
