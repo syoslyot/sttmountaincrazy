@@ -109,6 +109,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   const [tileLayer, setTileLayer] = useState<TileLayerKey>('emap')
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
   const [mobileSheet, setMobileSheet] = useState<'elev' | 'gpx' | 'dl'>('elev')
+  const [sheetOpen, setSheetOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
   )
@@ -228,7 +229,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)',
                          letterSpacing: '.15em' }}>底圖</span>
           {([
-            ['topo', '地形'], ['emap', 'EMAP'], ['sat', '衛星'],
+            ['topo', 'Topo'], ['emap', 'EMAP'], ['sat', 'Sat'],
             ['osm', 'OSM'], ['carto', 'Carto'], ['stamen', 'Terrain'],
           ] as [TileLayerKey, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setTileLayer(key)} style={{
@@ -344,31 +345,40 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             borderTop: '0.5px solid var(--border)',
           }}>
             {/* Tab bar */}
-            <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)' }}>
+            <div style={{ display: 'flex', borderBottom: sheetOpen ? '0.5px solid var(--border)' : 'none' }}>
               {([
                 ['elev', '海拔圖'],
                 ...(exp.gpx_files.length > 0 ? [['gpx', 'gpx / kml']] : []),
                 ...(hasFiles ? [['dl', '下載']] : []),
               ] as ['elev' | 'gpx' | 'dl', string][]).map(([v, l]) => (
-                <button key={v} onClick={() => setMobileSheet(v)}
+                <button key={v} onClick={() => { setMobileSheet(v); if (!sheetOpen) setSheetOpen(true) }}
                   style={{
                     flex: 1, padding: '9px 0',
                     background: 'transparent', border: 'none',
-                    borderBottom: mobileSheet === v ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                    borderBottom: mobileSheet === v && sheetOpen ? '1.5px solid var(--accent)' : '1.5px solid transparent',
                     fontFamily: 'var(--serif)', fontSize: 12,
-                    color: mobileSheet === v ? 'var(--fg)' : 'var(--muted)',
+                    color: mobileSheet === v && sheetOpen ? 'var(--fg)' : 'var(--muted)',
                     cursor: 'pointer',
                   }}>{l}</button>
               ))}
+              <button onClick={() => setSheetOpen(o => !o)}
+                style={{
+                  padding: '9px 14px', background: 'transparent', border: 'none',
+                  borderBottom: '1.5px solid transparent',
+                  fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)',
+                  cursor: 'pointer', flexShrink: 0, lineHeight: 1,
+                }}>{sheetOpen ? '▾' : '▴'}</button>
             </div>
             {/* Sheet content */}
-            <div style={{ padding: '10px 14px', height: 136, boxSizing: 'border-box', overflow: 'hidden' }}>
+            {sheetOpen && (
+            <div style={{ padding: '10px 14px 0', height: 136, boxSizing: 'border-box', overflow: 'hidden' }}>
               {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <FormalElevationChart
                   points={elevPoints}
                   onHover={pt => mapHoverRef.current?.(pt)}
                   onLeave={() => mapLeaveRef.current?.()}
-                  height={116}
+                  height={126}
+                  style={{ borderTop: 'none' }}
                 />
               )}
               {mobileSheet === 'elev' && (elevPoints.length < 2 || activeGpxes.length !== 1) && (
@@ -414,6 +424,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                 </div>
               )}
             </div>
+            )}
           </div>
         )}
         {/* Desktop: elevation chart — z-layer at bottom-center of map */}
