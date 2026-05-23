@@ -1,11 +1,13 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const LINKS = [
-  { href: '/rocket',  label: '火箭羊羊', badgeClass: 'rocket-badge-link',  hasDot: true },
+  { href: '/rocket',  label: '火箭洋洋', badgeClass: 'rocket-badge-link',  hasDot: true },
   { href: '/hangbao', label: '登山夯爆', badgeClass: 'hangbao-badge-link', hasDot: false },
+  { href: '/formal',  label: '成大山協', badgeClass: 'formal-badge-link',  hasDot: false },
 ]
 
 const ROCKET_STYLE: React.CSSProperties = {
@@ -17,6 +19,18 @@ const DEFAULT_LINK_STYLE: React.CSSProperties = { position: 'static', textDecora
 
 export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSProperties } = {}) {
   const pathname = usePathname()
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 680px)')
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  if (isMobile) return null
 
   // Layout-level badge: suppress when page handles its own (rocket home, expedition detail, and / which is just redirecting)
   if (!containerStyle && (
@@ -25,14 +39,19 @@ export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSPrope
     pathname.startsWith('/expedition')
   )) return null
 
+  const currentBase = pathname.startsWith('/formal') ? '/formal'
+    : pathname.startsWith('/rocket') ? '/rocket'
+    : pathname.startsWith('/hangbao') ? '/hangbao'
+    : null
+
   const defaultStyle: React.CSSProperties = {
-    position: 'fixed', bottom: '1rem', right: '1rem',
-    display: 'flex', gap: '0.5rem', zIndex: 9001,
+    position: 'fixed', bottom: '0.75rem', right: '0.75rem',
+    display: 'flex', gap: '5px', zIndex: 9001,
   }
 
   return (
-    <div style={containerStyle ?? defaultStyle}>
-      {LINKS.map(t => {
+    <div className="theme-badge-wrap" style={containerStyle ?? defaultStyle}>
+      {LINKS.filter(t => t.href !== currentBase).map(t => {
         const isRocket = t.href === '/rocket'
         return (
           <Link key={t.href} href={t.href}
