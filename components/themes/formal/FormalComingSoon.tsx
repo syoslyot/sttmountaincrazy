@@ -28,9 +28,6 @@ export function FormalComingSoon({
           }}>
             成大山協
           </Link>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.18em' }}>
-            NCKU&nbsp;MTN.&nbsp;·&nbsp;EXPEDITION&nbsp;ARCHIVE
-          </span>
         </div>
         <nav style={{ display: 'flex', gap: 24, alignItems: 'baseline' }}>
           {NAV_ITEMS.map(item => (

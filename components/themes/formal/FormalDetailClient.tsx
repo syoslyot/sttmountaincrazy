@@ -144,14 +144,10 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
     <div className="formal-root">
       {isMobile ? (
         <>
-          <header style={{ padding: '6px 18px 10px', borderBottom: '0.5px solid var(--border)',
+          <header style={{ padding: '8px 22px 12px', borderBottom: '0.5px solid var(--border)',
                            display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 14, color: 'var(--muted)',
-                                          letterSpacing: '.08em', textDecoration: 'none', flexShrink: 0 }}>←</Link>
-            <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)',
-                           letterSpacing: '.1em', flexShrink: 0 }}>
-              NO.{String(exp.id).padStart(3, '0')}
-            </span>
+            <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)',
+                                          letterSpacing: '.06em', textDecoration: 'none', flexShrink: 0 }}>← 返回</Link>
             <h1 style={{ fontFamily: 'var(--serif)', fontSize: 14, fontWeight: 500, margin: 0,
                          flex: 1, minWidth: 0, letterSpacing: '.01em',
                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -342,7 +338,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         {/* Mobile: bottom sheet */}
         {isMobile && (
           <div style={{
-            position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 1000,
+            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1000,
             background: 'color-mix(in oklch, var(--bg) 95%, transparent)',
             backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             borderTop: '0.5px solid var(--border)',
@@ -369,10 +365,6 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             <div style={{ padding: '10px 14px' }}>
               {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <div>
-                  <div style={{ marginBottom: 4, fontFamily: 'var(--mono)', fontSize: 9,
-                                color: 'var(--muted)', letterSpacing: '.1em', textAlign: 'right' }}>
-                    按住拖曳查看 ←→
-                  </div>
                   <FormalElevationChart
                     points={elevPoints}
                     onHover={pt => mapHoverRef.current?.(pt)}

@@ -20,7 +20,7 @@ export function FormalElevationChart({ points, onHover, onLeave, style }: {
   if (points.length < 2) return null
 
   const W = 800, H = 112
-  const PAD = { top: 14, right: 16, bottom: 30, left: 54 }
+  const PAD = { top: 14, right: 16, bottom: 18, left: 54 }
   const iW = W - PAD.left - PAD.right
   const iH = H - PAD.top - PAD.bottom
   const maxDist = points[points.length-1].dist
@@ -58,20 +58,6 @@ export function FormalElevationChart({ points, onHover, onLeave, style }: {
       borderTop: '0.5px solid var(--border)',
       ...style,
     }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-        padding: '8px 20px 4px',
-        fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.18em', color: 'var(--muted)',
-      }}>
-        <span>海拔圖 · ELEVATION</span>
-        <span style={{ display: 'flex', gap: 20 }}>
-          <span>↔ {(maxDist/1000).toFixed(1)} km</span>
-          <span>↑ {Math.round(gain)} m</span>
-          <span>↓ {Math.round(loss)} m</span>
-          <span>▲ {Math.round(maxE)} m</span>
-        </span>
-      </div>
       {/* Chart */}
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H}
         style={{ display: 'block', cursor: 'crosshair' }}

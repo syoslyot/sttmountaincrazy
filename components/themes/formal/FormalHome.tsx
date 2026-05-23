@@ -140,30 +140,32 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg)', letterSpacing: '.02em' }}>
             {exp.date_start}{exp.date_end ? ` – ${exp.date_end.slice(5)}` : ''}
           </div>
-          {hasBadges && (
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 3 }}>
-              {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX·{exp.gpx_count}</span>}
-              {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
-              {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>REC·{exp.rec_count}</span>}
-            </div>
-          )}
         </div>
       </div>
       <h3 style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 500, margin: 0,
                    lineHeight: 1.25, letterSpacing: '.01em' }}>
         {exp.name}
       </h3>
-      <div style={{ marginTop: 6, fontFamily: 'var(--serif)', fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
-        {exp.region_entry_county && exp.region_entry_town
-          ? `${exp.region_entry_county}${exp.region_entry_town}`
-          : null}
-        {!sameRegion && exp.region_exit_county && exp.region_exit_town
-          ? <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.region_exit_county}{exp.region_exit_town}</>
-          : sameRegion && exp.region_entry_county
-            ? <span style={{ color: 'var(--muted)' }}>（環線）</span>
+      <div style={{ marginTop: 6, fontFamily: 'var(--serif)', fontSize: 12, color: 'var(--muted)', lineHeight: 1.5,
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>
+          {exp.region_entry_county && exp.region_entry_town
+            ? `${exp.region_entry_county}${exp.region_entry_town}`
             : null}
-        {exp.leader && <span>　·　領隊 {fmtLeader(exp.leader)}</span>}
-        {days && <span>　·　{days}D</span>}
+          {!sameRegion && exp.region_exit_county && exp.region_exit_town
+            ? <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.region_exit_county}{exp.region_exit_town}</>
+            : sameRegion && exp.region_entry_county
+              ? <span style={{ color: 'var(--muted)' }}>（環線）</span>
+              : null}
+          {exp.leader && <span>　·　領隊 {fmtLeader(exp.leader)}</span>}
+        </span>
+        {hasBadges && (
+          <span style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX·{exp.gpx_count}</span>}
+            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
+            {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>REC·{exp.rec_count}</span>}
+          </span>
+        )}
       </div>
     </div>
   )
@@ -230,6 +232,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   const [debouncedQ, setDebouncedQ]   = useState('')
   const [counties, setCounties]       = useState<string[]>([])
   const [year, setYear]               = useState('all')
+  const [grade, setGrade]             = useState('')
   const [isMobile, setIsMobile]       = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
   )
@@ -259,6 +262,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   }, [debouncedQ, counties, year])
 
   const { exps, total, loading, loadMore } = useExpeditions(filter)
+  const filteredExps = grade ? exps.filter(e => parseName(e.name).grade === grade) : exps
 
   const toggleCounty = useCallback((c: string) => {
     setCounties(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
@@ -373,9 +377,6 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
           <h1 style={{ fontFamily: 'var(--serif)', fontSize: 22, margin: 0, fontWeight: 500, letterSpacing: '.04em' }}>
             成大山協
           </h1>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.18em' }}>
-            NCKU&nbsp;MTN.&nbsp;·&nbsp;EXPEDITION&nbsp;ARCHIVE
-          </span>
         </div>
         <nav style={{ display: 'flex', gap: 24, alignItems: 'baseline' }}>
           {[
@@ -435,12 +436,19 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
             </div>
           </div>
 
-          {/* Grade — display only, no filter yet */}
+          {/* Grade filter */}
           <div>
-            <div className="formal-filter-label">難度 · GRADE</div>
+            <div className="formal-filter-label">
+              級數 · GRADE
+              {grade && <button className="formal-clear-btn" onClick={() => setGrade('')}>CLEAR</button>}
+            </div>
             <div className="formal-grade-chips">
               {['A', 'B', 'C', 'D'].map(g => (
-                <span key={g} className="formal-grade-chip">{g}</span>
+                <button key={g}
+                  className={`formal-grade-chip${grade === g ? ' active' : ''}`}
+                  onClick={() => setGrade(g === grade ? '' : g)}>
+                  {g}
+                </button>
               ))}
             </div>
           </div>
@@ -459,10 +467,10 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
                 結果 · RESULTS
               </span>
               <span style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 500 }}>
-                {String(exps.length).padStart(2, '0')}
+                {String(filteredExps.length).padStart(2, '0')}
               </span>
               <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
-                / {String(total).padStart(2, '0')}
+                / {String(grade ? exps.length : total).padStart(2, '0')}
               </span>
               {counties.length > 0 && (
                 <span style={{ fontFamily: 'var(--serif)', fontSize: 13, color: 'var(--muted)' }}>
@@ -482,8 +490,8 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
           </div>
 
           <div className="formal-result-list">
-            {exps.map(exp => <SpecimenCard key={exp.id} exp={exp} onClick={() => router.push(`/formal/${exp.id}`)} />)}
-            {!loading && exps.length === 0 && (
+            {filteredExps.map(exp => <SpecimenCard key={exp.id} exp={exp} onClick={() => router.push(`/formal/${exp.id}`)} />)}
+            {!loading && filteredExps.length === 0 && (
               <div style={{ padding: '60px 0', textAlign: 'center' }}>
                 <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--muted)', marginBottom: 6 }}>
                   沒有符合條件的出隊紀錄
