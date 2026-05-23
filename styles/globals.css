@@ -270,7 +270,8 @@ html, body {
   letter-spacing: 0.05em;
   transform: scale(1.4);
   transform-origin: bottom center;
-  margin-right: 10px;
+  margin-left: 15px;
+  margin-bottom: -3px;
   opacity: 1 !important;
   transition: background-color 0.12s, color 0.12s, border-color 0.12s;
 }

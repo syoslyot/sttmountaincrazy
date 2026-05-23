@@ -30,7 +30,7 @@ const COUNTY_GRID: Record<string, { r: number; c: number }> = {
   '新竹': { r: 2, c: 1.5 },
   '苗栗': { r: 3, c: 1   },
   '宜蘭': { r: 2, c: 4   },
-  '台中': { r: 4, c: 1.2 },
+  '台中': { r: 4, c: 0.8 },
   '彰化': { r: 5, c: 0.8 },
   '南投': { r: 5, c: 2.4 },
   '雲林': { r: 6, c: 0.6 },
@@ -81,8 +81,8 @@ function CountyGrid({ selected, onToggle }: { selected: string[]; onToggle: (c: 
 
 // ─── BigCountyGridMobile ─────────────────────────────────────────────────────
 
-function BigCountyGridMobile({ selected, populated, onToggle }: {
-  selected: string[]; populated: Set<string>; onToggle: (c: string) => void
+function BigCountyGridMobile({ selected, onToggle }: {
+  selected: string[]; onToggle: (c: string) => void
 }) {
   const entries = Object.entries(COUNTY_GRID)
   const maxR = Math.max(...entries.map(([, v]) => v.r))
@@ -94,21 +94,23 @@ function BigCountyGridMobile({ selected, populated, onToggle }: {
     <div style={{ position: 'relative', width: W, height: H }}>
       {entries.map(([name, { r, c }]) => {
         const active = selected.includes(name)
-        const has = populated.has(name)
         return (
-          <button key={name} onClick={() => has && onToggle(name)} disabled={!has}
+          <button key={name} onClick={() => onToggle(name)}
             style={{
               position: 'absolute',
               left: c * (cell + gap), top: r * (cell + gap),
-              width: cell, height: cell, padding: 0,
-              border: active ? '1.5px solid var(--accent)' : has ? '0.5px solid var(--fg)' : '0.5px dashed var(--border)',
-              cursor: has ? 'pointer' : 'default',
-              background: active ? 'var(--accent)' : has ? 'var(--bg)' : 'transparent',
-              color: active ? 'var(--bg)' : has ? 'var(--fg)' : 'var(--muted)',
-              fontFamily: 'var(--serif)', fontSize: 9, fontWeight: active ? 600 : 500,
-              opacity: has ? 1 : 0.4,
+              width: cell, height: cell, padding: 0, border: 'none',
+              cursor: 'pointer', background: 'transparent',
+              fontFamily: 'var(--serif)',
+              color: active ? 'var(--accent)' : 'var(--muted)',
+              fontWeight: active ? 600 : 400,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{name}</button>
+            }}>
+            <span style={{
+              writingMode: 'vertical-rl', textOrientation: 'upright',
+              fontSize: 11, lineHeight: 1.1, letterSpacing: 0,
+            }}>{name}</span>
+          </button>
         )
       })}
     </div>
@@ -124,15 +126,26 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
   const sameRegion = exp.region_entry_county === exp.region_exit_county
     && exp.region_entry_town === exp.region_exit_town
 
+  const hasBadges = exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0
+
   return (
     <div onClick={onClick} style={{ padding: '12px 18px', borderBottom: '0.5px solid var(--border)', cursor: 'pointer' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', letterSpacing: '.06em' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', letterSpacing: '.06em', paddingTop: 1 }}>
           REC.{String(exp.id).padStart(3, '0')}{grade ? `　·　${grade}級` : ''}
         </span>
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg)', letterSpacing: '.02em' }}>
-          {exp.date_start}{exp.date_end ? ` – ${exp.date_end.slice(5)}` : ''}
-        </span>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg)', letterSpacing: '.02em' }}>
+            {exp.date_start}{exp.date_end ? ` – ${exp.date_end.slice(5)}` : ''}
+          </div>
+          {hasBadges && (
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 3 }}>
+              {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX·{exp.gpx_count}</span>}
+              {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
+              {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>REC·{exp.rec_count}</span>}
+            </div>
+          )}
+        </div>
       </div>
       <h3 style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 500, margin: 0,
                    lineHeight: 1.25, letterSpacing: '.01em' }}>
@@ -196,6 +209,13 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
         {exp.date_end && (
           <div className="formal-card-date-end">–&nbsp;{exp.date_end.slice(5)}</div>
         )}
+        {(exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0) && (
+          <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX·{exp.gpx_count}</span>}
+            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
+            {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--accent)', letterSpacing: '.04em' }}>REC·{exp.rec_count}</span>}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -236,14 +256,6 @@ export function FormalHome() {
     setCounties(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
   }, [])
 
-  const populated = useMemo(() => {
-    const s = new Set<string>()
-    exps.forEach(e => {
-      if (e.region_entry_county) s.add(e.region_entry_county)
-      if (e.region_exit_county) s.add(e.region_exit_county)
-    })
-    return s
-  }, [exps])
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 680px)')
@@ -270,21 +282,27 @@ export function FormalHome() {
         display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100dvh',
         background: 'var(--bg)', color: 'var(--fg)', fontFamily: 'var(--serif)',
       }}>
-        <header style={{ padding: '6px 18px 10px', borderBottom: '0.5px solid var(--border)',
+        <header style={{ padding: '10px 18px', borderBottom: '0.5px solid var(--border)',
                          display: 'flex', alignItems: 'baseline', gap: 10 }}>
           <h1 style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 500, margin: 0, letterSpacing: '.04em' }}>
             成大山協
           </h1>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 8.5, color: 'var(--muted)', letterSpacing: '.16em' }}>
-            ATLAS
-          </span>
-          <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>⌕</span>
+          <nav style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'baseline' }}>
+            {(['關於', '投稿', '出隊紀錄'] as const).map(tab => (
+              <span key={tab} style={{
+                fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em', cursor: 'default',
+                color: tab === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
+                borderBottom: tab === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
+                paddingBottom: 1,
+              }}>{tab}</span>
+            ))}
+          </nav>
         </header>
 
         <section style={{ padding: '14px 18px', borderBottom: '0.5px solid var(--border)',
                           display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ flexShrink: 0 }}>
-            <BigCountyGridMobile selected={counties} populated={populated} onToggle={toggleCounty} />
+            <BigCountyGridMobile selected={counties} onToggle={toggleCounty} />
           </div>
           <div style={{ flex: 1, textAlign: 'right' }}>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.2em', color: 'var(--muted)', marginBottom: 6 }}>
@@ -348,6 +366,16 @@ export function FormalHome() {
             NCKU&nbsp;MTN.&nbsp;·&nbsp;EXPEDITION&nbsp;ARCHIVE
           </span>
         </div>
+        <nav style={{ display: 'flex', gap: 24, alignItems: 'baseline' }}>
+          {(['關於', '投稿', '出隊紀錄'] as const).map(tab => (
+            <span key={tab} style={{
+              fontFamily: 'var(--serif)', fontSize: 14, letterSpacing: '.04em', cursor: 'default',
+              color: tab === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
+              borderBottom: tab === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
+              paddingBottom: 1,
+            }}>{tab}</span>
+          ))}
+        </nav>
       </header>
 
       <div className="formal-body">

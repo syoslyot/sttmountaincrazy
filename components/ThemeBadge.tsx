@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const LINKS = [
-  { href: '/formal',  label: '成大山協', badgeClass: 'formal-badge-link',  hasDot: false },
   { href: '/rocket',  label: '火箭洋洋', badgeClass: 'rocket-badge-link',  hasDot: true },
   { href: '/hangbao', label: '登山夯爆', badgeClass: 'hangbao-badge-link', hasDot: false },
+  { href: '/formal',  label: '成大山協', badgeClass: 'formal-badge-link',  hasDot: false },
 ]
 
 const ROCKET_STYLE: React.CSSProperties = {
