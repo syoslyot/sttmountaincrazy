@@ -50,14 +50,21 @@ export function ThemeBadge({ containerStyle, exclude }: { containerStyle?: React
     alignItems: 'flex-end',
   }
 
+  const isFormalPage = currentBase === '/formal'
+
   return (
     <div className="theme-badge-wrap" style={containerStyle ?? defaultStyle}>
       {LINKS.filter(t => t.href !== currentBase && t.href !== exclude).map(t => {
         const isRocket = t.href === '/rocket'
+        const isHangbaoOnFormal = t.href === '/hangbao' && isFormalPage
+        const linkStyle: React.CSSProperties = isRocket ? ROCKET_STYLE : DEFAULT_LINK_STYLE
+        const overrideStyle: React.CSSProperties = isHangbaoOnFormal
+          ? { border: '0.5px solid rgba(255, 0, 110, 0.3)', boxShadow: 'none' }
+          : {}
         return (
           <Link key={t.href} href={t.href}
             className={`theme-badge ${t.badgeClass}`}
-            style={isRocket ? ROCKET_STYLE : DEFAULT_LINK_STYLE}>
+            style={{ ...linkStyle, ...overrideStyle }}>
             {t.hasDot && <span className="theme-badge-dot" style={ROCKET_DOT_STYLE} />}
             {t.label}
           </Link>
