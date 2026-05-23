@@ -251,21 +251,20 @@ html, body {
 }
 
 /* formal badge — all pages: vertical 米字虛線 */
-/* .theme-badge.formal-badge-link specificity (0,2,0) overrides [data-theme="rocket"] .theme-badge (0,2,0) via cascade order */
 .theme-badge.formal-badge-link {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-family: var(--serif, 'Noto Serif TC', serif);
-  font-weight: 500;
-  font-size: 1rem;
-  padding: 0.4em 0.25em;
-  background-color: #f6f4ef;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='24' height='24' fill='none' stroke='%231a1916' stroke-opacity='0.4' stroke-width='0.75'/%3E%3Cline x1='0' y1='12' x2='24' y2='12' stroke='%231a1916' stroke-opacity='0.22' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='12' y1='0' x2='12' y2='24' stroke='%231a1916' stroke-opacity='0.22' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='0' y1='0' x2='24' y2='24' stroke='%231a1916' stroke-opacity='0.18' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='24' y1='0' x2='0' y2='24' stroke='%231a1916' stroke-opacity='0.18' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3C/svg%3E");
-  background-size: 1em 1em;
-  color: #1a1916;
-  border: 0.5px solid rgba(26, 25, 22, 0.25);
-  border-radius: 0;
-  box-shadow: none;
+  writing-mode: vertical-rl !important;
+  text-orientation: mixed !important;
+  font-family: var(--serif, 'Noto Serif TC', serif) !important;
+  font-weight: 500 !important;
+  font-size: 1rem !important;
+  padding: 0.4em 0.25em !important;
+  background-color: #f6f4ef !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='24' height='24' fill='none' stroke='%231a1916' stroke-opacity='0.4' stroke-width='0.75'/%3E%3Cline x1='0' y1='12' x2='24' y2='12' stroke='%231a1916' stroke-opacity='0.22' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='12' y1='0' x2='12' y2='24' stroke='%231a1916' stroke-opacity='0.22' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='0' y1='0' x2='24' y2='24' stroke='%231a1916' stroke-opacity='0.18' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='24' y1='0' x2='0' y2='24' stroke='%231a1916' stroke-opacity='0.18' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3C/svg%3E") !important;
+  background-size: 1em 1em !important;
+  color: #1a1916 !important;
+  border: 0.5px solid rgba(26, 25, 22, 0.25) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   line-height: 1;
   letter-spacing: 0.05em;
   transform: scale(1.4);
@@ -281,6 +280,11 @@ html, body {
   border-color: #4a6741;
   transform: scale(1.4);
   opacity: 0.9 !important;
+}
+
+/* formal page: hangbao badge — 移除黑色外框，保留黃底黑底陰影 */
+[data-theme="formal"] .theme-badge.hangbao-badge-link {
+  border: 0.5px solid rgba(255, 0, 110, 0.3) !important;
 }
 
 /* formal page: 10% larger formal badge */

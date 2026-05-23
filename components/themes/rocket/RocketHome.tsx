@@ -115,7 +115,7 @@ export function RocketHome() {
         {tab === 'map' && selectedCounties.length === 0 && (
           <span style={{ fontFamily: "'Noto Sans TC',sans-serif", fontSize: '0.7rem', color: '#e65100', opacity: 0.6, transform: 'rotate(-0.5deg)', display: 'inline-block' }}>← 點選或拖曳縣市形狀篩選，拼合相鄰縣市可複選</span>
         )}
-        <ThemeBadge containerStyle={{ position: 'fixed', bottom: 12, right: 506, display: 'flex', gap: '0.5rem', zIndex: 9001, pointerEvents: 'auto' }} />
+        <ThemeBadge containerStyle={{ position: 'fixed', bottom: 12, right: 506, display: 'flex', gap: '0.5rem', zIndex: 9001, pointerEvents: 'auto', alignItems: 'flex-end' }} exclude="/rocket" />
       </div>
 
       {/* Expedition cards — fixed right panel so left/center counties remain clickable */}

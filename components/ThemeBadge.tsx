@@ -17,7 +17,7 @@ const ROCKET_STYLE: React.CSSProperties = {
 const ROCKET_DOT_STYLE: React.CSSProperties = { background: '#0066cc' }
 const DEFAULT_LINK_STYLE: React.CSSProperties = { position: 'static', textDecoration: 'none' }
 
-export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSProperties } = {}) {
+export function ThemeBadge({ containerStyle, exclude }: { containerStyle?: React.CSSProperties; exclude?: string } = {}) {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
@@ -47,16 +47,24 @@ export function ThemeBadge({ containerStyle }: { containerStyle?: React.CSSPrope
   const defaultStyle: React.CSSProperties = {
     position: 'fixed', bottom: '0.75rem', right: '0.75rem',
     display: 'flex', gap: '5px', zIndex: 9001,
+    alignItems: 'flex-end',
   }
+
+  const isFormalPage = currentBase === '/formal'
 
   return (
     <div className="theme-badge-wrap" style={containerStyle ?? defaultStyle}>
-      {LINKS.filter(t => t.href !== currentBase).map(t => {
+      {LINKS.filter(t => t.href !== currentBase && t.href !== exclude).map(t => {
         const isRocket = t.href === '/rocket'
+        const isHangbaoOnFormal = t.href === '/hangbao' && isFormalPage
+        const linkStyle: React.CSSProperties = isRocket ? ROCKET_STYLE : DEFAULT_LINK_STYLE
+        const overrideStyle: React.CSSProperties = isHangbaoOnFormal
+          ? { border: '0.5px solid rgba(255, 0, 110, 0.3)' }
+          : {}
         return (
           <Link key={t.href} href={t.href}
             className={`theme-badge ${t.badgeClass}`}
-            style={isRocket ? ROCKET_STYLE : DEFAULT_LINK_STYLE}>
+            style={{ ...linkStyle, ...overrideStyle }}>
             {t.hasDot && <span className="theme-badge-dot" style={ROCKET_DOT_STYLE} />}
             {t.label}
           </Link>
