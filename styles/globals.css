@@ -26,6 +26,11 @@ html, body {
   min-height: 100vh;
 }
 
+@media (max-width: 680px) {
+  html, body { scrollbar-width: none; }
+  ::-webkit-scrollbar { display: none; }
+}
+
 /* ── 通用元件（主題透過 CSS 變數覆蓋樣式） ── */
 
 .navbar {
