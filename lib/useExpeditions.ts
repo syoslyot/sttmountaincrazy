@@ -12,6 +12,9 @@ export interface Expedition {
   region_exit_county:  string | null
   region_exit_town:    string | null
   leader: string | null
+  gpx_count: number
+  map_count: number
+  rec_count: number
 }
 
 export type FilterMode = 'recent' | 'county' | 'counties' | 'date' | 'search'

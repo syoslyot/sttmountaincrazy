@@ -26,6 +26,11 @@ html, body {
   min-height: 100vh;
 }
 
+@media (max-width: 680px) {
+  html, body { scrollbar-width: none; }
+  ::-webkit-scrollbar { display: none; }
+}
+
 /* ── 通用元件（主題透過 CSS 變數覆蓋樣式） ── */
 
 .navbar {
@@ -235,6 +240,60 @@ html, body {
 }
 .rocket-badge-link:hover { transform: rotate(0deg) translate(-2px, -2px); opacity: 1; }
 .rocket-badge-link .theme-badge-dot { background: #0066cc; }
+/* ThemeBadge container: bottom-align for vertical formal button */
+.theme-badge-wrap { align-items: flex-end; }
+
+/* formal page: scale all 3 buttons slightly smaller + move left */
+[data-theme="formal"] .theme-badge-wrap {
+  transform: scale(1);
+  transform-origin: bottom right;
+  right: 1.25rem !important;
+}
+
+/* formal badge — all pages: vertical 米字虛線 */
+/* .theme-badge.formal-badge-link specificity (0,2,0) overrides [data-theme="rocket"] .theme-badge (0,2,0) via cascade order */
+.theme-badge.formal-badge-link {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--serif, 'Noto Serif TC', serif);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 0.4em 0.25em;
+  background-color: #f6f4ef;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='24' height='24' fill='none' stroke='%231a1916' stroke-opacity='0.4' stroke-width='0.75'/%3E%3Cline x1='0' y1='12' x2='24' y2='12' stroke='%231a1916' stroke-opacity='0.22' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='12' y1='0' x2='12' y2='24' stroke='%231a1916' stroke-opacity='0.22' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='0' y1='0' x2='24' y2='24' stroke='%231a1916' stroke-opacity='0.18' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3Cline x1='24' y1='0' x2='0' y2='24' stroke='%231a1916' stroke-opacity='0.18' stroke-width='0.5' stroke-dasharray='2,2'/%3E%3C/svg%3E");
+  background-size: 1em 1em;
+  color: #1a1916;
+  border: 0.5px solid rgba(26, 25, 22, 0.25);
+  border-radius: 0;
+  box-shadow: none;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  transform: scale(1.4);
+  transform-origin: bottom center;
+  margin-left: 15px;
+  margin-bottom: -3px;
+  opacity: 1 !important;
+  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+}
+.theme-badge.formal-badge-link:hover {
+  background-color: #4a6741;
+  color: #fff;
+  border-color: #4a6741;
+  transform: scale(1.4);
+  opacity: 0.9 !important;
+}
+
+/* formal page: 10% larger formal badge */
+[data-theme="formal"] .formal-badge-link {
+  /* transform: scale(1.6); */
+  transform-origin: bottom center;
+}
+[data-theme="formal"] .formal-badge-link:hover {
+  background-color: #4a6741;
+  color: #fff;
+  border-color: #4a6741;
+  opacity: 1 !important;
+}
 
 /* 出隊詳細 */
 .detail-layout {

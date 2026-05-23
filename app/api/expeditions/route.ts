@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, fetchExpeditionCounts } from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams
@@ -13,5 +13,17 @@ export async function GET(req: NextRequest) {
     p_page_size: 20,
   })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+
+  const expeditions = (data as { expeditions: { id: number }[]; total: number }).expeditions
+  const ids = expeditions.map(e => e.id)
+  const counts = await fetchExpeditionCounts(ids)
+
+  const enriched = expeditions.map(e => ({
+    ...e,
+    gpx_count: counts.get(e.id)?.gpx ?? 0,
+    map_count: counts.get(e.id)?.map ?? 0,
+    rec_count: counts.get(e.id)?.rec ?? 0,
+  }))
+
+  return NextResponse.json({ ...(data as object), expeditions: enriched })
 }

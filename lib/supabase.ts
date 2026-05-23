@@ -25,6 +25,7 @@ export interface ExpeditionDetail {
   date_end: string | null
   county: string | null
   region: string | null
+  county_exit: string | null
   region_exit: string | null
   leader: string | null
   description: string | null
@@ -34,6 +35,21 @@ export interface ExpeditionDetail {
   all_counties: string | null
   map_files: MapFile[]
   records: RecordFile[]
+}
+
+export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, { gpx: number; map: number; rec: number }>> {
+  if (ids.length === 0) return new Map()
+  const [gpxRes, mapRes, recRes] = await Promise.all([
+    supabaseAdmin.from('gpx_files').select('expedition_id').in('expedition_id', ids),
+    supabaseAdmin.from('map_files').select('expedition_id').in('expedition_id', ids),
+    supabaseAdmin.from('records').select('expedition_id').in('expedition_id', ids),
+  ])
+  const result = new Map<number, { gpx: number; map: number; rec: number }>()
+  ids.forEach(id => result.set(id, { gpx: 0, map: 0, rec: 0 }))
+  gpxRes.data?.forEach((r: { expedition_id: number }) => { const c = result.get(r.expedition_id); if (c) c.gpx++ })
+  mapRes.data?.forEach((r: { expedition_id: number }) => { const c = result.get(r.expedition_id); if (c) c.map++ })
+  recRes.data?.forEach((r: { expedition_id: number }) => { const c = result.get(r.expedition_id); if (c) c.rec++ })
+  return result
 }
 
 export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail | null> {
@@ -52,6 +68,7 @@ export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail 
     date_end:      data.date_end,
     county:        data.region_entry_county,
     region:        data.region_entry_town,
+    county_exit:   data.region_exit_county,
     region_exit:   data.region_exit_town,
     leader:        data.leader,
     description:   null,
