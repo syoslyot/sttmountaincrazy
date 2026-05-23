@@ -273,6 +273,7 @@ html, body {
   background-color: #4a6741;
   color: #fff;
   border-color: #4a6741;
+  transform: scale(1.4);
   opacity: 0.9 !important;
 }
 
