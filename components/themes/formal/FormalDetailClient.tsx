@@ -160,7 +160,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           {exp.name}
         </h1>
 
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)',
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 11.55, color: 'var(--muted)',
                        letterSpacing: '.04em', flexShrink: 0 }}>
           {exp.date_start}{exp.date_end ? ` – ${exp.date_end}` : ''}
           {days ? ` · ${days}D` : ''}

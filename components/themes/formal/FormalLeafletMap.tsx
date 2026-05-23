@@ -216,7 +216,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     import('leaflet').then(L => {
       if (cancelled || mapRef.current) return
       leafletRef.current = L
-      const map = L.map(containerRef.current!, { zoomControl: true, attributionControl: true })
+      const map = L.map(containerRef.current!, { zoomControl: false, attributionControl: true })
       mapRef.current = map
 
       const cfg = TILE_URLS[tileLayer]

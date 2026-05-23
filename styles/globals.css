@@ -249,7 +249,7 @@ html, body {
   opacity: 1 !important;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
-.formal-badge-link:hover { background: #b94133; color: #f6f4ef; border-color: #b94133; opacity: 1 !important; }
+.formal-badge-link:hover { background: var(--accent, oklch(0.52 0.08 50)); color: var(--bg, #f6f4ef); border-color: var(--accent, oklch(0.52 0.08 50)); opacity: 1 !important; }
 
 /* 出隊詳細 */
 .detail-layout {
