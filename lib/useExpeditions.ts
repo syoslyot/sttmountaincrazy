@@ -25,16 +25,18 @@ export interface ExpeditionFilter {
   counties?: string[]
   query?: string
   months?: number
+  start?: string
+  end?: string
 }
-
-const PAGE_SIZE = 20
 
 function buildParams(filter: ExpeditionFilter, page: number): URLSearchParams {
   const p = new URLSearchParams({ page: String(page) })
-  if (filter.mode === 'county' && filter.county) p.set('county', filter.county)
-  if (filter.mode === 'counties' && filter.counties?.length) p.set('counties', filter.counties.join(','))
-  if (filter.mode === 'search' && filter.query)  p.set('q', filter.query)
-  if (filter.mode === 'date' && filter.months) {
+  if (filter.county) p.set('county', filter.county)
+  if (filter.counties?.length) p.set('counties', filter.counties.join(','))
+  if (filter.query) p.set('q', filter.query)
+  if (filter.start) p.set('start', filter.start)
+  if (filter.end) p.set('end', filter.end)
+  if (!filter.start && !filter.end && filter.months) {
     const d = new Date()
     d.setMonth(d.getMonth() - filter.months)
     p.set('start', d.toISOString().slice(0, 10))
@@ -70,10 +72,9 @@ export function useExpeditions(filter: ExpeditionFilter) {
     pageRef.current = 1
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset list on filter change
     setExps([])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     load(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter.mode, filter.county, filter.counties?.join(','), filter.query, filter.months])
+  }, [filter.mode, filter.county, filter.counties?.join(','), filter.query, filter.months, filter.start, filter.end])
 
   const loadMore = useCallback(() => {
     if (!loading && exps.length < total) load(false)
