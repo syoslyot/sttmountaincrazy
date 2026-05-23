@@ -130,11 +130,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   return (
     <div className="formal-root">
       {/* Header row 1: back | NO. | name | date */}
-      <header style={{
-        padding: '12px 36px',
-        borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0,
-      }}>
+      <header className="formal-detail-header">
         <Link href="/formal" style={{
           fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)',
           letterSpacing: '.1em', textDecoration: 'none', flexShrink: 0,
@@ -161,14 +157,8 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
       </header>
 
       {/* Stats bar: region · leader · grade | tile switcher */}
-      <div style={{
-        padding: '8px 36px',
-        borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexShrink: 0, gap: 24, minHeight: 38,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20,
-                      fontFamily: 'var(--serif)', fontSize: 13 }}>
+      <div className="formal-detail-stats">
+        <div className="formal-detail-stats-left">
           {(exp.county || exp.region) && (
             <span>
               {exp.county}{exp.region ? `·${exp.region}` : ''}
@@ -209,7 +199,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
       </div>
 
       {/* Map */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
+      <div className="formal-map-area">
         <FormalLeafletMap
           activeGpxes={activeGpxes}
           colorMap={colorMap}
@@ -226,7 +216,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           <CollapsiblePanel
             title="航跡 GPX"
             badge={`${activeGpxes.length}/${exp.gpx_files.length}`}
-            style={{ top: 16, left: 16, width: 240 }}>
+            style={{ top: 12, left: 12, width: 'clamp(160px, 44vw, 240px)' }}>
             {exp.gpx_files.map((f, i) => (
               <label key={f.file_path} style={{
                 display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
@@ -254,7 +244,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             title="下載"
             badge={String(exp.map_files.length + exp.records.length)}
             defaultOpen={false}
-            style={{ top: 16, right: 16, width: 260 }}>
+            style={{ top: 12, right: 12, width: 'clamp(130px, 38vw, 260px)' }}>
             {exp.map_files.map(f => (
               <DLRow key={f.file_path} label="地圖" filename={f.filename} filePath={f.file_path} bucket="maps" />
             ))}
