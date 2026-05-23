@@ -146,8 +146,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           letterSpacing: '.08em', textDecoration: 'none', flexShrink: 0,
         }}>← 返回</Link>
 
+        {/* NO. 編號暫時隱藏，保留供日後使用 */}
         <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
-                       letterSpacing: '.1em', flexShrink: 0 }}>
+                       letterSpacing: '.1em', flexShrink: 0, display: 'none' }}>
           NO.{String(exp.id).padStart(3, '0')}
         </span>
 
@@ -169,18 +170,21 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
       {/* Stats bar: region · leader · grade | tile switcher */}
       <div className="formal-detail-stats">
         <div className="formal-detail-stats-left">
-          {(exp.county || exp.region) && (
-            <span>
-              {exp.county}{exp.region ? exp.region : ''}
-              {exp.region_exit && (
-                <>
-                  {' '}<span style={{ color: 'var(--accent)' }}>→</span>{' '}
-                  {exp.county_exit && exp.county_exit !== exp.county ? `${exp.county_exit}` : ''}
-                  {exp.region_exit}
-                </>
-              )}
-            </span>
-          )}
+          {(exp.county || exp.region) && (() => {
+            const samePlace = exp.county === exp.county_exit && exp.region === exp.region_exit
+            const hasExit = exp.region_exit && !samePlace
+            return (
+              <span>
+                {exp.county}{exp.region}
+                {hasExit && (
+                  <>
+                    {' '}<span style={{ color: 'var(--accent)' }}>→</span>{' '}
+                    {exp.county_exit}{exp.region_exit}
+                  </>
+                )}
+              </span>
+            )
+          })()}
           {exp.leader && (
             <span style={{ color: 'var(--muted)' }}>
               領隊{' '}<span style={{ color: 'var(--fg)' }}>{exp.leader}</span>

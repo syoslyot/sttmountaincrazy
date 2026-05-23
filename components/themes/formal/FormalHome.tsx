@@ -103,12 +103,11 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
         <h2 className="formal-card-name">{name}</h2>
         <div className="formal-card-region">
           {exp.region_entry_county && exp.region_entry_town
-            ? `${exp.region_entry_county}·${exp.region_entry_town}`
+            ? `${exp.region_entry_county}${exp.region_entry_town}`
             : null}
           {!sameRegion && exp.region_exit_county && exp.region_exit_town && (
-            <> <span className="formal-accent">→</span> {exp.region_exit_county}·{exp.region_exit_town}</>
+            <> <span className="formal-accent">→</span> {exp.region_exit_county}{exp.region_exit_town}</>
           )}
-          {sameRegion && <span className="formal-muted">（環線）</span>}
         </div>
         <div className="formal-card-meta">
           {exp.leader && <>領隊{' '}{exp.leader}</>}

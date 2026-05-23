@@ -47,6 +47,48 @@ lib/
   supabase.ts         ← Supabase client + fetchExpeditionById()
 ```
 
+## 資料庫 Schema
+
+### `expeditions` 主要欄位
+
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| `id` | int | 流水號（自動遞增） |
+| `name` | text | 出隊名稱（含前綴，如 `[3D活]`） |
+| `date_start` | date | 入山日 |
+| `date_end` | date | 出山日（nullable） |
+| `region_entry_county` | text | 入山縣市 |
+| `region_entry_town` | text | 入山鄉鎮 |
+| `region_exit_county` | text | 出山縣市（nullable） |
+| `region_exit_town` | text | 出山鄉鎮（nullable） |
+| `leader` | text | 領隊姓名（nullable） |
+| `preview_image` | text | 預覽圖 Storage 路徑（nullable） |
+
+### `expedition_counties`（多對多）
+
+| 欄位 | 說明 |
+|------|------|
+| `expedition_id` | FK → expeditions.id |
+| `county` | 經過的縣市名稱 |
+
+### `gpx_files` / `map_files` / `records`
+
+| 欄位 | 說明 |
+|------|------|
+| `expedition_id` | FK → expeditions.id |
+| `filename` | 顯示名稱 |
+| `file_path` | Supabase Storage 路徑 |
+
+### `sync_logs`
+
+| 欄位 | 說明 |
+|------|------|
+| `synced_at` | 同步時間戳 |
+| `trigger` | `schedule` / `workflow_dispatch` / `local` |
+| `status` | `success` / `partial` / `failed` |
+| `new_count` / `existing_count` / `skipped_count` / `error_count` | 各類數量 |
+| `errors` | jsonb，錯誤詳情陣列 |
+
 ## 本地開發
 
 ```bash
