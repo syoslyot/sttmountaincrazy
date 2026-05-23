@@ -206,8 +206,8 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
         )}
         {(exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0) && (
           <div style={{ marginTop: 'auto', paddingTop: 3, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>gpx / kml: {exp.gpx_count}</span>}
-            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>map: {exp.map_count}</span>}
+            {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX / KML: {exp.gpx_count}</span>}
+            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP: {exp.map_count}</span>}
             {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>REC: {exp.rec_count}</span>}
           </div>
         )}

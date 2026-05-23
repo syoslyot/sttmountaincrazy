@@ -451,7 +451,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
       )}
 
       {/* ThemeBadge: containerStyle bypasses layout suppression for /expedition routes */}
-      <ThemeBadge containerStyle={{ position: 'fixed', bottom: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 9001 }} />
+      <ThemeBadge containerStyle={{ position: 'fixed', bottom: '1rem', right: '1rem', display: 'flex', gap: '0.5rem', zIndex: 9001, alignItems: 'flex-end' }} exclude="/rocket" />
     </div>
   )
 }
