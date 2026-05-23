@@ -246,7 +246,8 @@ html, body {
 }
 
 /* formal badge — all pages: vertical 米字虛線 */
-.formal-badge-link {
+/* .theme-badge.formal-badge-link specificity (0,2,0) overrides [data-theme="rocket"] .theme-badge (0,2,0) via cascade order */
+.theme-badge.formal-badge-link {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   font-family: var(--serif, 'Noto Serif TC', serif);
@@ -268,7 +269,7 @@ html, body {
   opacity: 1 !important;
   transition: background-color 0.12s, color 0.12s, border-color 0.12s;
 }
-.formal-badge-link:hover {
+.theme-badge.formal-badge-link:hover {
   background-color: #4a6741;
   color: #fff;
   border-color: #4a6741;
