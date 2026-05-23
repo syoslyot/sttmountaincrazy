@@ -282,10 +282,9 @@ html, body {
   opacity: 0.9 !important;
 }
 
-/* formal page: hangbao badge — 移除黑色外框與偏移陰影，保持顏色 */
+/* formal page: hangbao badge — 移除黑色外框，保留黃底黑底陰影 */
 [data-theme="formal"] .theme-badge.hangbao-badge-link {
   border: 0.5px solid rgba(255, 0, 110, 0.3) !important;
-  box-shadow: none !important;
 }
 
 /* formal page: 10% larger formal badge */

@@ -59,7 +59,7 @@ export function ThemeBadge({ containerStyle, exclude }: { containerStyle?: React
         const isHangbaoOnFormal = t.href === '/hangbao' && isFormalPage
         const linkStyle: React.CSSProperties = isRocket ? ROCKET_STYLE : DEFAULT_LINK_STYLE
         const overrideStyle: React.CSSProperties = isHangbaoOnFormal
-          ? { border: '0.5px solid rgba(255, 0, 110, 0.3)', boxShadow: 'none' }
+          ? { border: '0.5px solid rgba(255, 0, 110, 0.3)' }
           : {}
         return (
           <Link key={t.href} href={t.href}
