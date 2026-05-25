@@ -21,6 +21,7 @@
 ## 資料來源
 
 所有出隊資料存放於 [Supabase](https://supabase.com) 雲端資料庫，由 [sttmountain](https://github.com/syoslyot/sttmountain) 的 `normalize.py` 負責匯入。
+Supabase schema、RPC、權限與 migration 由 `sttmountain` 維護；本 repo 只保留前端程式與 API route，不保存 SQL migration。
 
 - **列表查詢**：呼叫 Supabase RPC `list_expeditions()`
 - **詳細頁**：Supabase nested select（expeditions + gpx_files + map_files + records + members）
@@ -49,6 +50,14 @@ lib/
 
 ## 資料庫 Schema
 
+資料庫的 source of truth 在 `sttmountain`：
+
+- `sttmountain/db/schema.sql`：目前完整 schema
+- `sttmountain/db/migrations/`：既有 dev/prod DB 的版本化 SQL 變更
+- `sttmountain/docs/database.md`：migration、dev/prod 套用與驗證流程
+
+本節只記錄前端會用到的 contract，避免前端 repo 和 DB repo 各自保存一份 SQL 後產生 drift。
+
 ### `expeditions` 主要欄位
 
 | 欄位 | 類型 | 說明 |
@@ -62,6 +71,7 @@ lib/
 | `region_exit_county` | text | 出山縣市（nullable） |
 | `region_exit_town` | text | 出山鄉鎮（nullable） |
 | `leader` | text | 領隊姓名（nullable） |
+| `grade` | text | 級數，由 DB trigger 從名稱 prefix 解析 |
 | `preview_image` | text | 預覽圖 Storage 路徑（nullable） |
 
 ### `expedition_counties`（多對多）
@@ -118,6 +128,13 @@ npm run dev
 | `SUPABASE_ANON_KEY` | anon（public）key，唯讀 |
 
 資料由 sttmountain 的 normalize.py 寫入 Supabase，部署不包含任何資料檔案。
+
+如果前端需要新的 DB 欄位或 RPC 參數，流程是：
+
+1. 在 `sttmountain` 新增 migration 與文件。
+2. 先套 dev DB 並驗證 `sync_drive.py` / `normalize.py`。
+3. 再套 prod DB。
+4. 最後在 `sttmountaincrazy` 使用新的 frontend contract。
 
 ## 型別檢查
 
