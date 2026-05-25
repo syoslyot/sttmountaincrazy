@@ -72,6 +72,8 @@ create or replace function public.list_expeditions(
 returns jsonb
 language sql
 stable
+security definer
+set search_path = public
 as $$
 with filtered as (
   select e.*
@@ -147,3 +149,7 @@ $$;
 
 grant execute on function public.list_expeditions(text, text, text[], date, date, integer, integer, text, text)
 to anon, authenticated;
+
+-- list_expeditions runs with the function owner's table privileges, so the
+-- temporary hotfix grant for expedition_counties can be removed.
+revoke select on table public.expedition_counties from anon, authenticated;
