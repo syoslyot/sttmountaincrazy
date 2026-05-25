@@ -57,6 +57,12 @@ export function useExpeditions(filter: ExpeditionFilter) {
   const [loading, setLoading] = useState(false)
   const pageRef               = useRef(1)
   const filterRef             = useRef(filter)
+  const countiesKey           = filter.counties?.join(',') ?? ''
+  const queryKey              = filter.query ?? ''
+  const gradeKey              = filter.grade ?? ''
+  const sortKey               = filter.sort ?? ''
+  const startKey              = filter.start ?? ''
+  const endKey                = filter.end ?? ''
 
   const load = useCallback(async (reset: boolean) => {
     if (loading) return
@@ -87,7 +93,7 @@ export function useExpeditions(filter: ExpeditionFilter) {
     setExps([])
     load(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter.mode, filter.county, filter.counties?.join(','), filter.query, filter.grade, filter.sort, filter.months, filter.start, filter.end])
+  }, [filter.mode, filter.county, countiesKey, queryKey, gradeKey, sortKey, filter.months, startKey, endKey])
 
   const loadMore = useCallback(() => {
     if (!loading && exps.length < total) load(false)
