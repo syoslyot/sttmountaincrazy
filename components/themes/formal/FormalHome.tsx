@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useExpeditions, type Expedition } from '@/lib/useExpeditions'
+import { useExpeditions, type Expedition, type ExpeditionSort } from '@/lib/useExpeditions'
 import './formal.css'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -14,12 +14,6 @@ function parseName(raw: string): { name: string; grade: string | null; days: num
   const m = PREFIX_RE.exec(raw)
   if (!m) return { name: raw, grade: null, days: null }
   return { name: raw, grade: m[2].toUpperCase(), days: parseInt(m[1], 10) }
-}
-
-function calcDays(start: string, end: string | null): { days: number; nights: number } | null {
-  if (!end) return null
-  const d = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000)
-  return d > 0 ? { days: d + 1, nights: d } : null
 }
 
 function fmtLeader(l: string) { return l.length > 5 ? '？' : l }
@@ -122,12 +116,6 @@ function BigCountyGridMobile({ selected, onToggle }: {
 // ─── MobileExpCard ────────────────────────────────────────────────────────────
 
 function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void }) {
-  const { grade } = parseName(exp.name)
-  const period = calcDays(exp.date_start, exp.date_end)
-  const days = period?.days
-  const sameRegion = exp.region_entry_county === exp.region_exit_county
-    && exp.region_entry_town === exp.region_exit_town
-
   const hasBadges = exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0
 
   return (
@@ -169,10 +157,9 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
 // ─── SpecimenCard ─────────────────────────────────────────────────────────────
 
 function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }) {
-  const { name, grade, days: parsedDays } = parseName(exp.name)
-  const period = calcDays(exp.date_start, exp.date_end)
-  const days = period?.days ?? parsedDays
-  const nights = period?.nights
+  const parsed = parseName(exp.name)
+  const name = parsed.name
+  const grade = exp.grade ?? parsed.grade
   const sameRegion = exp.region_entry_county === exp.region_exit_county
     && exp.region_entry_town === exp.region_exit_town
 
@@ -225,6 +212,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   const [counties, setCounties]       = useState<string[]>([])
   const [year, setYear]               = useState('all')
   const [grade, setGrade]             = useState('')
+  const [sort, setSort]               = useState<ExpeditionSort>('latest')
   const [isMobile, setIsMobile]       = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
   )
@@ -237,24 +225,16 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
     debounceRef.current = setTimeout(() => setDebouncedQ(v), 300)
   }, [])
 
-  const filter = useMemo(() => {
-    const selectedYear = year !== 'all'
-      ? { start: `${year}-01-01`, end: `${year}-12-31` }
-      : {}
-    if (debouncedQ) {
-      return { mode: 'search' as const, query: debouncedQ, counties, ...selectedYear }
-    }
-    if (counties.length) {
-      return { mode: 'counties' as const, counties, ...selectedYear }
-    }
-    if (year !== 'all') {
-      return { mode: 'date' as const, ...selectedYear }
-    }
-    return { mode: 'recent' as const }
-  }, [debouncedQ, counties, year])
+  const filter = {
+    mode: debouncedQ ? 'search' as const : counties.length ? 'counties' as const : year !== 'all' ? 'date' as const : 'recent' as const,
+    query: debouncedQ || undefined,
+    counties: counties.length ? counties : undefined,
+    grade: grade || undefined,
+    sort,
+    ...(year !== 'all' ? { start: `${year}-01-01`, end: `${year}-12-31` } : {}),
+  }
 
   const { exps, total, loading, loadMore } = useExpeditions(filter)
-  const filteredExps = grade ? exps.filter(e => parseName(e.name).grade === grade) : exps
 
   const toggleCounty = useCallback((c: string) => {
     setCounties(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
@@ -386,6 +366,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
         </nav>
       </header>
 
+      <div className="formal-body-shell">
       <div className="formal-body">
         {/* Sidebar */}
         <aside className="formal-sidebar">
@@ -397,7 +378,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
               <input className="formal-search-input"
                 value={query}
                 onChange={e => handleQuery(e.target.value)}
-                placeholder="名稱／領隊／山名"
+                placeholder="名稱／領隊"
               />
             </div>
           </div>
@@ -459,10 +440,10 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
                 結果 · RESULTS
               </span>
               <span style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 500 }}>
-                {String(filteredExps.length).padStart(2, '0')}
+                {String(exps.length).padStart(2, '0')}
               </span>
               <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
-                / {String(grade ? exps.length : total).padStart(2, '0')}
+                / {String(total).padStart(2, '0')}
               </span>
               {counties.length > 0 && (
                 <span style={{ fontFamily: 'var(--serif)', fontSize: 13, color: 'var(--muted)' }}>
@@ -476,31 +457,38 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
                 </span>
               )}
             </div>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.08em' }}>
-              排序&nbsp;<span style={{ color: 'var(--fg)' }}>最新 ↓</span>
-            </div>
+            <button
+              className="formal-sort-btn"
+              type="button"
+              onClick={() => setSort(prev => prev === 'latest' ? 'oldest' : 'latest')}
+            >
+              排序&nbsp;<span className="formal-sort-value">{sort === 'latest' ? '最新 ↓' : '最舊 ↑'}</span>
+            </button>
           </div>
 
           <div className="formal-result-list">
-            {filteredExps.map(exp => <SpecimenCard key={exp.id} exp={exp} onClick={() => router.push(`/formal/${exp.id}`)} />)}
-            {!loading && filteredExps.length === 0 && (
-              <div style={{ padding: '60px 0', textAlign: 'center' }}>
-                <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--muted)', marginBottom: 6 }}>
-                  沒有符合條件的出隊紀錄
+            <div className="formal-result-list-inner">
+              {exps.map(exp => <SpecimenCard key={exp.id} exp={exp} onClick={() => router.push(`/formal/${exp.id}`)} />)}
+              {!loading && exps.length === 0 && (
+                <div style={{ padding: '60px 0', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--muted)', marginBottom: 6 }}>
+                    沒有符合條件的出隊紀錄
+                  </div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.1em', color: 'var(--muted)' }}>
+                    NO RESULTS
+                  </div>
                 </div>
-                <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.1em', color: 'var(--muted)' }}>
-                  NO RESULTS
+              )}
+              <div ref={loaderRef} style={{ height: 1 }} />
+              {loading && (
+                <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em' }}>
+                  LOADING…
                 </div>
-              </div>
-            )}
-            <div ref={loaderRef} style={{ height: 1 }} />
-            {loading && (
-              <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em' }}>
-                LOADING…
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

@@ -14,6 +14,11 @@ const FormalLeafletMap = dynamic(
   { ssr: false, loading: () => <div style={{ width: '100%', height: '100%', background: 'var(--surface)' }} /> }
 )
 
+const FormalMapLibre3D = dynamic(
+  () => import('@/components/themes/formal/FormalMapLibre3D').then(m => m.FormalMapLibre3D),
+  { ssr: false, loading: () => <div style={{ width: '100%', height: '100%', background: 'var(--surface)' }} /> }
+)
+
 const TRACK_COLORS = ['#9b4f1c', '#0055a5', '#3a7d44', '#6d2a7c', '#8b0000', '#00695c']
 
 const PREFIX_RE = /^[\[［](\d+)([ABCDabcd])(活|探|溯|雪|訓|勘)[\]］]\s*/
@@ -107,6 +112,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
     exp.gpx_files.length > 0 ? [exp.gpx_files[0].file_path] : []
   )
   const [tileLayer, setTileLayer] = useState<TileLayerKey>('emap')
+  const [mapMode, setMapMode] = useState<'2d' | '3d'>('2d')
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
   const [mobileSheet, setMobileSheet] = useState<'elev' | 'gpx' | 'dl'>('elev')
   const [sheetOpen, setSheetOpen] = useState(true)
@@ -146,29 +152,29 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
     <div className="formal-root">
       {isMobile ? (
         <>
-          <header style={{ padding: '8px 22px 12px', borderBottom: '0.5px solid var(--border)',
-                           display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 19, color: 'var(--muted)',
-                                          letterSpacing: '.06em', textDecoration: 'none', flexShrink: 0 }}>←</Link>
-            <h1 style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 500, margin: 0,
-                         flex: 1, minWidth: 0, letterSpacing: '.01em',
-                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {exp.name}
-            </h1>
-          </header>
-          <div style={{ padding: '6px 18px 8px', borderBottom: '0.5px solid var(--border)',
-                        display: 'flex', gap: 10, fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--muted)' }}>
-            <span style={{ color: 'var(--fg)' }}>
-              {exp.date_start.slice(5)}{exp.date_end ? ` → ${exp.date_end.slice(5)}` : ''}
-            </span>
-            <span>/</span>
-            <span>
-              {exp.county || ''}{exp.region ? `${exp.region}` : ''}
-              {(exp.county_exit || exp.region_exit) && (
-                <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.county_exit || ''}{exp.region_exit ? `${exp.region_exit}` : ''}</>
-              )}
-            </span>
-            {exp.leader && <span style={{ marginLeft: 'auto' }}>領隊 {exp.leader.length > 5 ? '？' : exp.leader}</span>}
+          <div className="formal-detail-mobile-top">
+            <header style={{ padding: '8px 22px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Link href="/formal" style={{ fontFamily: 'var(--mono)', fontSize: 19, color: 'var(--muted)',
+                                            letterSpacing: '.06em', textDecoration: 'none', flexShrink: 0 }}>←</Link>
+              <h1 style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 500, margin: 0,
+                           flex: 1, minWidth: 0, letterSpacing: '.01em',
+                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {exp.name}
+              </h1>
+            </header>
+            <div style={{ padding: '6px 18px 8px', display: 'flex', gap: 10, fontFamily: 'var(--mono)', fontSize: 9.5, color: 'var(--muted)' }}>
+              <span style={{ color: 'var(--fg)' }}>
+                {exp.date_start.slice(5)}{exp.date_end ? ` → ${exp.date_end.slice(5)}` : ''}
+              </span>
+              <span>/</span>
+              <span>
+                {exp.county || ''}{exp.region ? `${exp.region}` : ''}
+                {(exp.county_exit || exp.region_exit) && (
+                  <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.county_exit || ''}{exp.region_exit ? `${exp.region_exit}` : ''}</>
+                )}
+              </span>
+              {exp.leader && <span style={{ marginLeft: 'auto' }}>領隊 {exp.leader.length > 5 ? '？' : exp.leader}</span>}
+            </div>
           </div>
         </>
       ) : (
@@ -229,14 +235,27 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)',
                          letterSpacing: '.15em' }}>底圖</span>
+          <button onClick={() => {
+            setMapMode('3d')
+            setMobileSheet(prev => prev === 'elev' ? (exp.gpx_files.length > 0 ? 'gpx' : 'dl') : prev)
+          }} style={{
+            background: mapMode === '3d' ? 'var(--accent)' : 'transparent',
+            color: mapMode === '3d' ? 'var(--bg)' : 'var(--muted)',
+            border: `0.5px solid ${mapMode === '3d' ? 'var(--accent)' : 'var(--border)'}`,
+            padding: '3px 8px',
+            fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.06em',
+            cursor: 'pointer',
+          }}>
+            3D
+          </button>
           {([
             ['topo', 'Topo'], ['emap', 'EMAP'], ['sat', 'Sat'],
             ['osm', 'OSM'], ['carto', 'Carto'], ['stamen', 'Terrain'],
           ] as [TileLayerKey, string][]).map(([key, label]) => (
-            <button key={key} onClick={() => setTileLayer(key)} style={{
-              background: tileLayer === key ? 'var(--accent)' : 'transparent',
-              color: tileLayer === key ? 'var(--bg)' : 'var(--muted)',
-              border: `0.5px solid ${tileLayer === key ? 'var(--accent)' : 'var(--border)'}`,
+            <button key={key} onClick={() => { setMapMode('2d'); setTileLayer(key) }} style={{
+              background: mapMode === '2d' && tileLayer === key ? 'var(--accent)' : 'transparent',
+              color: mapMode === '2d' && tileLayer === key ? 'var(--bg)' : 'var(--muted)',
+              border: `0.5px solid ${mapMode === '2d' && tileLayer === key ? 'var(--accent)' : 'var(--border)'}`,
               padding: '3px 8px',
               fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.06em',
               cursor: 'pointer',
@@ -251,16 +270,25 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
 
       {/* Map */}
       <div className="formal-map-area">
-        <FormalLeafletMap
-          activeGpxes={activeGpxes}
-          colorMap={colorMap}
-          entryTown={exp.region}
-          entryCounty={exp.county}
-          tileLayer={tileLayer}
-          onElevationData={handleElevationData}
-          mapHoverRef={mapHoverRef}
-          mapLeaveRef={mapLeaveRef}
-        />
+        {mapMode === '3d' ? (
+          <FormalMapLibre3D
+            activeGpxes={activeGpxes}
+            colorMap={colorMap}
+            entryTown={exp.region}
+            entryCounty={exp.county}
+          />
+        ) : (
+          <FormalLeafletMap
+            activeGpxes={activeGpxes}
+            colorMap={colorMap}
+            entryTown={exp.region}
+            entryCounty={exp.county}
+            tileLayer={tileLayer}
+            onElevationData={handleElevationData}
+            mapHoverRef={mapHoverRef}
+            mapLeaveRef={mapLeaveRef}
+          />
+        )}
 
         {/* Desktop: GPX selector */}
         {!isMobile && exp.gpx_files.length > 0 && (
@@ -310,7 +338,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         )}
 
         {/* Mobile: top-left stats overlay */}
-        {isMobile && elevPoints.length >= 2 && activeGpxes.length === 1 && (() => {
+        {isMobile && mapMode === '2d' && elevPoints.length >= 2 && activeGpxes.length === 1 && (() => {
           const eles = elevPoints.map(p => p.ele)
           const maxDist = elevPoints[elevPoints.length - 1].dist
           const maxE = Math.max(...eles)
@@ -365,7 +393,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             {/* Tab bar */}
             <div style={{ display: 'flex', borderBottom: sheetOpen ? '0.5px solid var(--border)' : 'none' }}>
               {([
-                ['elev', '海拔圖'],
+                ...(mapMode === '2d' ? [['elev', '海拔圖']] : []),
                 ...(exp.gpx_files.length > 0 ? [['gpx', 'GPX / KML']] : []),
                 ...(hasFiles ? [['dl', '下載']] : []),
               ] as ['elev' | 'gpx' | 'dl', string][]).map(([v, l]) => (
@@ -383,9 +411,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             {/* Sheet content */}
             {sheetOpen && (
             <div className="formal-sheet-content"
-              style={{ padding: mobileSheet === 'elev' ? '10px 14px 0 14px' : '4px 14px 10px',
+              style={{ padding: mobileSheet === 'elev' && mapMode === '2d' ? '10px 14px 0 14px' : '4px 14px 10px',
                        height: 126, boxSizing: 'border-box' }}>
-              {mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
+              {mapMode === '2d' && mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <FormalElevationChart
                   points={elevPoints}
                   onHover={pt => mapHoverRef.current?.(pt)}
@@ -394,7 +422,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                   style={{ borderTop: 'none' }}
                 />
               )}
-              {mobileSheet === 'elev' && (elevPoints.length < 2 || activeGpxes.length !== 1) && (
+              {mapMode === '2d' && mobileSheet === 'elev' && (elevPoints.length < 2 || activeGpxes.length !== 1) && (
                 <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)',
                               letterSpacing: '.1em', padding: '8px 0', textAlign: 'center' }}>
                   {activeGpxes.length === 0 ? '未選取航跡' : activeGpxes.length > 1 ? '選取單一航跡以顯示剖面圖' : '載入中…'}
@@ -445,7 +473,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           </div>
         )}
         {/* Desktop: elevation chart — z-layer at bottom-center of map */}
-        {!isMobile && elevPoints.length >= 2 && activeGpxes.length === 1 && (
+        {!isMobile && mapMode === '2d' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
           <div style={{
             position: 'absolute', bottom: 0,
             left: '50%', transform: 'translateX(-50%)',

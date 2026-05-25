@@ -308,8 +308,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {loading && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      zIndex: 1000, pointerEvents: 'none' }}>
+        <div className="formal-map-loading">
           <div className="formal-spinner" />
         </div>
       )}
