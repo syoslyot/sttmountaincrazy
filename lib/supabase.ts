@@ -17,6 +17,7 @@ export type GpxFile = { file_path: string; filename: string }
 export type MapFile = { file_path: string; filename: string }
 export type RecordFile = { filename: string; content: string; file_path: string | null }
 type County = { county: string }
+type ExpeditionDates = { min_date?: string | null; max_date?: string | null }
 
 export interface ExpeditionDetail {
   id: number
@@ -38,12 +39,16 @@ export interface ExpeditionDetail {
 }
 
 export async function fetchExpeditionYears(): Promise<string[]> {
-  const { data } = await supabaseAdmin
-    .from('expeditions')
-    .select('date_start')
-    .order('date_start', { ascending: false })
-  if (!data) return []
-  const years = [...new Set(data.map((r: { date_start: string }) => r.date_start.slice(0, 4)))]
+  const { data } = await supabase.rpc('get_expedition_dates')
+  const { min_date, max_date } = (data ?? {}) as ExpeditionDates
+  if (!min_date || !max_date) return []
+  const minYear = Number(min_date.slice(0, 4))
+  const maxYear = Number(max_date.slice(0, 4))
+  if (!Number.isFinite(minYear) || !Number.isFinite(maxYear)) return []
+  const years = Array.from(
+    { length: maxYear - minYear + 1 },
+    (_, i) => String(maxYear - i)
+  )
   return years
 }
 
