@@ -38,6 +38,15 @@
   overflow: hidden;
 }
 
+.formal-body-shell {
+  flex: 1;
+  width: min(1248px, calc(100vw - 48px));
+  margin: 0 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .formal-sidebar {
   border-right: 0.5px solid var(--border);
   padding: 24px 28px;
@@ -162,7 +171,7 @@
 }
 
 .formal-result-bar {
-  padding: 14px 36px;
+  padding: 14px 24px;
   border-bottom: 0.5px solid var(--border);
   display: flex;
   align-items: baseline;
@@ -174,11 +183,34 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 36px 24px;
+  padding: 8px 24px 24px;
   scrollbar-width: none;
+  display: flex;
+  justify-content: center;
 }
 
 .formal-result-list::-webkit-scrollbar { display: none; }
+
+.formal-result-list-inner {
+  width: min(100%, 920px);
+}
+
+.formal-sort-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .08em;
+}
+
+.formal-sort-value {
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 600;
+}
 
 /* Specimen card */
 .formal-card {
@@ -282,12 +314,27 @@
 }
 
 .formal-spinner {
-  width: 36px;
-  height: 36px;
-  border: 2.5px solid var(--border);
+  width: 64px;
+  height: 64px;
+  border: 4px solid color-mix(in oklch, var(--fg) 14%, transparent);
   border-top-color: var(--accent);
+  border-right-color: color-mix(in oklch, var(--accent) 55%, transparent);
   border-radius: 50%;
-  animation: formal-spin 0.7s linear infinite;
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--bg) 76%, transparent);
+  animation: formal-spin 0.65s linear infinite;
+}
+
+.formal-map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: color-mix(in oklch, var(--bg) 28%, transparent);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
 }
 
 /* ─── Detail page ───────────────────────────────────────────────────── */
@@ -329,6 +376,10 @@
   font-size: 13px;
 }
 
+.formal-detail-mobile-top {
+  display: none;
+}
+
 /* ─── Responsive ────────────────────────────────────────────────────── */
 
 /* Tablet: narrow sidebar */
@@ -364,6 +415,10 @@
     overflow: visible;
   }
 
+  .formal-body-shell {
+    width: 100%;
+  }
+
   .formal-sidebar {
     border-right: none;
     border-bottom: 0.5px solid var(--border);
@@ -383,6 +438,10 @@
   .formal-result-list {
     overflow: visible;
     padding: 8px 16px 40px;
+  }
+
+  .formal-result-list-inner {
+    width: 100%;
   }
 
   /* Cards: hide date column on mobile */
@@ -407,6 +466,19 @@
     padding: 10px 16px;
     flex-wrap: wrap;
     gap: 10px;
+  }
+
+  .formal-detail-mobile-top {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1200;
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .formal-detail-mobile-top > * + * {
+    border-top: 0.5px solid var(--border);
   }
 
   /* Show expedition name on its own row on mobile */

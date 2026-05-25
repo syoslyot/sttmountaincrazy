@@ -1,12 +1,9 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+export const dynamic = 'force-dynamic'
 
 export default function HomePage() {
-  const router = useRouter()
-  useEffect(() => {
-    router.replace(Math.random() < 0.5 ? '/rocket' : '/hangbao')
-  }, [router])
-  return null
+  const roll = Math.random()
+  const target = roll < 0.98 ? '/formal' : roll < 0.99 ? '/rocket' : '/hangbao'
+  redirect(target)
 }
