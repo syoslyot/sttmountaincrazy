@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 export interface Expedition {
   id: number
   name: string
+  grade?: string | null
   date_start: string
   date_end: string | null
   region_entry_county: string | null
@@ -18,12 +19,15 @@ export interface Expedition {
 }
 
 export type FilterMode = 'recent' | 'county' | 'counties' | 'date' | 'search'
+export type ExpeditionSort = 'latest' | 'oldest'
 
 export interface ExpeditionFilter {
   mode: FilterMode
   county?: string
   counties?: string[]
   query?: string
+  grade?: string
+  sort?: ExpeditionSort
   months?: number
   start?: string
   end?: string
@@ -34,6 +38,8 @@ function buildParams(filter: ExpeditionFilter, page: number): URLSearchParams {
   if (filter.county) p.set('county', filter.county)
   if (filter.counties?.length) p.set('counties', filter.counties.join(','))
   if (filter.query) p.set('q', filter.query)
+  if (filter.grade) p.set('grade', filter.grade)
+  if (filter.sort) p.set('sort', filter.sort)
   if (filter.start) p.set('start', filter.start)
   if (filter.end) p.set('end', filter.end)
   if (!filter.start && !filter.end && filter.months) {
@@ -58,10 +64,17 @@ export function useExpeditions(filter: ExpeditionFilter) {
     setLoading(true)
     try {
       const res  = await fetch(`/api/expeditions?${buildParams(filterRef.current, page)}`)
+      if (!res.ok) throw new Error(`Failed to load expeditions: ${res.status}`)
       const data = await res.json()
-      setExps(prev => reset ? data.expeditions : [...prev, ...data.expeditions])
-      setTotal(data.total)
+      const expeditions = Array.isArray(data.expeditions) ? data.expeditions : []
+      setExps(prev => reset ? expeditions : [...prev, ...expeditions])
+      setTotal(typeof data.total === 'number' ? data.total : 0)
       pageRef.current = page + 1
+    } catch {
+      if (reset) {
+        setExps([])
+        setTotal(0)
+      }
     } finally {
       setLoading(false)
     }
@@ -74,7 +87,7 @@ export function useExpeditions(filter: ExpeditionFilter) {
     setExps([])
     load(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter.mode, filter.county, filter.counties?.join(','), filter.query, filter.months, filter.start, filter.end])
+  }, [filter.mode, filter.county, filter.counties?.join(','), filter.query, filter.grade, filter.sort, filter.months, filter.start, filter.end])
 
   const loadMore = useCallback(() => {
     if (!loading && exps.length < total) load(false)
