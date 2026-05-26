@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useSyncExternalStore } from 'react'
+import { useState, useCallback, useMemo, useRef, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { openFile } from '@/lib/openFile'
@@ -140,10 +140,9 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   const swipeStartYRef = useRef<number | null>(null)
   const handleElevationData = useCallback((pts: ElevPoint[]) => setElevPoints(pts), [])
 
-  const colorMap: Record<string, string> = {}
-  exp.gpx_files.forEach((f, i) => {
-    colorMap[f.file_path] = TRACK_COLORS[i % TRACK_COLORS.length]
-  })
+  const colorMap = useMemo(() => Object.fromEntries(
+    exp.gpx_files.map((f, i) => [f.file_path, TRACK_COLORS[i % TRACK_COLORS.length]])
+  ), [exp.gpx_files])
 
   const toggleGpx = (path: string) => {
     setActiveGpxes(prev =>

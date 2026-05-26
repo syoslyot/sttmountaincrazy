@@ -17,7 +17,6 @@ export type GpxFile = { file_path: string; filename: string }
 export type MapFile = { file_path: string; filename: string }
 export type RecordFile = { filename: string; content: string; file_path: string | null }
 type County = { county: string }
-type ExpeditionDates = { min_date?: string | null; max_date?: string | null }
 
 export interface ExpeditionDetail {
   id: number
@@ -39,17 +38,31 @@ export interface ExpeditionDetail {
 }
 
 export async function fetchExpeditionYears(): Promise<string[]> {
-  const { data } = await supabase.rpc('get_expedition_dates')
-  const { min_date, max_date } = (data ?? {}) as ExpeditionDates
-  if (!min_date || !max_date) return []
-  const minYear = Number(min_date.slice(0, 4))
-  const maxYear = Number(max_date.slice(0, 4))
-  if (!Number.isFinite(minYear) || !Number.isFinite(maxYear)) return []
-  const years = Array.from(
-    { length: maxYear - minYear + 1 },
-    (_, i) => String(maxYear - i)
-  )
-  return years
+  const { data, error } = await supabase.rpc('get_expedition_years')
+  const rpcYears = Array.isArray(data)
+    ? data.map(year => String(year)).filter(year => /^\d{4}$/.test(year))
+    : []
+  if (!error && rpcYears.length > 0) return rpcYears
+
+  const { data: listData, error: listError } = await supabase.rpc('list_expeditions', {
+    p_q: '',
+    p_county: '',
+    p_counties: [],
+    p_start: null,
+    p_end: null,
+    p_page: 1,
+    p_page_size: 500,
+    p_sort: 'latest',
+  })
+  if (listError || typeof listData !== 'object' || !listData) return []
+
+  const expeditions = (listData as { expeditions?: { date_start?: string | null; date_end?: string | null }[] }).expeditions ?? []
+  return [...new Set(expeditions
+    .map(exp => (exp.date_start ?? exp.date_end ?? '').slice(0, 4))
+    .filter(year => /^\d{4}$/.test(year))
+  )]
+    .map(year => String(year))
+    .sort((a, b) => b.localeCompare(a))
 }
 
 export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, { gpx: number; map: number; rec: number }>> {

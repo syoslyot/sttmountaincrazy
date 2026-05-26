@@ -1,16 +1,11 @@
-import { unstable_cache } from 'next/cache'
 import { SetTheme } from '@/components/SetTheme'
 import { FormalHome } from '@/components/themes/formal/FormalHome'
 import { fetchExpeditionYears } from '@/lib/supabase'
 
-const getCachedYears = unstable_cache(
-  fetchExpeditionYears,
-  ['expedition-years'],
-  { revalidate: 86400 }
-)
+export const dynamic = 'force-dynamic'
 
 export default async function FormalPage() {
-  const years = await getCachedYears()
+  const years = await fetchExpeditionYears()
   return (
     <>
       <SetTheme theme="formal" />

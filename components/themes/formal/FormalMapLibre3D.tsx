@@ -102,6 +102,7 @@ export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markersRef = useRef<maplibregl.Marker[]>([])
+  const renderSeqRef = useRef(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -151,7 +152,6 @@ export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty
       },
     })
     map.once('idle', () => setLoading(false))
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
     mapRef.current = map
 
     return () => {
@@ -166,6 +166,7 @@ export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty
     const map = mapRef.current
     if (!map) return
     const currentMap = map
+    const seq = ++renderSeqRef.current
     let cancelled = false
 
     async function renderTracks() {
@@ -174,8 +175,7 @@ export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty
         if (currentMap.loaded()) resolve()
         else currentMap.once('load', () => resolve())
       })
-      if (cancelled) {
-        setLoading(false)
+      if (cancelled || renderSeqRef.current !== seq || !mapRef.current) {
         return
       }
 
@@ -189,8 +189,7 @@ export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty
       }
 
       const tracks = (await Promise.all(activeGpxes.map(fetchTrack))).filter(Boolean) as ParsedTrack[]
-      if (cancelled) {
-        setLoading(false)
+      if (cancelled || renderSeqRef.current !== seq || !mapRef.current) {
         return
       }
 
