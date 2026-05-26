@@ -81,6 +81,23 @@ function boundsForTracks(tracks: ParsedTrack[]) {
   return bounds
 }
 
+function markerElement(label: string, bg: string, fg = '#f6f4ef') {
+  const el = document.createElement('div')
+  el.className = 'formal-3d-track-marker'
+  el.textContent = label
+  el.style.background = bg
+  el.style.color = fg
+  el.style.borderColor = fg
+  return el
+}
+
+function waypointElement(color: string) {
+  const el = document.createElement('div')
+  el.className = 'formal-3d-waypoint-marker'
+  el.style.background = color
+  return el
+}
+
 export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -196,10 +213,37 @@ export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': color, 'line-width': 4, 'line-opacity': 0.92 },
         })
+        const start = track.coords[0]
+        const end = track.coords[track.coords.length - 1]
+        if (start) {
+          markersRef.current.push(
+            new maplibregl.Marker({ element: markerElement('起', activeGpxes.length === 1 ? '#3a7d44' : color), anchor: 'center' })
+              .setLngLat([start[0], start[1]])
+              .addTo(currentMap)
+          )
+        }
+        if (end) {
+          markersRef.current.push(
+            new maplibregl.Marker({ element: markerElement('終', activeGpxes.length === 1 ? color : '#f6f4ef', activeGpxes.length === 1 ? '#f6f4ef' : color), anchor: 'center' })
+              .setLngLat([end[0], end[1]])
+              .addTo(currentMap)
+          )
+        }
         for (const w of track.waypoints) {
-          const el = document.createElement('div')
-          el.style.cssText = `width:10px;height:10px;border-radius:50%;background:${color};border:2px solid #f6f4ef;box-shadow:0 1px 5px rgba(0,0,0,.35)`
-          markersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([w.lng, w.lat]).setPopup(new maplibregl.Popup().setText(w.name)).addTo(currentMap))
+          const el = waypointElement(color)
+          const popup = new maplibregl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: 12,
+            className: 'formal-3d-waypoint-popup',
+          }).setText(w.name)
+          const marker = new maplibregl.Marker({ element: el })
+            .setLngLat([w.lng, w.lat])
+            .setPopup(popup)
+            .addTo(currentMap)
+          el.addEventListener('mouseenter', () => popup.setLngLat([w.lng, w.lat]).addTo(currentMap))
+          el.addEventListener('mouseleave', () => popup.remove())
+          markersRef.current.push(marker)
         }
       })
 

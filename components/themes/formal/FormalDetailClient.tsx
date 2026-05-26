@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { openFile } from '@/lib/openFile'
@@ -20,6 +20,24 @@ const FormalMapLibre3D = dynamic(
 )
 
 const TRACK_COLORS = ['#9b4f1c', '#0055a5', '#3a7d44', '#6d2a7c', '#8b0000', '#00695c']
+const MAP_OPTIONS: [TileLayerKey, string][] = [
+  ['topo', 'Topo'], ['emap', 'EMAP'], ['sat', 'Sat'],
+  ['osm', 'OSM'], ['carto', 'Carto'], ['stamen', 'Terrain'],
+]
+
+function subscribeMobile(callback: () => void) {
+  const mq = window.matchMedia('(max-width: 680px)')
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function getMobileSnapshot() {
+  return window.matchMedia('(max-width: 680px)').matches
+}
+
+function getServerMobileSnapshot() {
+  return false
+}
 
 const PREFIX_RE = /^[\[［](\d+)([ABCDabcd])(活|探|溯|雪|訓|勘)[\]］]\s*/
 
@@ -114,22 +132,13 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   const [tileLayer, setTileLayer] = useState<TileLayerKey>('emap')
   const [mapMode, setMapMode] = useState<'2d' | '3d'>('2d')
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
-  const [mobileSheet, setMobileSheet] = useState<'elev' | 'gpx' | 'dl'>('elev')
+  const [mobileSheet, setMobileSheet] = useState<'elev' | 'gpx' | 'dl' | 'map'>('elev')
   const [sheetOpen, setSheetOpen] = useState(true)
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
-  )
+  const isMobile = useSyncExternalStore(subscribeMobile, getMobileSnapshot, getServerMobileSnapshot)
   const mapHoverRef = useRef<((pt: ElevPoint) => void) | undefined>(undefined)
   const mapLeaveRef = useRef<(() => void) | undefined>(undefined)
   const swipeStartYRef = useRef<number | null>(null)
   const handleElevationData = useCallback((pts: ElevPoint[]) => setElevPoints(pts), [])
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 680px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
 
   const colorMap: Record<string, string> = {}
   exp.gpx_files.forEach((f, i) => {
@@ -248,10 +257,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           }}>
             3D
           </button>
-          {([
-            ['topo', 'Topo'], ['emap', 'EMAP'], ['sat', 'Sat'],
-            ['osm', 'OSM'], ['carto', 'Carto'], ['stamen', 'Terrain'],
-          ] as [TileLayerKey, string][]).map(([key, label]) => (
+          {MAP_OPTIONS.map(([key, label]) => (
             <button key={key} onClick={() => { setMapMode('2d'); setTileLayer(key) }} style={{
               background: mapMode === '2d' && tileLayer === key ? 'var(--accent)' : 'transparent',
               color: mapMode === '2d' && tileLayer === key ? 'var(--bg)' : 'var(--muted)',
@@ -396,7 +402,8 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                 ...(mapMode === '2d' ? [['elev', '海拔圖']] : []),
                 ...(exp.gpx_files.length > 0 ? [['gpx', 'GPX / KML']] : []),
                 ...(hasFiles ? [['dl', '下載']] : []),
-              ] as ['elev' | 'gpx' | 'dl', string][]).map(([v, l]) => (
+                ['map', '地圖'],
+              ] as ['elev' | 'gpx' | 'dl' | 'map', string][]).map(([v, l]) => (
                 <button key={v} onClick={() => { setMobileSheet(v); if (!sheetOpen) setSheetOpen(true) }}
                   style={{
                     flex: 1, padding: '9px 0',
@@ -465,6 +472,29 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
                   ))}
                   {exp.records.map(f => (
                     <DLRow key={f.file_path} label="紀錄" filename={f.filename} filePath={f.file_path ?? null} bucket="records" />
+                  ))}
+                </div>
+              )}
+              {mobileSheet === 'map' && (
+                <div className="formal-mobile-map-list">
+                  <button
+                    type="button"
+                    className={`formal-mobile-map-row${mapMode === '3d' ? ' active' : ''}`}
+                    onClick={() => setMapMode('3d')}
+                  >
+                    <span aria-hidden="true" />
+                    <span>3D</span>
+                  </button>
+                  {MAP_OPTIONS.map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`formal-mobile-map-row${mapMode === '2d' && tileLayer === key ? ' active' : ''}`}
+                      onClick={() => { setMapMode('2d'); setTileLayer(key) }}
+                    >
+                      <span aria-hidden="true" />
+                      <span>{label}</span>
+                    </button>
                   ))}
                 </div>
               )}

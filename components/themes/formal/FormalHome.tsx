@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useExpeditions, type Expedition, type ExpeditionSort } from '@/lib/useExpeditions'
@@ -17,6 +17,20 @@ function parseName(raw: string): { name: string; grade: string | null; days: num
 }
 
 function fmtLeader(l: string) { return l.length > 5 ? '？' : l }
+
+function subscribeMobile(callback: () => void) {
+  const mq = window.matchMedia('(max-width: 680px)')
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function getMobileSnapshot() {
+  return window.matchMedia('(max-width: 680px)').matches
+}
+
+function getServerMobileSnapshot() {
+  return false
+}
 
 const COUNTY_GRID: Record<string, { r: number; c: number }> = {
   '基隆': { r: 0, c: 4   },
@@ -154,6 +168,51 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
   )
 }
 
+function MobileFilterSelect({
+  value,
+  fallbackLabel,
+  options,
+  open,
+  onOpen,
+  onChange,
+}: {
+  value: string
+  fallbackLabel: string
+  options: { value: string; label: string }[]
+  open: boolean
+  onOpen: () => void
+  onChange: (value: string) => void
+}) {
+  const selected = options.find(o => o.value === value)
+  const displayLabel = value === 'all' || value === '' ? fallbackLabel : selected?.label ?? fallbackLabel
+  return (
+    <div className="formal-mobile-select">
+      <button
+        type="button"
+        className="formal-mobile-select-trigger"
+        onClick={onOpen}
+        aria-expanded={open}
+      >
+        {displayLabel}
+      </button>
+      {open && (
+        <div className="formal-mobile-select-menu">
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`formal-mobile-select-option${opt.value === value ? ' active' : ''}`}
+              onClick={() => onChange(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── SpecimenCard ─────────────────────────────────────────────────────────────
 
 function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }) {
@@ -213,9 +272,8 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   const [year, setYear]               = useState('all')
   const [grade, setGrade]             = useState('')
   const [sort, setSort]               = useState<ExpeditionSort>('latest')
-  const [isMobile, setIsMobile]       = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches
-  )
+  const [mobileSelectOpen, setMobileSelectOpen] = useState<'year' | 'grade' | null>(null)
+  const isMobile                      = useSyncExternalStore(subscribeMobile, getMobileSnapshot, getServerMobileSnapshot)
   const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderRef                     = useRef<HTMLDivElement>(null)
 
@@ -240,13 +298,6 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
     setCounties(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
   }, [])
 
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 680px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
 
   // Infinite scroll
   useEffect(() => {
@@ -302,6 +353,36 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
             </h2>
           </div>
         </section>
+
+        <div className="formal-mobile-filter-row">
+          <label className="formal-mobile-filter-field formal-mobile-filter-query">
+            <input
+              value={query}
+              onChange={e => handleQuery(e.target.value)}
+              placeholder="請輸入 隊伍名稱或領隊"
+            />
+          </label>
+          <label className="formal-mobile-filter-field">
+            <MobileFilterSelect
+              value={year}
+              fallbackLabel="年度"
+              options={[{ value: 'all', label: '全選' }, ...years.map(y => ({ value: y, label: y }))]}
+              open={mobileSelectOpen === 'year'}
+              onOpen={() => setMobileSelectOpen(prev => prev === 'year' ? null : 'year')}
+              onChange={v => { setYear(v); setMobileSelectOpen(null) }}
+            />
+          </label>
+          <label className="formal-mobile-filter-field">
+            <MobileFilterSelect
+              value={grade}
+              fallbackLabel="級數"
+              options={[{ value: '', label: '全選' }, ...['A', 'B', 'C', 'D'].map(g => ({ value: g, label: g }))]}
+              open={mobileSelectOpen === 'grade'}
+              onOpen={() => setMobileSelectOpen(prev => prev === 'grade' ? null : 'grade')}
+              onChange={v => { setGrade(v); setMobileSelectOpen(null) }}
+            />
+          </label>
+        </div>
 
         <div style={{ padding: '10px 18px', borderBottom: '0.5px solid var(--border)',
                       display: 'flex', alignItems: 'baseline', gap: 8 }}>

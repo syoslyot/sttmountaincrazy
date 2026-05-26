@@ -380,6 +380,84 @@
   display: none;
 }
 
+.formal-mobile-filter-row {
+  display: none;
+}
+
+.formal-mobile-map-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.formal-mobile-map-row {
+  width: 100%;
+  min-height: 30px;
+  display: grid;
+  grid-template-columns: 11px 1fr 11px;
+  gap: 8px;
+  align-items: center;
+  background: transparent;
+  color: var(--fg);
+  border: none;
+  border-bottom: 0.5px dotted var(--border);
+  padding: 6px 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.formal-mobile-map-row span:first-child {
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  border: 1px solid rgba(26, 25, 22, 0.35);
+}
+
+.formal-mobile-map-row span:nth-child(2) {
+  font-family: var(--serif);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--accent);
+}
+
+.formal-mobile-map-row.active span:first-child {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.formal-3d-track-marker {
+  padding: 3px 7px;
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  letter-spacing: .06em;
+  border: 1px solid;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .28);
+}
+
+.formal-3d-waypoint-marker {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #f6f4ef;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .35);
+}
+
+.formal-3d-waypoint-popup .maplibregl-popup-content {
+  background: var(--bg);
+  color: var(--fg);
+  border: 0.5px solid var(--accent);
+  border-radius: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+  font-family: var(--serif);
+  font-size: 12px;
+  padding: 5px 8px;
+}
+
+.formal-3d-waypoint-popup .maplibregl-popup-tip {
+  border-top-color: var(--accent);
+}
+
 /* ─── Responsive ────────────────────────────────────────────────────── */
 
 /* Tablet: narrow sidebar */
@@ -444,6 +522,112 @@
     width: 100%;
   }
 
+  .formal-mobile-filter-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 82px 74px;
+    gap: 0;
+    margin: 0;
+    padding: 0 18px;
+    border: 0.5px solid var(--border);
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    background: var(--bg);
+  }
+
+  .formal-mobile-filter-field {
+    min-width: 0;
+    min-height: 45.5px;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .formal-mobile-filter-field + .formal-mobile-filter-field {
+    border-left: 0.5px solid var(--border);
+  }
+
+  .formal-mobile-filter-field input,
+  .formal-mobile-select-trigger {
+    width: 100%;
+    height: 45.5px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--serif);
+    font-size: 13px;
+    outline: none;
+    box-shadow: none;
+  }
+
+  .formal-mobile-filter-field input {
+    padding: 6px 8px;
+  }
+
+  .formal-mobile-select {
+    position: relative;
+    width: 100%;
+  }
+
+  .formal-mobile-select-trigger {
+    padding: 6px 8px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .formal-mobile-select-trigger::after {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-left: 7px;
+    border-right: 1px solid var(--fg);
+    border-bottom: 1px solid var(--fg);
+    transform: translateY(-2px) rotate(45deg);
+  }
+
+  .formal-mobile-select-menu {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    right: 0;
+    z-index: 1400;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    box-shadow: 0 6px 14px rgba(26, 25, 22, 0.12);
+  }
+
+  .formal-mobile-select-option {
+    width: 100%;
+    min-height: 30px;
+    display: block;
+    border: none;
+    border-bottom: 0.5px dotted var(--border);
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--serif);
+    font-size: 13px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .formal-mobile-select-option:last-child {
+    border-bottom: none;
+  }
+
+  .formal-mobile-select-option.active {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .formal-mobile-filter-field input::placeholder {
+    color: var(--muted);
+  }
+
   /* Cards: hide date column on mobile */
   .formal-card {
     grid-template-columns: 56px 1fr;
@@ -459,6 +643,7 @@
     flex: 1;
     min-height: 0;
     height: auto;
+    margin-top: 77px;
   }
 
   /* Detail header: wrap, smaller padding */
@@ -470,8 +655,10 @@
 
   .formal-detail-mobile-top {
     display: block;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1200;
     background: var(--bg);
     border-bottom: 0.5px solid var(--border);
