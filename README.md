@@ -1,6 +1,6 @@
 # sttmountaincrazy
 
-成大山協出隊紀錄展示網站。這個 repo 負責前端體驗、API route、地圖互動與部署設定；資料庫 schema、RPC、同步腳本與 migration 由 [`sttmountain`](https://github.com/syoslyot/sttmountain) 維護。
+成大山協網站。這個 repo 負責前端體驗、API route、地圖互動與部署設定；資料庫 schema、RPC、同步腳本與 migration 由 [`sttmountain`](https://github.com/syoslyot/sttmountain) 維護。
 
 ## Quick Start
 
