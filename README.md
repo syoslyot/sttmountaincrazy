@@ -22,7 +22,7 @@ SUPABASE_ANON_KEY=your-anon-key
 
 | 入口 | 說明 |
 | --- | --- |
-| `/` | 隨機導向其中一種展示風格 |
+| `/` | 隨機導向其中一種介面風格 |
 | `/formal` | formal 風格首頁 |
 | `/formal/[id]` | formal 詳細頁 |
 | `/rocket` | rocket 風格首頁 |
@@ -51,7 +51,7 @@ npm run lint
 | 文件 | 內容 |
 | --- | --- |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 開發流程、PR 規則、commit 規範 |
-| [docs/architecture.md](docs/architecture.md) | 前端架構、資料流、目錄分工 |
+| [docs/architecture.md](docs/architecture.md) | 網站架構、資料流、目錄分工 |
 | [docs/database-contract.md](docs/database-contract.md) | 前端依賴的 Supabase RPC 與資料 contract |
 | [docs/deployment.md](docs/deployment.md) | Render、GitHub Actions、環境變數 |
 | [docs/git-flow.md](docs/git-flow.md) | branch、release、hotfix 流程 |
