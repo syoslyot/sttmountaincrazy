@@ -140,7 +140,12 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
       html: `<div style="width:11px;height:11px;background:${color};border:1.5px solid #f6f4ef;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`,
       iconSize: [11,11], iconAnchor: [5.5,5.5],
     })
-    layers.push(L.marker([w.lat,w.lng],{icon}).bindTooltip(w.name,{direction:'top',offset:[0,-6]}).addTo(map))
+    const marker = L.marker([w.lat,w.lng],{icon})
+      .bindTooltip(w.name,{direction:'top',offset:[0,-6], sticky: true, opacity: 0.96})
+      .addTo(map)
+    marker.on('mouseover', () => marker.openTooltip())
+    marker.on('mouseout', () => marker.closeTooltip())
+    layers.push(marker)
   }
   if (latlngs[0]) {
     layers.push(L.marker(latlngs[0], { icon: mkIcon(single ? '#3a7d44' : color, '#f6f4ef', '起'), zIndexOffset: 1000 }).addTo(map))
