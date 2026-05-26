@@ -1,122 +1,95 @@
 # Contributing to sttmountaincrazy
 
-成大山協瘋狂小甜甜直企展示系統的貢獻指南。無論是修 bug、新增功能，或是接手維護，
-請在開始之前閱讀本文件。
+這份文件是前端 repo 的協作入口。功能、修 bug、文件整理與 release 都需要遵守同一套 Git flow。
 
----
+## Environment
 
-## 環境設定
-
-**需求**
+需求：
 
 - Node.js 24+
 - npm
 
-**步驟**
+安裝與啟動：
 
-1. Clone repo
+```bash
+npm install
+npm run dev
+```
 
-   ```bash
-   git clone https://github.com/syoslyot/sttmountaincrazy.git
-   cd sttmountaincrazy
-   ```
+建立 `.env.local`：
 
-2. 安裝套件
+```text
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+```
 
-   ```bash
-   npm install
-   ```
+若詳細頁需要 server-side 權限，向維護者索取 server-only 設定；不要把 service role key 放進瀏覽器端程式碼。
 
-3. 建立 `.env.local`（**不可 commit 此檔案**）
+## Workflow
 
-   ```
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_KEY=your-service-role-key
-   ```
+`main` 和 `develop` 都受 GitHub branch ruleset 保護，不可直接 push。
 
-   > `SUPABASE_SERVICE_KEY` 用於伺服器端繞過 RLS，缺少此值會導致詳細頁 404。
-   > 向目前維護者索取。
-
-4. 啟動開發伺服器
-
-   ```bash
-   npm run dev
-   ```
-
-   開啟 [http://localhost:3000](http://localhost:3000)。
-
----
-
-## 開發流程（Git Flow）
-
-**分支規則**
-
-| 分支類型 | 命名格式 | 從哪開 | 合併至 |
-|---------|---------|-------|-------|
+| 任務 | 分支 | 來源 | PR 目標 |
+| --- | --- | --- | --- |
 | 新功能 | `feature/<scope>-<desc>` | `develop` | `develop` |
 | 修 bug | `fix/<scope>-<desc>` | `develop` | `develop` |
-| 緊急修正 | `hotfix/<desc>` | `main` | `main` + `develop` |
+| 文件 | `docs/<desc>` | `develop` | `develop` |
+| release | `release/<version>` | `develop` | `main` and `develop` |
+| hotfix | `hotfix/<desc>` | `main` | `main` and `develop` |
 
-`main` 和 `develop` 均受 branch ruleset 保護，**不可直接 push**，必須走 PR。
+Release PR 不要自行 merge。開 PR 後等 reviewer 或 maintainer 合併；合併後才 pull。
 
-**開分支範例**
+## Commit Format
 
-```bash
-git checkout develop
-git pull origin develop
-git checkout -b feature/map-search-filter
+使用 Conventional Commits：
+
+```text
+<type>(<scope>): <subject>
 ```
 
----
-
-## Commit 格式（Conventional Commits）
-
-```
-<type>(<scope>): <subject>   ← 最長 72 字元
-```
+常用 type：
 
 | type | 用途 |
-|------|------|
+| --- | --- |
 | `feat` | 新功能 |
 | `fix` | 修 bug |
-| `refactor` | 重構（不影響行為） |
-| `chore` | 設定、依賴更新 |
 | `docs` | 文件 |
+| `refactor` | 不改行為的重構 |
 | `test` | 測試 |
+| `chore` | 依賴、設定、版本 |
 
-**範例**
+範例：
 
+```text
+feat(formal): add mobile map layer switcher
+fix(detail): keep mobile header fixed while dragging map
+docs: reorganize project documentation
 ```
-feat(map): add search filter by leader and date
-fix(detail): resolve 404 when RLS blocks anon key
-chore: add MIT license
-```
 
----
-
-## 開 PR 前的檢查清單
+## Before Opening a PR
 
 ```bash
-npx tsc --noEmit   # 型別檢查，0 error 才能送出
-npm run lint       # ESLint，0 warning 才能送出
+npx tsc --noEmit
+npm run lint
 ```
 
-- PR 標題需符合 Conventional Commits 格式
-- 填寫 PR template（`.github/pull_request_template.md`）
-- 目標分支選 `develop`，不是 `main`
+檢查清單：
 
----
+- PR 目標分支正確。
+- PR title 使用 Conventional Commits。
+- UI 變更附上截圖或說明測試裝置。
+- 依賴 DB 變更時，PR body 明確寫出對應 `sttmountain` migration/PR。
+- 不 commit `.env.local`、金鑰、暫存檔或 build output。
 
-## 禁止事項
+## Coding Style
 
-- 不可將 `.env.local` 或任何含金鑰的檔案 commit 進 repo
-- 不可直接 push 到 `main` 或 `develop`
-- 不可跳過 CI 驗證（`--no-verify`）
+細節放在 [docs/coding-style.md](docs/coding-style.md)。簡短原則：
 
----
+- 優先沿用既有元件與資料流。
+- TypeScript 型別要描述資料 contract，不用 `any` 逃避錯誤。
+- UI 風格依各 theme 文件維護，不跨 theme 任意共用樣式。
+- 需要 DB contract 時，先改 `sttmountain`，再改 frontend。
 
-## 需要幫助？
+## Documentation
 
-有問題請開 [Issue](https://github.com/syoslyot/sttmountaincrazy/issues)，
-或聯繫目前維護者。
+README 只放入口資訊。長文件請放到 `docs/`，新增文件時也更新 README 的文件索引。
