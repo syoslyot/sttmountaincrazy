@@ -24,7 +24,7 @@
 Supabase schema、RPC、權限與 migration 由 `sttmountain` 維護；本 repo 只保留前端程式與 API route，不保存 SQL migration。
 
 - **列表查詢**：呼叫 Supabase RPC `list_expeditions()`
-- **詳細頁**：Supabase nested select（expeditions + gpx_files + map_files + records + members）
+- **詳細頁**：server-side Supabase query（expeditions + gpx_files + map_files + records + expedition_counties）
 - **GPX / PDF / 預覽圖**：重新導向至 Supabase Storage 公開 URL
 
 ## 專案結構
@@ -48,7 +48,7 @@ lib/
   supabase.ts         ← Supabase client + fetchExpeditionById()
 ```
 
-## 資料庫 Schema
+## 資料庫 Contract
 
 資料庫的 source of truth 在 `sttmountain`：
 
@@ -56,48 +56,32 @@ lib/
 - `sttmountain/db/migrations/`：既有 dev/prod DB 的版本化 SQL 變更
 - `sttmountain/docs/database.md`：migration、dev/prod 套用與驗證流程
 
-本節只記錄前端會用到的 contract，避免前端 repo 和 DB repo 各自保存一份 SQL 後產生 drift。
+本 repo 不保存完整 DB schema，避免前端 repo 和 DB repo 各自維護 SQL 後產生 drift。這裡只記錄前端依賴的 contract。
 
-### `expeditions` 主要欄位
+### RPC
 
-| 欄位 | 類型 | 說明 |
-|------|------|------|
-| `id` | int | 流水號（自動遞增） |
-| `name` | text | 出隊名稱（含前綴，如 `[3D活]`） |
-| `date_start` | date | 入山日 |
-| `date_end` | date | 出山日（nullable） |
-| `region_entry_county` | text | 入山縣市 |
-| `region_entry_town` | text | 入山鄉鎮 |
-| `region_exit_county` | text | 出山縣市（nullable） |
-| `region_exit_town` | text | 出山鄉鎮（nullable） |
-| `leader` | text | 領隊姓名（nullable） |
-| `grade` | text | 級數，由 DB trigger 從名稱 prefix 解析 |
-| `preview_image` | text | 預覽圖 Storage 路徑（nullable） |
+| RPC | 用途 |
+|---|---|
+| `list_expeditions(p_q, p_county, p_counties, p_start, p_end, p_page, p_page_size, p_grade, p_sort)` | 列表篩選、排序、分頁 |
+| `get_expedition_dates()` | 首頁年份/日期範圍 |
 
-### `expedition_counties`（多對多）
+`list_expeditions()` 回傳：
 
-| 欄位 | 說明 |
-|------|------|
-| `expedition_id` | FK → expeditions.id |
-| `county` | 經過的縣市名稱 |
+```text
+{ expeditions, total, page, pageSize }
+```
 
-### `gpx_files` / `map_files` / `records`
+每筆 expedition 至少需要：
 
-| 欄位 | 說明 |
-|------|------|
-| `expedition_id` | FK → expeditions.id |
-| `filename` | 顯示名稱 |
-| `file_path` | Supabase Storage 路徑 |
+```text
+id, name, grade, date_start, date_end,
+region_entry_county, region_entry_town,
+region_exit_county, region_exit_town,
+leader, preview_image,
+gpx_count, map_count, rec_count
+```
 
-### `sync_logs`
-
-| 欄位 | 說明 |
-|------|------|
-| `synced_at` | 同步時間戳 |
-| `trigger` | `schedule` / `workflow_dispatch` / `local` |
-| `status` | `success` / `partial` / `failed` |
-| `new_count` / `existing_count` / `skipped_count` / `error_count` | 各類數量 |
-| `errors` | jsonb，錯誤詳情陣列 |
+詳細頁仍透過 server-side Supabase query 讀取 `expeditions` 及相關檔案表；若需要新增欄位或 RPC 參數，先在 `sttmountain` 建 migration 並套用 dev/prod，再修改本 repo。
 
 ## 本地開發
 
