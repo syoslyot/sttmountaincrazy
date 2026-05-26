@@ -64,7 +64,7 @@ lib/
 |---|---|
 | `list_expeditions(p_q, p_county, p_counties, p_start, p_end, p_page, p_page_size, p_grade, p_sort)` | 列表篩選、排序、分頁 |
 | `get_expedition_dates()` | 首頁年份/日期範圍 |
-| `get_expedition_years()` | 首頁實際有資料的年份清單 |
+| `get_expedition_years()` | formal 首頁實際有資料的年份清單 |
 
 `list_expeditions()` 回傳：
 
