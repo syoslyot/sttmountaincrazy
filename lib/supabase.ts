@@ -17,6 +17,7 @@ export type GpxFile = { file_path: string; filename: string }
 export type MapFile = { file_path: string; filename: string }
 export type RecordFile = { filename: string; content: string; file_path: string | null }
 type County = { county: string }
+type StorageBucket = 'gpx' | 'maps' | 'records' | 'previews'
 
 export interface ExpeditionDetail {
   id: number
@@ -85,6 +86,7 @@ export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail 
     .from('expeditions')
     .select('*, gpx_files(file_path, filename), map_files(file_path, filename), records(filename, content, file_path), expedition_counties(county)')
     .eq('id', id)
+    .eq('is_public', true)
     .single()
 
   if (error || !data) return null
@@ -107,4 +109,35 @@ export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail 
     map_files:     data.map_files as MapFile[],
     records:       data.records as RecordFile[],
   }
+}
+
+export async function isPublicStorageFile(bucket: StorageBucket, filePath: string): Promise<boolean> {
+  if (!filePath || filePath.includes('..') || filePath.startsWith('/')) return false
+
+  if (bucket === 'previews') {
+    const safeName = filePath.split('/').pop()
+    if (!safeName || safeName !== filePath) return false
+    const { data, error } = await supabaseAdmin
+      .from('expeditions')
+      .select('id')
+      .eq('preview_image', safeName)
+      .eq('is_public', true)
+      .maybeSingle()
+    return !error && !!data
+  }
+
+  const table = bucket === 'gpx'
+    ? 'gpx_files'
+    : bucket === 'maps'
+      ? 'map_files'
+      : 'records'
+
+  const { data, error } = await supabaseAdmin
+    .from(table)
+    .select('id, expeditions!inner(id)')
+    .eq('file_path', filePath)
+    .eq('expeditions.is_public', true)
+    .maybeSingle()
+
+  return !error && !!data
 }
