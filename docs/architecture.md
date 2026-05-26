@@ -1,6 +1,8 @@
 # Architecture
 
-`sttmountaincrazy` 是前端展示 repo。它不負責匯入資料，也不維護 Supabase schema；資料來源與 DB migration 由 `sttmountain` 負責。
+`sttmountaincrazy` 是成大山協網站的主要使用者介面 repo。它不負責匯入資料，也不維護 Supabase schema；資料來源與 DB migration 由 `sttmountain` 負責。
+
+本機開成大山協網站時，應啟動這個 repo，網址通常是 `http://localhost:3000`。`sttmountain` repo 內的 `http://localhost:8000` 是 legacy FastAPI/Jinja app，主要保留給舊頁面檢查與匯入流程輔助，不是目前主要網站入口。
 
 ## Runtime Flow
 
@@ -11,7 +13,7 @@ Browser
   -> Supabase DB / Storage
 ```
 
-`/formal`、`/rocket`、`/hangbao` 是不同展示風格。它們可以共享 DB contract，但 UI、CSS、互動模式應各自維護，避免一個 theme 的調整意外影響另一個 theme。
+`/formal`、`/rocket`、`/hangbao` 是不同介面風格。它們可以共享 DB contract，但 UI、CSS、互動模式應各自維護，避免一個 theme 的調整意外影響另一個 theme。
 
 ## Directory Guide
 
