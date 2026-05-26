@@ -184,7 +184,7 @@ function MobileFilterSelect({
   onChange: (value: string) => void
 }) {
   const selected = options.find(o => o.value === value)
-  const displayLabel = value === 'all' || value === '' ? fallbackLabel : selected?.label ?? fallbackLabel
+  const displayLabel = value === 'all' || value === '' ? '全選' : selected?.label ?? fallbackLabel
   return (
     <div className="formal-mobile-select">
       <button
@@ -298,7 +298,6 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
     setCounties(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
   }, [])
 
-
   // Infinite scroll
   useEffect(() => {
     const el = loaderRef.current
@@ -359,14 +358,14 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
             <input
               value={query}
               onChange={e => handleQuery(e.target.value)}
-              placeholder="請輸入 隊伍名稱或領隊"
+              placeholder="請輸入隊伍名稱或領隊"
             />
           </label>
           <label className="formal-mobile-filter-field">
             <MobileFilterSelect
               value={year}
-              fallbackLabel="年度"
-              options={[{ value: 'all', label: '全選' }, ...years.map(y => ({ value: y, label: y }))]}
+              fallbackLabel="年份"
+              options={[{ value: 'all', label: 'ALL' }, ...years.map(y => ({ value: y, label: y }))]}
               open={mobileSelectOpen === 'year'}
               onOpen={() => setMobileSelectOpen(prev => prev === 'year' ? null : 'year')}
               onChange={v => { setYear(v); setMobileSelectOpen(null) }}
@@ -376,7 +375,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
             <MobileFilterSelect
               value={grade}
               fallbackLabel="級數"
-              options={[{ value: '', label: '全選' }, ...['A', 'B', 'C', 'D'].map(g => ({ value: g, label: g }))]}
+              options={[{ value: '', label: 'ALL' }, ...['A', 'B', 'C', 'D'].map(g => ({ value: g, label: g }))]}
               open={mobileSelectOpen === 'grade'}
               onOpen={() => setMobileSelectOpen(prev => prev === 'grade' ? null : 'grade')}
               onChange={v => { setGrade(v); setMobileSelectOpen(null) }}
