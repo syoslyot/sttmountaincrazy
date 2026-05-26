@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { fetchExpeditionById } from '@/lib/supabase'
 import { HangbaoDetail } from '@/components/themes/hangbao/HangbaoDetail'
 
+export const dynamic = 'force-dynamic'
+
 interface Props { params: Promise<{ id: string }> }
 
 export default async function HangbaoDetailPage({ params }: Props) {
