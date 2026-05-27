@@ -154,7 +154,11 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
           {exp.region_entry_county && exp.region_entry_town
             ? `${exp.region_entry_county}${exp.region_entry_town}`
             : null}
-          
+          {exp.region_entry_county !== exp.region_exit_county || exp.region_entry_town !== exp.region_exit_town
+            ? exp.region_exit_county && exp.region_exit_town
+              ? <> <span style={{ color: 'var(--accent)' }}>→</span> {exp.region_exit_county}{exp.region_exit_town}</>
+              : null
+            : null}
         </span>
         {hasBadges && (
           <span style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
