@@ -51,6 +51,7 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
   const duration = timedPoints.length >= 2
     ? timedPoints[timedPoints.length - 1].time! - timedPoints[0].time!
     : null
+  const startTime = timedPoints[0]?.time
 
   const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -117,7 +118,10 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
 
         {hoverPt && (() => {
           const hx = sx(hoverPt.dist), hy = sy(hoverPt.ele)
-          const lbl = `${(hoverPt.dist/1000).toFixed(1)}km · ${Math.round(hoverPt.ele)}m`
+          const elapsed = typeof hoverPt.time === 'number' && typeof startTime === 'number'
+            ? formatDuration(hoverPt.time - startTime)
+            : null
+          const lbl = `${(hoverPt.dist/1000).toFixed(1)}km · ${Math.round(hoverPt.ele)}m${elapsed ? ` · ${elapsed}` : ''}`
           const tw = lbl.length*5.5+12, tx = hx+8+tw>W ? hx-tw-8 : hx+8
           return <g>
             <line x1={hx} y1={PAD.top} x2={hx} y2={PAD.top+iH}

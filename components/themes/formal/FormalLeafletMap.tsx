@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import type { ElevPoint } from './FormalElevationChart'
 
-interface Waypoint  { lat: number; lng: number; name: string }
+interface Waypoint  { lat: number; lng: number; name: string; ele?: number; time?: number }
 interface ParsedTrack { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] }
 
 export type TileLayerKey = 'topo' | 'sat' | 'osm' | 'emap' | 'rudy' | 'google' | 'jm1924' | 'jm1916'
@@ -51,6 +51,23 @@ function haversineDist(a: [number, number], b: [number, number]) {
   return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s))
 }
 
+function formatElapsed(ms: number) {
+  const totalMins = Math.max(0, Math.round(ms / 60000))
+  const hours = Math.floor(totalMins / 60)
+  const mins = totalMins % 60
+  if (hours <= 0) return `${mins} 分`
+  return `${hours} 小時 ${mins} 分`
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
 function parseGpx(text: string): ParsedTrack {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const pts = Array.from(doc.querySelectorAll('trkpt'))
@@ -69,6 +86,15 @@ function parseGpx(text: string): ParsedTrack {
     lat: parseFloat(w.getAttribute('lat') ?? '0'),
     lng: parseFloat(w.getAttribute('lon') ?? '0'),
     name: w.querySelector('name')?.textContent ?? '',
+    ele: (() => {
+      const ele = parseFloat(w.querySelector('ele')?.textContent ?? 'NaN')
+      return isNaN(ele) ? undefined : ele
+    })(),
+    time: (() => {
+      const timeRaw = w.querySelector('time')?.textContent ?? ''
+      const time = timeRaw ? Date.parse(timeRaw) : NaN
+      return isNaN(time) ? undefined : time
+    })(),
   }))
   return { latlngs, elevs, waypoints }
 }
@@ -121,8 +147,32 @@ async function fetchAndParse(path: string): Promise<ParsedTrack | null> {
   } catch { return null }
 }
 
+function nearestElevPoint(points: ElevPoint[], waypoint: Waypoint) {
+  return points.reduce((best, pt) => {
+    const d = haversineDist([waypoint.lat, waypoint.lng], [pt.lat, pt.lng])
+    return d < best.d ? { pt, d } : best
+  }, { pt: points[0], d: Infinity }).pt
+}
+
+function waypointTooltip(label: string, waypoint: Waypoint, nearest: ElevPoint, startTime?: number) {
+  const ele = waypoint.ele ?? nearest.ele
+  const time = waypoint.time ?? nearest.time
+  const elapsed = typeof time === 'number' && typeof startTime === 'number'
+    ? formatElapsed(time - startTime)
+    : null
+  const stats = [
+    `↔ ${(nearest.dist / 1000).toFixed(1)} km`,
+    `▲ ${Math.round(ele)} m`,
+    elapsed ? `◷ ${elapsed}` : null,
+  ].filter(Boolean).join(' · ')
+  return `<div style="font-family:var(--mono,monospace);line-height:1.45;letter-spacing:.04em">
+    <div style="color:var(--fg);font-weight:700">#${label} ${escapeHtml(waypoint.name)}</div>
+    <div style="color:var(--muted);margin-top:2px">${stats}</div>
+  </div>`
+}
+
 function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, single: boolean) {
-  const { latlngs, waypoints } = parsed
+  const { latlngs, elevs, waypoints } = parsed
   if (!latlngs.length) return []
   const layers: any[] = []
   const simple = rdpSimplify(latlngs, 0.0001)
@@ -131,12 +181,15 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
 
   const mkIcon = (bg: string, fg: string, label: string) => L.divIcon({
     className: '',
-    html: `<div style="background:${bg};color:${fg};padding:3px 7px;font-family:var(--mono,monospace);font-size:11px;border:1px solid ${fg};letter-spacing:.06em">${label}</div>`,
-    iconSize: [28, 22], iconAnchor: [14, 11],
+    html: `<div style="background:${bg};color:${fg};padding:4px 9px;font-family:var(--mono,monospace);font-size:13.75px;border:1px solid ${fg};letter-spacing:.06em">${label}</div>`,
+    iconSize: [35, 28], iconAnchor: [17.5, 14],
   })
   // Waypoints first so start/end render on top
+  const timedPoints = elevs.filter(p => typeof p.time === 'number')
+  const startTime = timedPoints[0]?.time
   for (const [i, w] of waypoints.filter(w => w.name).entries()) {
     const label = String(i + 1)
+    const nearest = nearestElevPoint(elevs, w)
     const size = label.length >= 3 ? 33 : 27
     const icon = L.divIcon({
       className: '',
@@ -144,7 +197,7 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
       iconSize: [size, size], iconAnchor: [size / 2, size / 2],
     })
     const marker = L.marker([w.lat,w.lng],{icon})
-      .bindTooltip(w.name,{direction:'top',offset:[0,-6], sticky: true, opacity: 0.96})
+      .bindTooltip(waypointTooltip(label, w, nearest, startTime),{direction:'top',offset:[0,-6], sticky: true, opacity: 0.96})
       .addTo(map)
     marker.on('mouseover', () => marker.openTooltip())
     marker.on('mouseout', () => marker.closeTooltip())
