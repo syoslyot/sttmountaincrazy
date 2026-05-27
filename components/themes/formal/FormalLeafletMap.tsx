@@ -133,12 +133,13 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
     iconSize: [28, 22], iconAnchor: [14, 11],
   })
   // Waypoints first so start/end render on top
-  for (const w of waypoints) {
-    if (!w.name) continue
+  for (const [i, w] of waypoints.filter(w => w.name).entries()) {
+    const label = String(i + 1)
+    const size = label.length >= 3 ? 22 : 18
     const icon = L.divIcon({
       className: '',
-      html: `<div style="width:11px;height:11px;background:${color};border:1.5px solid #f6f4ef;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`,
-      iconSize: [11,11], iconAnchor: [5.5,5.5],
+      html: `<div style="width:${size}px;height:${size}px;background:${color};color:#f6f4ef;border:1.5px solid #f6f4ef;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3);display:grid;place-items:center;font-family:var(--mono,monospace);font-size:9px;line-height:1;font-weight:700">${label}</div>`,
+      iconSize: [size, size], iconAnchor: [size / 2, size / 2],
     })
     const marker = L.marker([w.lat,w.lng],{icon})
       .bindTooltip(w.name,{direction:'top',offset:[0,-6], sticky: true, opacity: 0.96})
