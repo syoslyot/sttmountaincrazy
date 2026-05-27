@@ -40,6 +40,14 @@ function getServerMobileSnapshot() {
   return false
 }
 
+function formatDuration(ms: number) {
+  const totalMins = Math.max(0, Math.round(ms / 60000))
+  const hours = Math.floor(totalMins / 60)
+  const mins = totalMins % 60
+  if (hours <= 0) return `${mins}分`
+  return `${hours}時${mins}分`
+}
+
 const PREFIX_RE = /^[\[［](\d+)([ABCDabcd])(活|探|溯|雪|訓|勘)[\]］]\s*/
 
 function parseGrade(name: string): string | null {
@@ -348,24 +356,34 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           const eles = elevPoints.map(p => p.ele)
           const maxDist = elevPoints[elevPoints.length - 1].dist
           const maxE = Math.max(...eles)
-          let gain = 0, prev = elevPoints[0].ele
+          let gain = 0, loss = 0, prev = elevPoints[0].ele
           for (let i = 1; i < elevPoints.length; i++) {
             const d = elevPoints[i].ele - prev
-            if (d > 5) { gain += d; prev = elevPoints[i].ele }
-            else if (Math.abs(d) > 5) prev = elevPoints[i].ele
+            if (Math.abs(d) > 5) {
+              if (d > 0) gain += d
+              else loss -= d
+              prev = elevPoints[i].ele
+            }
           }
+          const timedPoints = elevPoints.filter(p => typeof p.time === 'number')
+          const duration = timedPoints.length >= 2
+            ? timedPoints[timedPoints.length - 1].time! - timedPoints[0].time!
+            : null
           return (
             <div style={{
               position: 'absolute', top: 10, left: 10, zIndex: 1000,
               background: 'color-mix(in oklch, var(--bg) 92%, transparent)',
               backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
               border: '0.5px solid var(--border)',
-              padding: '5px 10px',
+              padding: '6px 10px',
               fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)',
-              display: 'flex', gap: 10, letterSpacing: '.04em',
+              display: 'flex', flexWrap: 'wrap', gap: '5px 10px', letterSpacing: '.04em',
+              maxWidth: 'calc(100vw - 20px)',
             }}>
+              {duration !== null && duration > 0 && <span><span style={{ color: 'var(--accent)' }}>◷</span> <span style={{ color: 'var(--fg)' }}>{formatDuration(duration)}</span></span>}
               <span><span style={{ color: 'var(--accent)' }}>↔</span> <span style={{ color: 'var(--fg)' }}>{(maxDist/1000).toFixed(1)}</span>k</span>
               <span><span style={{ color: 'var(--accent)' }}>↑</span> <span style={{ color: 'var(--fg)' }}>{Math.round(gain)}</span></span>
+              <span><span style={{ color: 'var(--accent)' }}>↓</span> <span style={{ color: 'var(--fg)' }}>{Math.round(loss)}</span></span>
               <span><span style={{ color: 'var(--accent)' }}>▲</span> <span style={{ color: 'var(--fg)' }}>{Math.round(maxE)}</span></span>
             </div>
           )
@@ -419,13 +437,13 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             {sheetOpen && (
             <div className="formal-sheet-content"
               style={{ padding: mobileSheet === 'elev' && mapMode === '2d' ? '10px 14px 0 14px' : '4px 14px 10px',
-                       height: 126, boxSizing: 'border-box' }}>
+                       height: mobileSheet === 'elev' && mapMode === '2d' ? 118 : 126, boxSizing: 'border-box' }}>
               {mapMode === '2d' && mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <FormalElevationChart
                   points={elevPoints}
                   onHover={pt => mapHoverRef.current?.(pt)}
                   onLeave={() => mapLeaveRef.current?.()}
-                  height={116}
+                  height={108}
                   style={{ borderTop: 'none' }}
                 />
               )}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-export interface ElevPoint { dist: number; ele: number; lat: number; lng: number }
+export interface ElevPoint { dist: number; ele: number; lat: number; lng: number; time?: number }
 
 function subsample(pts: ElevPoint[], max: number) {
   if (pts.length <= max) return pts
@@ -10,19 +10,28 @@ function subsample(pts: ElevPoint[], max: number) {
   return pts.filter((_,i) => i % step === 0 || i === pts.length-1)
 }
 
-export function FormalElevationChart({ points, onHover, onLeave, style, showHeader = false, height = 112 }: {
+function formatDuration(ms: number) {
+  const totalMins = Math.max(0, Math.round(ms / 60000))
+  const hours = Math.floor(totalMins / 60)
+  const mins = totalMins % 60
+  if (hours <= 0) return `${mins} 分`
+  return `${hours} 小時 ${mins} 分`
+}
+
+export function FormalElevationChart({ points, onHover, onLeave, style, showHeader = false, height = 112, compactTop = false }: {
   points: ElevPoint[]
   onHover?: (pt: ElevPoint) => void
   onLeave?: () => void
   style?: React.CSSProperties
   showHeader?: boolean
   height?: number
+  compactTop?: boolean
 }) {
   const [hoverPt, setHoverPt] = useState<ElevPoint | null>(null)
   if (points.length < 2) return null
 
   const W = 800, H = height
-  const PAD = { top: 10, right: 16, bottom: 18, left: 54 }
+  const PAD = { top: compactTop ? 0 : 10, right: 16, bottom: 18, left: 54 }
   const iW = W - PAD.left - PAD.right
   const iH = H - PAD.top - PAD.bottom
   const maxDist = points[points.length-1].dist
@@ -39,6 +48,11 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
     const d = points[i].ele - prev
     if (Math.abs(d) > 5) { d > 0 ? gain+=d : loss-=d; prev = points[i].ele }
   }
+  const timedPoints = points.filter(p => typeof p.time === 'number')
+  const duration = timedPoints.length >= 2
+    ? timedPoints[timedPoints.length - 1].time! - timedPoints[0].time!
+    : null
+  const startTime = timedPoints[0]?.time
 
   const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -67,7 +81,8 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
           fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.18em', color: 'var(--muted)',
         }}>
           <span>海拔圖 · ELEVATION</span>
-          <span style={{ display: 'flex', gap: 20 }}>
+          <span style={{ display: 'flex', gap: 20, fontSize: 11.25 }}>
+            {duration !== null && duration > 0 && <span>◷ {formatDuration(duration)}</span>}
             <span>↔ {(maxDist/1000).toFixed(1)} km</span>
             <span>↑ {Math.round(gain)} m</span>
             <span>↓ {Math.round(loss)} m</span>
@@ -104,7 +119,10 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
 
         {hoverPt && (() => {
           const hx = sx(hoverPt.dist), hy = sy(hoverPt.ele)
-          const lbl = `${(hoverPt.dist/1000).toFixed(1)}km · ${Math.round(hoverPt.ele)}m`
+          const elapsed = typeof hoverPt.time === 'number' && typeof startTime === 'number'
+            ? formatDuration(hoverPt.time - startTime)
+            : null
+          const lbl = `${(hoverPt.dist/1000).toFixed(1)}km · ${Math.round(hoverPt.ele)}m${elapsed ? ` · ${elapsed}` : ''}`
           const tw = lbl.length*5.5+12, tx = hx+8+tw>W ? hx-tw-8 : hx+8
           return <g>
             <line x1={hx} y1={PAD.top} x2={hx} y2={PAD.top+iH}

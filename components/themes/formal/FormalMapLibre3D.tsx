@@ -13,7 +13,8 @@ interface Props {
 
 type ParsedTrack = {
   coords: [number, number, number][]
-  waypoints: { lng: number; lat: number; name: string }[]
+  points: { lng: number; lat: number; ele: number; dist: number; time?: number }[]
+  waypoints: { lng: number; lat: number; name: string; ele?: number; time?: number }[]
 }
 
 const TW_COORDS: Record<string, [number, number]> = {
@@ -30,32 +31,82 @@ const TW_COORDS: Record<string, [number, number]> = {
 
 const trackCache = new Map<string, ParsedTrack>()
 
+function haversineDist(a: [number, number], b: [number, number]) {
+  const R = 6371000, dLat = (b[1]-a[1])*Math.PI/180, dLon = (b[0]-a[0])*Math.PI/180
+  const s = Math.sin(dLat/2)**2 + Math.cos(a[1]*Math.PI/180)*Math.cos(b[1]*Math.PI/180)*Math.sin(dLon/2)**2
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s))
+}
+
+function formatElapsed(ms: number) {
+  const totalMins = Math.max(0, Math.round(ms / 60000))
+  const hours = Math.floor(totalMins / 60)
+  const mins = totalMins % 60
+  if (hours <= 0) return `${mins} 分`
+  return `${hours} 小時 ${mins} 分`
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
 function parseGpx(text: string): ParsedTrack {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
-  const coords = Array.from(doc.querySelectorAll('trkpt')).map(p => {
+  const trkpts = Array.from(doc.querySelectorAll('trkpt'))
+  let dist = 0
+  const points = trkpts.map((p, i) => {
     const lat = parseFloat(p.getAttribute('lat') ?? '0')
     const lng = parseFloat(p.getAttribute('lon') ?? '0')
     const ele = parseFloat(p.querySelector('ele')?.textContent ?? '0')
-    return [lng, lat, Number.isFinite(ele) ? ele : 0] as [number, number, number]
+    const timeRaw = p.querySelector('time')?.textContent ?? ''
+    const time = timeRaw ? Date.parse(timeRaw) : NaN
+    if (i > 0) {
+      const prev = trkpts[i - 1]
+      dist += haversineDist(
+        [parseFloat(prev.getAttribute('lon') ?? '0'), parseFloat(prev.getAttribute('lat') ?? '0')],
+        [lng, lat]
+      )
+    }
+    return { lng, lat, ele: Number.isFinite(ele) ? ele : 0, dist, time: Number.isFinite(time) ? time : undefined }
   })
+  const coords = points.map(p => [p.lng, p.lat, p.ele] as [number, number, number])
   const waypoints = Array.from(doc.querySelectorAll('wpt')).map(w => ({
     lat: parseFloat(w.getAttribute('lat') ?? '0'),
     lng: parseFloat(w.getAttribute('lon') ?? '0'),
     name: w.querySelector('name')?.textContent ?? '',
+    ele: (() => {
+      const ele = parseFloat(w.querySelector('ele')?.textContent ?? 'NaN')
+      return Number.isFinite(ele) ? ele : undefined
+    })(),
+    time: (() => {
+      const timeRaw = w.querySelector('time')?.textContent ?? ''
+      const time = timeRaw ? Date.parse(timeRaw) : NaN
+      return Number.isFinite(time) ? time : undefined
+    })(),
   })).filter(w => w.name)
-  return { coords, waypoints }
+  return { coords, points, waypoints }
 }
 
 function parseKml(text: string): ParsedTrack {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
   const coords: [number, number, number][] = []
+  const points: ParsedTrack['points'] = []
+  let dist = 0
   for (const node of Array.from(doc.querySelectorAll('coordinates'))) {
     for (const raw of (node.textContent ?? '').trim().split(/\s+/)) {
       const [lng, lat, ele = 0] = raw.split(',').map(Number)
-      if (Number.isFinite(lng) && Number.isFinite(lat)) coords.push([lng, lat, ele])
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        if (points.length) dist += haversineDist([points.at(-1)!.lng, points.at(-1)!.lat], [lng, lat])
+        coords.push([lng, lat, ele])
+        points.push({ lng, lat, ele, dist })
+      }
     }
   }
-  return { coords, waypoints: [] }
+  return { coords, points, waypoints: [] }
 }
 
 async function fetchTrack(path: string): Promise<ParsedTrack | null> {
@@ -88,14 +139,45 @@ function markerElement(label: string, bg: string, fg = '#f6f4ef') {
   el.style.background = bg
   el.style.color = fg
   el.style.borderColor = fg
+  el.style.zIndex = '20'
   return el
 }
 
-function waypointElement(color: string) {
+function waypointElement(color: string, label: string) {
   const el = document.createElement('div')
   el.className = 'formal-3d-waypoint-marker'
+  el.textContent = label
   el.style.background = color
+  el.style.zIndex = '10'
+  if (label.length >= 3) {
+    el.style.width = '33px'
+    el.style.height = '33px'
+  }
   return el
+}
+
+function nearestTrackPoint(points: ParsedTrack['points'], waypoint: ParsedTrack['waypoints'][number]) {
+  return points.reduce((best, pt) => {
+    const d = haversineDist([waypoint.lng, waypoint.lat], [pt.lng, pt.lat])
+    return d < best.d ? { pt, d } : best
+  }, { pt: points[0], d: Infinity }).pt
+}
+
+function waypointPopupHtml(label: string, waypoint: ParsedTrack['waypoints'][number], nearest: ParsedTrack['points'][number], startTime?: number) {
+  const ele = waypoint.ele ?? nearest.ele
+  const time = waypoint.time ?? nearest.time
+  const elapsed = typeof time === 'number' && typeof startTime === 'number'
+    ? formatElapsed(time - startTime)
+    : null
+  const stats = [
+    `↔ ${(nearest.dist / 1000).toFixed(1)} km`,
+    `▲ ${Math.round(ele)} m`,
+    elapsed ? `◷ ${elapsed}` : null,
+  ].filter(Boolean).join(' · ')
+  return `<div style="font-family:var(--mono,monospace);line-height:1.45;letter-spacing:.04em">
+    <div style="color:var(--fg);font-weight:700">#${label} ${escapeHtml(waypoint.name)}</div>
+    <div style="color:var(--muted);margin-top:2px">${stats}</div>
+  </div>`
 }
 
 export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty }: Props) {
@@ -214,35 +296,42 @@ export function FormalMapLibre3D({ activeGpxes, colorMap, entryTown, entryCounty
         })
         const start = track.coords[0]
         const end = track.coords[track.coords.length - 1]
-        if (start) {
-          markersRef.current.push(
-            new maplibregl.Marker({ element: markerElement('起', activeGpxes.length === 1 ? '#3a7d44' : color), anchor: 'center' })
-              .setLngLat([start[0], start[1]])
-              .addTo(currentMap)
-          )
-        }
-        if (end) {
-          markersRef.current.push(
-            new maplibregl.Marker({ element: markerElement('終', activeGpxes.length === 1 ? color : '#f6f4ef', activeGpxes.length === 1 ? '#f6f4ef' : color), anchor: 'center' })
-              .setLngLat([end[0], end[1]])
-              .addTo(currentMap)
-          )
-        }
-        for (const w of track.waypoints) {
-          const el = waypointElement(color)
+        const timedPoints = track.points.filter(p => typeof p.time === 'number')
+        const startTime = timedPoints[0]?.time
+        for (const [i, w] of track.waypoints.entries()) {
+          const label = String(i + 1)
+          const nearest = nearestTrackPoint(track.points, w)
+          const el = waypointElement(color, label)
           const popup = new maplibregl.Popup({
             closeButton: false,
             closeOnClick: false,
-            offset: 12,
+            offset: 16,
             className: 'formal-3d-waypoint-popup',
-          }).setText(w.name)
-          const marker = new maplibregl.Marker({ element: el })
+          }).setHTML(waypointPopupHtml(label, w, nearest, startTime))
+          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
             .setLngLat([w.lng, w.lat])
             .setPopup(popup)
             .addTo(currentMap)
           el.addEventListener('mouseenter', () => popup.setLngLat([w.lng, w.lat]).addTo(currentMap))
           el.addEventListener('mouseleave', () => popup.remove())
           markersRef.current.push(marker)
+        }
+        if (start) {
+          markersRef.current.push(
+            new maplibregl.Marker({
+              element: markerElement('起', activeGpxes.length === 1 ? '#f6f4ef' : color, activeGpxes.length === 1 ? color : '#f6f4ef'),
+              anchor: 'center',
+            })
+              .setLngLat([start[0], start[1]])
+              .addTo(currentMap)
+          )
+        }
+        if (end) {
+          markersRef.current.push(
+            new maplibregl.Marker({ element: markerElement('終', '#f6f4ef', color), anchor: 'center' })
+              .setLngLat([end[0], end[1]])
+              .addTo(currentMap)
+          )
         }
       })
 
