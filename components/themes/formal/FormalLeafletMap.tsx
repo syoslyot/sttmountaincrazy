@@ -253,7 +253,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     const L = leafletRef.current
     if (hoverMarkerRef.current) hoverMarkerRef.current.setLatLng([pt.lat, pt.lng])
     else hoverMarkerRef.current = L.circleMarker([pt.lat, pt.lng], {
-      radius: 18, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 3.75, pane: 'tooltipPane',
+      radius: 16.2, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 3.4, pane: 'tooltipPane',
     }).addTo(mapRef.current)
   }, [])
   const onChartLeave = useCallback(() => { hoverMarkerRef.current?.remove(); hoverMarkerRef.current = null }, [])
