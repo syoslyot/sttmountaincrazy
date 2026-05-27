@@ -18,19 +18,20 @@ function formatDuration(ms: number) {
   return `${hours} 小時 ${mins} 分`
 }
 
-export function FormalElevationChart({ points, onHover, onLeave, style, showHeader = false, height = 112 }: {
+export function FormalElevationChart({ points, onHover, onLeave, style, showHeader = false, height = 112, compactTop = false }: {
   points: ElevPoint[]
   onHover?: (pt: ElevPoint) => void
   onLeave?: () => void
   style?: React.CSSProperties
   showHeader?: boolean
   height?: number
+  compactTop?: boolean
 }) {
   const [hoverPt, setHoverPt] = useState<ElevPoint | null>(null)
   if (points.length < 2) return null
 
   const W = 800, H = height
-  const PAD = { top: 10, right: 16, bottom: 18, left: 54 }
+  const PAD = { top: compactTop ? 0 : 10, right: 16, bottom: 18, left: 54 }
   const iW = W - PAD.left - PAD.right
   const iH = H - PAD.top - PAD.bottom
   const maxDist = points[points.length-1].dist

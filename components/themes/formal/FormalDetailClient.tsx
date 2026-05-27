@@ -437,13 +437,13 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
             {sheetOpen && (
             <div className="formal-sheet-content"
               style={{ padding: mobileSheet === 'elev' && mapMode === '2d' ? '10px 14px 0 14px' : '4px 14px 10px',
-                       height: 126, boxSizing: 'border-box' }}>
+                       height: mobileSheet === 'elev' && mapMode === '2d' ? 118 : 126, boxSizing: 'border-box' }}>
               {mapMode === '2d' && mobileSheet === 'elev' && elevPoints.length >= 2 && activeGpxes.length === 1 && (
                 <FormalElevationChart
                   points={elevPoints}
                   onHover={pt => mapHoverRef.current?.(pt)}
                   onLeave={() => mapLeaveRef.current?.()}
-                  height={116}
+                  height={108}
                   style={{ borderTop: 'none' }}
                 />
               )}
