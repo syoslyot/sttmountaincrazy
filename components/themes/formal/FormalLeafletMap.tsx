@@ -61,7 +61,9 @@ function parseGpx(text: string): ParsedTrack {
   const elevs: ElevPoint[] = pts.map((p, i) => {
     if (i > 0) cum += haversineDist(latlngs[i-1], latlngs[i])
     const ele = parseFloat(p.querySelector('ele')?.textContent ?? 'NaN')
-    return { dist: cum, ele: isNaN(ele) ? 0 : ele, lat: latlngs[i][0], lng: latlngs[i][1] }
+    const timeRaw = p.querySelector('time')?.textContent ?? ''
+    const time = timeRaw ? Date.parse(timeRaw) : NaN
+    return { dist: cum, ele: isNaN(ele) ? 0 : ele, lat: latlngs[i][0], lng: latlngs[i][1], time: isNaN(time) ? undefined : time }
   })
   const waypoints: Waypoint[] = Array.from(doc.querySelectorAll('wpt')).map(w => ({
     lat: parseFloat(w.getAttribute('lat') ?? '0'),
@@ -198,7 +200,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     const L = leafletRef.current
     if (hoverMarkerRef.current) hoverMarkerRef.current.setLatLng([pt.lat, pt.lng])
     else hoverMarkerRef.current = L.circleMarker([pt.lat, pt.lng], {
-      radius: 18, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 3.75,
+      radius: 18, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 3.75, pane: 'tooltipPane',
     }).addTo(mapRef.current)
   }, [])
   const onChartLeave = useCallback(() => { hoverMarkerRef.current?.remove(); hoverMarkerRef.current = null }, [])

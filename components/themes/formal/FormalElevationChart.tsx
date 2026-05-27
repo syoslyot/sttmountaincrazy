@@ -2,12 +2,20 @@
 
 import { useState } from 'react'
 
-export interface ElevPoint { dist: number; ele: number; lat: number; lng: number }
+export interface ElevPoint { dist: number; ele: number; lat: number; lng: number; time?: number }
 
 function subsample(pts: ElevPoint[], max: number) {
   if (pts.length <= max) return pts
   const step = Math.ceil(pts.length / max)
   return pts.filter((_,i) => i % step === 0 || i === pts.length-1)
+}
+
+function formatDuration(ms: number) {
+  const totalMins = Math.max(0, Math.round(ms / 60000))
+  const hours = Math.floor(totalMins / 60)
+  const mins = totalMins % 60
+  if (hours <= 0) return `${mins} 分`
+  return `${hours} 小時 ${mins} 分`
 }
 
 export function FormalElevationChart({ points, onHover, onLeave, style, showHeader = false, height = 112 }: {
@@ -39,6 +47,10 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
     const d = points[i].ele - prev
     if (Math.abs(d) > 5) { d > 0 ? gain+=d : loss-=d; prev = points[i].ele }
   }
+  const timedPoints = points.filter(p => typeof p.time === 'number')
+  const duration = timedPoints.length >= 2
+    ? timedPoints[timedPoints.length - 1].time! - timedPoints[0].time!
+    : null
 
   const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -67,7 +79,8 @@ export function FormalElevationChart({ points, onHover, onLeave, style, showHead
           fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.18em', color: 'var(--muted)',
         }}>
           <span>海拔圖 · ELEVATION</span>
-          <span style={{ display: 'flex', gap: 20 }}>
+          <span style={{ display: 'flex', gap: 20, fontSize: 11.25 }}>
+            {duration !== null && duration > 0 && <span>◷ {formatDuration(duration)}</span>}
             <span>↔ {(maxDist/1000).toFixed(1)} km</span>
             <span>↑ {Math.round(gain)} m</span>
             <span>↓ {Math.round(loss)} m</span>
