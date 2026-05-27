@@ -4,6 +4,8 @@ The frontend is deployed from `main`. Pull requests to `main` must pass GitHub A
 
 ## Render
 
+Production URL: https://sttmountain.onrender.com
+
 Required environment variables:
 
 | Variable | Purpose |

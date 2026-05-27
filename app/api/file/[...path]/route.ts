@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isPublicStorageFile } from '@/lib/supabase'
 
 const STORAGE_BASE = `${process.env.SUPABASE_URL}/storage/v1/object/public`
 const ALLOWED_BUCKETS = new Set(['records', 'maps', 'gpx', 'previews'])
@@ -18,6 +19,9 @@ export async function GET(
 
   if (!ALLOWED_BUCKETS.has(bucket)) return NextResponse.json({ error: 'invalid bucket' }, { status: 400 })
   if (filePath.includes('..')) return NextResponse.json({ error: 'invalid path' }, { status: 400 })
+  if (!await isPublicStorageFile(bucket as 'records' | 'maps' | 'gpx' | 'previews', filePath)) {
+    return NextResponse.json({ error: 'file not found' }, { status: 404 })
+  }
 
   let upstream: Response
   try {

@@ -4,6 +4,8 @@ import { Navbar } from '@/components/themes/rocket/Navbar'
 import { RocketExpeditionDetailClient } from '@/components/themes/rocket/RocketExpeditionDetailClient'
 import { SetTheme } from '@/components/SetTheme'
 
+export const dynamic = 'force-dynamic'
+
 interface Props {
   params: Promise<{ id: string }>
 }
