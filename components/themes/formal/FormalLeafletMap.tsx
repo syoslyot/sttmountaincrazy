@@ -135,10 +135,10 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
   // Waypoints first so start/end render on top
   for (const [i, w] of waypoints.filter(w => w.name).entries()) {
     const label = String(i + 1)
-    const size = label.length >= 3 ? 22 : 18
+    const size = label.length >= 3 ? 33 : 27
     const icon = L.divIcon({
       className: '',
-      html: `<div style="width:${size}px;height:${size}px;background:${color};color:#f6f4ef;border:1.5px solid #f6f4ef;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3);display:grid;place-items:center;font-family:var(--mono,monospace);font-size:9px;line-height:1;font-weight:700">${label}</div>`,
+      html: `<div style="width:${size}px;height:${size}px;background:${color};color:#f6f4ef;border:2.25px solid #f6f4ef;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3);display:grid;place-items:center;font-family:var(--mono,monospace);font-size:13.5px;line-height:1;font-weight:700">${label}</div>`,
       iconSize: [size, size], iconAnchor: [size / 2, size / 2],
     })
     const marker = L.marker([w.lat,w.lng],{icon})
@@ -149,10 +149,16 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
     layers.push(marker)
   }
   if (latlngs[0]) {
-    layers.push(L.marker(latlngs[0], { icon: mkIcon(single ? '#3a7d44' : color, '#f6f4ef', '起'), zIndexOffset: 1000 }).addTo(map))
+    layers.push(L.marker(latlngs[0], {
+      icon: mkIcon(single ? '#f6f4ef' : color, single ? color : '#f6f4ef', '起'),
+      zIndexOffset: 2000,
+    }).addTo(map))
   }
   if (latlngs.at(-1)) {
-    layers.push(L.marker(latlngs.at(-1)!, { icon: mkIcon(single ? color : '#f6f4ef', single ? '#f6f4ef' : color, '終'), zIndexOffset: 1000 }).addTo(map))
+    layers.push(L.marker(latlngs.at(-1)!, {
+      icon: mkIcon('#f6f4ef', color, '終'),
+      zIndexOffset: 2000,
+    }).addTo(map))
   }
   return layers
 }
@@ -192,7 +198,7 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     const L = leafletRef.current
     if (hoverMarkerRef.current) hoverMarkerRef.current.setLatLng([pt.lat, pt.lng])
     else hoverMarkerRef.current = L.circleMarker([pt.lat, pt.lng], {
-      radius: 12, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 2.5,
+      radius: 18, color: 'var(--accent)', fillColor: 'var(--bg)', fillOpacity: 1, weight: 3.75,
     }).addTo(mapRef.current)
   }, [])
   const onChartLeave = useCallback(() => { hoverMarkerRef.current?.remove(); hoverMarkerRef.current = null }, [])
