@@ -8,7 +8,7 @@ import type { ElevPoint } from './FormalElevationChart'
 interface Waypoint  { lat: number; lng: number; name: string; ele?: number; time?: number }
 interface ParsedTrack { latlngs: [number, number][]; elevs: ElevPoint[]; waypoints: Waypoint[] }
 
-export type TileLayerKey = 'topo' | 'sat' | 'osm' | 'emap' | 'rudy' | 'google' | 'jm1924' | 'jm1916'
+export type TileLayerKey = 'topo' | 'sat' | 'osm' | 'emap' | 'rudy' | 'google' | 'jm1924' | 'jm1916' | 'landuse1956' | 'landuse1956_250k'
 
 interface Props {
   activeGpxes: string[]
@@ -227,8 +227,10 @@ const TILE_URLS: Record<TileLayerKey, { url: string; attr: string; maxZoom: numb
   emap:   { url: 'https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}',     attr: '© 國土測繪中心 EMAP', maxZoom: 20 },
   rudy:   { url: 'https://tile.happyman.idv.tw/map/moi_osm/{z}/{x}/{y}.png', attr: '© Taiwan TOPO contributors', maxZoom: 20 },
   google: { url: 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',  attr: '© Google', maxZoom: 20, subdomains: '0123' },
-  jm1924: { url: 'https://gis.sinica.edu.tw/tileserver/file-exists.php?img=JM50K_1924_new-png-{z}-{x}-{y}', attr: '© 中央研究院 WMTS', minZoom: 8, maxZoom: 16 },
-  jm1916: { url: 'https://gis.sinica.edu.tw/tileserver/file-exists.php?img=JM50K_1916-jpg-{z}-{x}-{y}', attr: '© 中央研究院 WMTS', minZoom: 8, maxZoom: 16 },
+  jm1924:        { url: 'https://gis.sinica.edu.tw/tileserver/file-exists.php?img=JM50K_1924_new-png-{z}-{x}-{y}',    attr: '© 中央研究院 WMTS', minZoom: 8, maxZoom: 16 },
+  jm1916:        { url: 'https://gis.sinica.edu.tw/tileserver/file-exists.php?img=JM50K_1916-jpg-{z}-{x}-{y}',        attr: '© 中央研究院 WMTS', minZoom: 8, maxZoom: 16 },
+  landuse1956:      { url: 'https://gis.sinica.edu.tw/tileserver/file-exists.php?img=1956_Landuse-png-{z}-{x}-{y}',      attr: '© 中央研究院 WMTS', maxZoom: 19 },
+  landuse1956_250k: { url: 'https://gis.sinica.edu.tw/tileserver/file-exists.php?img=1956_Landuse_250K_1-png-{z}-{x}-{y}', attr: '© 中央研究院 WMTS', minZoom: 7, maxZoom: 16 },
 }
 
 export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty, tileLayer = 'topo', onElevationData, mapHoverRef, mapLeaveRef }: Props) {
