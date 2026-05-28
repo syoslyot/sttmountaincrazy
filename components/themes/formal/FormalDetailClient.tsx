@@ -23,7 +23,8 @@ const TRACK_COLORS = ['#9b4f1c', '#0055a5', '#3a7d44', '#6d2a7c', '#8b0000', '#0
 const MAP_OPTIONS: [TileLayerKey, string][] = [
   ['topo', 'Topo'], ['emap', 'EMAP'], ['sat', 'Sat'],
   ['osm', 'OSM'], ['rudy', '魯地圖'], ['google', 'Google Map'],
-  ['jm1924', '日治'], ['jm1916', '番地'],
+  ['jm1924', '日治'], // ['jm1916', '番地'],
+  ['landuse1956', 'Landuse'], ['landuse1956_250k', 'Landuse1'],
 ]
 
 function subscribeMobile(callback: () => void) {
