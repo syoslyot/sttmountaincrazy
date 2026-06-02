@@ -35,17 +35,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const client = getAuthClient()
 
     async function loadProfile(user: User | null) {
+      console.log('[AuthProvider] loadProfile user=', user?.id ?? null)
       if (!user) {
         setState({ user: null, profile: null, role: null, loading: false })
         return
       }
       const profile = await fetchUserProfile(user.id)
+      console.log('[AuthProvider] profile=', profile)
       setState({ user, profile, role: profile?.role ?? null, loading: false })
     }
 
-    client.auth.getSession().then(({ data }) =>
-      loadProfile(data.session?.user ?? null),
-    )
+    client.auth.getSession().then(({ data }) => {
+      console.log('[AuthProvider] getSession user=', data.session?.user?.id ?? null)
+      loadProfile(data.session?.user ?? null)
+    })
 
     const { data: { subscription } } = client.auth.onAuthStateChange(
       (_event, session) => { loadProfile(session?.user ?? null) },

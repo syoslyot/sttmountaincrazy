@@ -52,7 +52,10 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
     .select('*')
     .eq('user_id', userId)
     .single()
-  if (error || !data) return null
+  if (error || !data) {
+    console.warn('[fetchUserProfile] failed', { userId, error })
+    return null
+  }
   return data as UserProfile
 }
 
@@ -69,7 +72,7 @@ export async function signInWithOAuth(provider: 'google' | 'facebook'): Promise<
     provider,
     options: {
       redirectTo: typeof window !== 'undefined'
-        ? `${window.location.origin}/formal`
+        ? `${window.location.origin}/auth/callback`
         : undefined,
     },
   })
