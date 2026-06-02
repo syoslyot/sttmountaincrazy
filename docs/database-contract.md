@@ -66,10 +66,28 @@ expedition_counties
 
 Files are opened through local API routes, which redirect to Supabase Storage public URLs.
 
+## Membership Tables
+
+### `user_profiles`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | `uuid` PK | |
+| `user_id` | `uuid` FK → `auth.users.id` | unique |
+| `role` | `member_role` enum | `staff \| member \| newcomer \| partner` |
+| `display_name` | `text` nullable | 顯示名稱 |
+| `created_at` | `timestamptz` | default `now()` |
+
+Frontend reads `user_profiles` via the browser-side auth client (RLS-governed, anon key).  
+Server-side staff client must NOT be used to read `user_profiles` unless explicitly needed.
+
+For role types, helper functions, and component usage, see [membership.md](membership.md).  
+For the migration SQL, see [db-migration-report-membership.md](db-migration-report-membership.md).
+
 ## Change Process
 
 1. Add or update SQL/RPC in `sttmountain`.
-2. Ask the DB admin to run the migration in dev Supabase.
+2. Ask the DB staff to run the migration in dev Supabase.
 3. Verify dev data and RPC output.
 4. Run the same migration in prod Supabase.
 5. Update this repo to consume the new contract.

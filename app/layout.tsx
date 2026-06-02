@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { ThemeBadge } from '@/components/ThemeBadge'
+import { AuthProvider } from '@/components/AuthProvider'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -29,9 +30,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href={FONT_URL} rel="stylesheet" />
       </head>
       <body>
-        {children}
-        <ThemeBadge />
-        <GoogleAnalytics gaId="G-22DPL2TKN2" />
+        <AuthProvider>
+          {children}
+          <ThemeBadge />
+          <GoogleAnalytics gaId="G-22DPL2TKN2" />
+        </AuthProvider>
       </body>
     </html>
   )
