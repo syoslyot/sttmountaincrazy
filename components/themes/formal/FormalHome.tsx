@@ -285,12 +285,12 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
 
   const authLabel = user && profile
     ? `● ${profile.display_name ?? user.email?.split('@')[0] ?? '會員'}`
-    : '登入 · LOGIN'
+    : '登入'
   const authHref  = user ? '/member' : '/login'
   const authBtnStyle: React.CSSProperties = {
-    fontFamily: 'var(--mono)', fontSize: 12, letterSpacing: '.04em',
-    color: 'var(--fg)', background: 'transparent',
-    border: '0.5px solid var(--border)', padding: '5px 11px',
+    fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em',
+    color: user && profile ? 'var(--accent)' : 'var(--muted)',
+    background: 'transparent', border: 'none', padding: 0,
     cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'none',
     display: 'inline-block',
   }

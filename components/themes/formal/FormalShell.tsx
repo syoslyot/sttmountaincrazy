@@ -22,9 +22,9 @@ export function FormalBackHeader() {
   const { user, profile } = useAuth()
 
   const accBtnStyle: CSSProperties = {
-    fontFamily: 'var(--mono)', fontSize: 12, letterSpacing: '.04em',
-    color: 'var(--fg)', background: 'transparent',
-    border: '0.5px solid var(--border)', padding: '6px 12px',
+    fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em',
+    color: user && profile ? 'var(--accent)' : 'var(--muted)',
+    background: 'transparent', border: 'none', padding: 0,
     cursor: 'pointer', whiteSpace: 'nowrap',
     textDecoration: 'none', display: 'inline-block',
   }
@@ -50,7 +50,7 @@ export function FormalBackHeader() {
             ● {profile.display_name ?? user.email?.split('@')[0] ?? '會員'}
           </Link>
         ) : (
-          <Link href="/login" style={accBtnStyle}>登入 · LOGIN</Link>
+          <Link href="/login" style={accBtnStyle}>登入</Link>
         )}
       </nav>
     </header>

@@ -63,6 +63,17 @@ export async function signInWithEmail(
   return { error }
 }
 
+export async function signInWithOAuth(provider: 'google' | 'facebook'): Promise<void> {
+  await getAuthClient().auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: typeof window !== 'undefined'
+        ? `${window.location.origin}/member`
+        : undefined,
+    },
+  })
+}
+
 export async function signOut(): Promise<void> {
   await getAuthClient().auth.signOut()
 }
