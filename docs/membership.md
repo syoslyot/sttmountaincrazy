@@ -89,4 +89,4 @@ if (!hasRole(role, 'member')) return null
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL（browser 可見） |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key（browser 可見） |
 
-這兩個值和現有的 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 相同，只是多了 `NEXT_PUBLIC_` 前綴，讓 Next.js 暴露給 browser bundle。
+這兩個值和現有的 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 相同，只是多了 `NEXT_PUBLIC_` 前綴，讓 Next.js 暴露給 browser bundle。已補充至 `.env.local`；Render 部署時需同步新增這兩個環境變數。
