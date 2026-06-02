@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from '
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useExpeditions, type Expedition, type ExpeditionSort } from '@/lib/useExpeditions'
+import { useAuth } from '@/components/AuthProvider'
 import './formal.css'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -270,6 +271,7 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
 
 export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years?: string[] }) {
   const router = useRouter()
+  const { user, profile } = useAuth()
   const [query, setQuery]             = useState('')
   const [debouncedQ, setDebouncedQ]   = useState('')
   const [counties, setCounties]       = useState<string[]>([])
@@ -280,6 +282,18 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   const isMobile                      = useSyncExternalStore(subscribeMobile, getMobileSnapshot, getServerMobileSnapshot)
   const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderRef                     = useRef<HTMLDivElement>(null)
+
+  const authLabel = user && profile
+    ? `● ${profile.display_name ?? user.email?.split('@')[0] ?? '會員'}`
+    : '登入 · LOGIN'
+  const authHref  = user ? '/member' : '/login'
+  const authBtnStyle: React.CSSProperties = {
+    fontFamily: 'var(--mono)', fontSize: 12, letterSpacing: '.04em',
+    color: 'var(--fg)', background: 'transparent',
+    border: '0.5px solid var(--border)', padding: '5px 11px',
+    cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'none',
+    display: 'inline-block',
+  }
 
   const handleQuery = useCallback((v: string) => {
     setQuery(v)
@@ -337,6 +351,8 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
                 paddingBottom: 1, textDecoration: 'none',
               }}>{tab.label}</Link>
             ))}
+            <span style={{ width: 1, height: 14, background: 'var(--border)' }} />
+            <Link href={authHref} style={authBtnStyle}>{authLabel}</Link>
           </nav>
         </header>
 
@@ -447,6 +463,8 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
               paddingBottom: 1, textDecoration: 'none',
             }}>{tab.label}</Link>
           ))}
+          <span style={{ width: 1, height: 14, background: 'var(--border)' }} />
+          <Link href={authHref} style={authBtnStyle}>{authLabel}</Link>
         </nav>
       </header>
 
