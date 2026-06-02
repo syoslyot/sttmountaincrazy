@@ -69,7 +69,7 @@ export async function signInWithOAuth(provider: 'google' | 'facebook'): Promise<
     provider,
     options: {
       redirectTo: typeof window !== 'undefined'
-        ? `${window.location.origin}/member`
+        ? `${window.location.origin}/formal`
         : undefined,
     },
   })

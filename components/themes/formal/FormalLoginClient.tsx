@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { FormalBackHeader } from '@/components/themes/formal/FormalShell'
 import { XField } from '@/components/themes/formal/FormalShell'
@@ -24,8 +24,12 @@ const OAUTH_ICON: Record<'google' | 'facebook', string> = {
 
 export function FormalLoginClient() {
   const router = useRouter()
-  const { signIn } = useAuth()
+  const { signIn, user, loading: authLoading } = useAuth()
   const [mode, setMode] = useState<Mode>('login')
+
+  useEffect(() => {
+    if (!authLoading && user) router.replace('/formal')
+  }, [authLoading, user, router])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -45,7 +49,7 @@ export function FormalLoginClient() {
       const { error: err } = await signIn(email, password)
       setLoading(false)
       if (err) { setError('帳號或密碼錯誤，請再試一次。'); return }
-      router.push('/member')
+      router.push('/formal')
     } else if (mode === 'forgot') {
       setSent(true)
     } else {
