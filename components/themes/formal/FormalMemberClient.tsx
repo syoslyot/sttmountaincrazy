@@ -25,6 +25,7 @@ export function FormalMemberClient() {
 
   // editable profile fields
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
+  const [nickname, setNickname] = useState(profile?.nickname ?? '')
   const [savingProfile, setSavingProfile] = useState(false)
 
   // placeholder teams — replace with real API fetch
@@ -145,6 +146,9 @@ export function FormalMemberClient() {
             <XField label="顯示名稱 · DISPLAY NAME" style={{ gridColumn: '1 / -1' }}>
               <input className="x-input" value={displayName} onChange={e => setDisplayName(e.target.value)} />
             </XField>
+            <XField label="暱稱 · NICKNAME" style={{ gridColumn: '1 / -1' }} hint="可選填，顯示於隊伍認領與紀錄頁面">
+              <input className="x-input" placeholder="自訂暱稱" value={nickname} onChange={e => setNickname(e.target.value)} />
+            </XField>
             <XField label="電子郵件 · EMAIL" style={{ gridColumn: '1 / -1' }} hint="變更 Email 需重新驗證">
               <input className="x-input mono" defaultValue={user.email ?? ''} disabled />
             </XField>
@@ -155,7 +159,7 @@ export function FormalMemberClient() {
               <button className="x-btn solid" type="submit" disabled={savingProfile}>
                 {savingProfile ? '儲存中…' : '儲存變更'}
               </button>
-              <button type="button" className="x-btn" onClick={() => setDisplayName(profile.display_name ?? '')}>取消</button>
+              <button type="button" className="x-btn" onClick={() => { setDisplayName(profile.display_name ?? ''); setNickname(profile.nickname ?? '') }}>取消</button>
             </div>
           </form>
         )}

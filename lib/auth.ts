@@ -7,6 +7,7 @@ export interface UserProfile {
   user_id: string
   role: MemberRole
   display_name: string | null
+  nickname: string | null
   created_at: string
 }
 
