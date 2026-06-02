@@ -7,6 +7,7 @@ import { openFile } from '@/lib/openFile'
 import type { ExpeditionDetail } from '@/lib/supabase'
 import type { TileLayerKey } from '@/components/themes/formal/FormalLeafletMap'
 import { FormalElevationChart, type ElevPoint } from '@/components/themes/formal/FormalElevationChart'
+import { FormalJournal, type JournalDay } from '@/components/themes/formal/FormalJournal'
 import './formal.css'
 
 const FormalLeafletMap = dynamic(
@@ -135,7 +136,14 @@ function DLRow({ label, filename, filePath, bucket }: {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
+// placeholder — replaced once DB journal tables exist
+const EMPTY_JOURNAL: JournalDay[] = []
+
+export function FormalDetailClient({ exp, journalDays = EMPTY_JOURNAL, canEditJournal = false }: {
+  exp: ExpeditionDetail
+  journalDays?: JournalDay[]
+  canEditJournal?: boolean
+}) {
   const [activeGpxes, setActiveGpxes] = useState<string[]>(
     exp.gpx_files.length > 0 ? [exp.gpx_files[0].file_path] : []
   )
@@ -542,6 +550,13 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
           </div>
         )}
       </div>
+
+      {/* Field Journal — below the map */}
+      <FormalJournal
+        days={journalDays}
+        canEdit={canEditJournal}
+        editHref={`/formal/${exp.id}/edit`}
+      />
     </div>
   )
 }
