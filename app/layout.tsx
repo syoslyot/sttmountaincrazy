@@ -3,6 +3,7 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 import { ThemeBadge } from '@/components/ThemeBadge'
 import { AuthProvider } from '@/components/AuthProvider'
 import '@/styles/globals.css'
+import '@/styles/ext.css'
 
 export const metadata: Metadata = {
   title: '成大山協',
