@@ -112,9 +112,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<同 SUPABASE_ANON_KEY 的值>
 
 ---
 
+## Migration 檔案位置
+
+SQL 已寫入 `sttmountain/db/migrations/0005_membership.sql`，請直接使用該檔案。
+詳細說明見 `sttmountain/docs/membership.md`。
+
 ## 執行順序
 
-1. 在 dev Supabase 執行上方所有 SQL（enum → table → RLS）
+1. 在 dev Supabase 執行 `sttmountain/db/migrations/0005_membership.sql`
 2. 在 Supabase Dashboard 手動插入第一個 staff profile
 3. 通知 `sttmountaincrazy` 端在 `.env.local` 補上 `NEXT_PUBLIC_*` 變數
 4. 驗證 dev 環境登入與角色讀取正常
