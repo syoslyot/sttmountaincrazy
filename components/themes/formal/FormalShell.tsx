@@ -47,7 +47,7 @@ export function FormalBackHeader() {
         <span style={{ width: 1, height: 14, background: 'var(--border)' }} />
         {user && profile ? (
           <Link href="/member" style={accBtnStyle}>
-            ● {profile.nickname ?? profile.display_name ?? user.email?.split('@')[0] ?? '會員'}
+            ● {profile.nickname ?? profile.name ?? user.email?.split('@')[0] ?? '會員'}
           </Link>
         ) : (
           <Link href="/login" style={accBtnStyle}>登入</Link>

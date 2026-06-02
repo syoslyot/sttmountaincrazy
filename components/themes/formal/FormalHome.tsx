@@ -284,7 +284,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   const loaderRef                     = useRef<HTMLDivElement>(null)
 
   const authLabel = user && profile
-    ? `● ${profile.nickname ?? profile.display_name ?? user.email?.split('@')[0] ?? '會員'}`
+    ? `● ${profile.nickname ?? profile.name ?? user.email?.split('@')[0] ?? '會員'}`
     : '登入'
   const authHref  = user ? '/member' : '/login'
   const authBtnStyle: React.CSSProperties = {

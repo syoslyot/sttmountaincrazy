@@ -24,7 +24,7 @@ export function FormalMemberClient() {
   const [tab, setTab] = useState<Tab>('teams')
 
   // editable profile fields
-  const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
+  const [name, setName] = useState(profile?.name ?? '')
   const [nickname, setNickname] = useState(profile?.nickname ?? '')
   const [savingProfile, setSavingProfile] = useState(false)
 
@@ -39,7 +39,7 @@ export function FormalMemberClient() {
 
   if (loading || !user || !profile) return null
 
-  const initial = (profile.display_name ?? user.email ?? '?')[0].toUpperCase()
+  const initial = (profile.name ?? user.email ?? '?')[0].toUpperCase()
 
   async function handleSignOut() {
     await signOut()
@@ -69,7 +69,7 @@ export function FormalMemberClient() {
             <div className="x-id-name">
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 500 }}>
-                  {profile.display_name ?? user.email?.split('@')[0]}
+                  {profile.name ?? user.email?.split('@')[0]}
                 </span>
                 {role && (
                   <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)', border: '0.5px solid var(--border)', padding: '2px 8px', whiteSpace: 'nowrap' }}>
@@ -145,8 +145,8 @@ export function FormalMemberClient() {
         {/* Profile tab */}
         {tab === 'profile' && (
           <form onSubmit={handleSaveProfile} style={{ marginTop: 22, maxWidth: 560, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
-            <XField label="顯示名稱 · DISPLAY NAME" style={{ gridColumn: '1 / -1' }}>
-              <input className="x-input" value={displayName} onChange={e => setDisplayName(e.target.value)} />
+            <XField label="姓名 · NAME" style={{ gridColumn: '1 / -1' }}>
+              <input className="x-input" value={name} onChange={e => setName(e.target.value)} />
             </XField>
             <XField label="暱稱 · NICKNAME" style={{ gridColumn: '1 / -1' }} hint="可選填，顯示於隊伍認領與紀錄頁面">
               <input className="x-input" placeholder="自訂暱稱" value={nickname} onChange={e => setNickname(e.target.value)} />
@@ -161,7 +161,7 @@ export function FormalMemberClient() {
               <button className="x-btn solid" type="submit" disabled={savingProfile}>
                 {savingProfile ? '儲存中…' : '儲存變更'}
               </button>
-              <button type="button" className="x-btn" onClick={() => { setDisplayName(profile.display_name ?? ''); setNickname(profile.nickname ?? '') }}>取消</button>
+              <button type="button" className="x-btn" onClick={() => { setName(profile.name ?? ''); setNickname(profile.nickname ?? '') }}>取消</button>
             </div>
           </form>
         )}
