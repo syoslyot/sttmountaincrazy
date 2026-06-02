@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FormalBackHeader, XField, XPill } from '@/components/themes/formal/FormalShell'
@@ -31,11 +31,13 @@ export function FormalMemberClient() {
   // placeholder teams — replace with real API fetch
   const teams: MyTeam[] = []
 
-  if (loading) return null
-  if (!user || !profile) {
-    router.replace('/login')
-    return null
-  }
+  useEffect(() => {
+    if (!loading && (!user || !profile)) {
+      router.replace('/login')
+    }
+  }, [loading, user, profile, router])
+
+  if (loading || !user || !profile) return null
 
   const initial = (profile.display_name ?? user.email ?? '?')[0].toUpperCase()
 
