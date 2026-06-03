@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { FormalBackHeader, XField, XPill } from '@/components/themes/formal/FormalShell'
 import { useAuth } from '@/components/AuthProvider'
 import { ROLE_LABELS } from '@/lib/auth'
+import './formal.css'
 
 type Tab = 'teams' | 'profile'
 
@@ -26,6 +27,7 @@ export function FormalMemberClient() {
   // editable profile fields
   const [name, setName] = useState(profile?.name ?? '')
   const [nickname, setNickname] = useState(profile?.nickname ?? '')
+  const [contact, setContact] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
 
   // placeholder teams — replace with real API fetch
@@ -78,7 +80,7 @@ export function FormalMemberClient() {
                 )}
               </div>
               <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--muted)', marginTop: 8, wordBreak: 'break-all' }}>
-                {user.email}
+                @{user.email?.split('@')[0]} · {user.email}
               </div>
             </div>
           </div>
@@ -148,20 +150,23 @@ export function FormalMemberClient() {
             <XField label="姓名 · NAME" style={{ gridColumn: '1 / -1' }}>
               <input className="x-input" value={name} onChange={e => setName(e.target.value)} />
             </XField>
-            <XField label="暱稱 · NICKNAME" style={{ gridColumn: '1 / -1' }} hint="可選填，顯示於隊伍認領與紀錄頁面">
+            <XField label="暱稱 · NICKNAME">
               <input className="x-input" placeholder="自訂暱稱" value={nickname} onChange={e => setNickname(e.target.value)} />
+            </XField>
+            <XField label="聯絡電話 · CONTACT">
+              <input className="x-input mono" placeholder="09xx-xxx-xxx" value={contact} onChange={e => setContact(e.target.value)} />
             </XField>
             <XField label="電子郵件 · EMAIL" style={{ gridColumn: '1 / -1' }} hint="變更 Email 需重新驗證">
               <input className="x-input mono" defaultValue={user.email ?? ''} disabled />
             </XField>
-            <XField label="角色 · ROLE" style={{ gridColumn: '1 / -1' }} hint="角色由管理員指派，無法自行變更">
+            <XField label="角色 · ROLE" style={{ gridColumn: '1 / -1' }} hint="角色由管理員指派，一般會員無法自行變更">
               <input className="x-input" value={role ? ROLE_LABELS[role] : '—'} disabled />
             </XField>
             <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 10, marginTop: 4 }}>
               <button className="x-btn solid" type="submit" disabled={savingProfile}>
                 {savingProfile ? '儲存中…' : '儲存變更'}
               </button>
-              <button type="button" className="x-btn" onClick={() => { setName(profile.name ?? ''); setNickname(profile.nickname ?? '') }}>取消</button>
+              <button type="button" className="x-btn" onClick={() => { setName(profile.name ?? ''); setNickname(profile.nickname ?? ''); setContact('') }}>取消</button>
             </div>
           </form>
         )}
