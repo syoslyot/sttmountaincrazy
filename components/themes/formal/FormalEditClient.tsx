@@ -71,8 +71,6 @@ const RT_PRESETS: Record<RtPreset, string[]> = {
   standard: ['bold','italic','underline','strike','sep','h3','quote','ul','ol','sep','link','clear'],
   full:     ['bold','italic','underline','strike','sep','h2','h3','quote','sep','ul','ol','sep','alignL','alignC','alignR','sep','color','hilite','hr','sep','link','clear'],
 }
-const RT_PRESET_LABELS: Record<RtPreset, string> = { minimal:'精簡', standard:'標準', full:'完整' }
-
 function RichText({ html, onChange, placeholder, preset = 'standard' }: {
   html: string; onChange: (v: string) => void; placeholder?: string; preset?: RtPreset
 }) {
@@ -452,9 +450,8 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
         collab: em.can_edit,
       })))
     })
-  }, [])
+  }, [expeditionId])
 
-  const renameMember  = (id: number, name: string) => setMembers(m => m.map(x => x.id === id ? { ...x, name } : x))
   const setMemberRole = (id: number, role: string) => setMembers(m => m.map(x => x.id === id ? { ...x, role } : x))
   const toggleCollab  = (id: number) => setMembers(m => m.map(x => x.id === id ? { ...x, collab: !x.collab } : x))
   const delMember     = (id: number) => setMembers(m => m.filter(x => x.id !== id))
@@ -508,7 +505,6 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
   })
   const [activeDay, setActiveDay] = useState(0)
 
-  const addBlock    = (t: JournalBlock['type']) => setBlocks(bs => [...bs, { id: _bid++, type: t, text: '', cap: '', a: { cap: '' }, b: { cap: '' } }])
   const changeBlock = (i: number, p: Partial<EditorBlock>) => setBlocks(bs => bs.map((b, j) => j === i ? { ...b, ...p } : b))
   const moveBlock   = (i: number, d: number) => setBlocks(bs => { const a = [...bs]; const [x] = a.splice(i, 1); a.splice(i + d, 0, x); return a })
   const delBlock    = (i: number) => setBlocks(bs => bs.filter((_, j) => j !== i))

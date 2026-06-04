@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { useExpeditions, type Expedition, type ExpeditionSort } from '@/lib/useExpeditions'
 import { FormalHeader } from '@/components/themes/formal/FormalShell'
 import './formal.css'

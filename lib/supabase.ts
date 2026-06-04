@@ -79,9 +79,9 @@ export async function fetchExpeditionYears(): Promise<string[]> {
 export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, { gpx: number; map: number; rec: number }>> {
   if (ids.length === 0) return new Map()
   const [gpxRes, mapRes, recRes] = await Promise.all([
-    supabaseAdmin.from('gpx_files').select('expedition_id').in('expedition_id', ids),
-    supabaseAdmin.from('map_files').select('expedition_id').in('expedition_id', ids),
-    supabaseAdmin.from('record_files').select('expedition_id').in('expedition_id', ids),
+    supabaseAdmin.from('gpx_files').select('expedition_id').in('expedition_id', ids).is('deleted_at', null),
+    supabaseAdmin.from('map_files').select('expedition_id').in('expedition_id', ids).is('deleted_at', null),
+    supabaseAdmin.from('record_files').select('expedition_id').in('expedition_id', ids).is('deleted_at', null),
   ])
   const result = new Map<number, { gpx: number; map: number; rec: number }>()
   ids.forEach(id => result.set(id, { gpx: 0, map: 0, rec: 0 }))
@@ -152,6 +152,7 @@ export async function isPublicStorageFile(bucket: StorageBucket, filePath: strin
     .from(table)
     .select('id, expeditions!inner(id)')
     .eq('file_path', filePath)
+    .is('deleted_at', null)
     .eq('expeditions.is_public', true)
     .maybeSingle()
 
