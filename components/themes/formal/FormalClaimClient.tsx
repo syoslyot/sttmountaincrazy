@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FormalBackHeader, XField } from '@/components/themes/formal/FormalShell'
 import { useAuth } from '@/components/AuthProvider'
@@ -175,7 +176,8 @@ function ClaimModal({ team, onClose, onSuccess }: {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function FormalClaimClient() {
-  const { role } = useAuth()
+  const { role, user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [unclaimed, setUnclaimed] = useState<UnclaimedExpedition[]>([])
   const [pendingClaims, setPendingClaims] = useState<PendingClaim[]>([])
   const [loading, setLoading] = useState(true)
@@ -185,6 +187,10 @@ export function FormalClaimClient() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), [])
+
+  useEffect(() => {
+    if (!authLoading && !user) router.replace('/login')
+  }, [authLoading, user, router])
 
   useEffect(() => {
     const params = new URLSearchParams()
@@ -206,6 +212,8 @@ export function FormalClaimClient() {
     await reviewClaim(id, action)
     refresh()
   }
+
+  if (authLoading || !user) return null
 
   return (
     <div className="x-scroll-root">
@@ -246,7 +254,7 @@ export function FormalClaimClient() {
               請領隊認領隊伍，以將隊伍紀錄到您的帳號。
             </p>
           </div>
-          <Link href="/member" style={{ fontFamily: 'var(--mono)', fontSize: 13, letterSpacing: '.04em', color: 'var(--muted)', textDecoration: 'none', transition: 'color .12s' }}>← 回會員頁</Link>
+          {user && <Link href="/member" style={{ fontFamily: 'var(--mono)', fontSize: 13, letterSpacing: '.04em', color: 'var(--muted)', textDecoration: 'none', transition: 'color .12s' }}>← 回會員頁</Link>}
         </div>
 
         {/* Filters */}
