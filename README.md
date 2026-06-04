@@ -16,7 +16,11 @@ npm run dev
 ```text
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
+
+`NEXT_PUBLIC_` 前綴讓 Next.js 將值暴露給 browser bundle，供登入、認領等前端 auth 操作使用。Render 部署時需同步設定這兩個變數。
 
 ## App Entrypoints
 
@@ -25,6 +29,9 @@ SUPABASE_ANON_KEY=your-anon-key
 | `/` | 隨機導向其中一種介面風格 |
 | `/formal` | formal 風格首頁 |
 | `/formal/[id]` | formal 詳細頁 |
+| `/formal/[id]/edit` | 編輯隊伍資料（approved leader 或 staff） |
+| `/formal/claim` | 認領頁面（申請與審核） |
+| `/formal/member` | 會員個人頁 |
 | `/rocket` | rocket 風格首頁 |
 | `/expedition/[id]` | rocket 詳細頁 |
 | `/hangbao` | hangbao 風格首頁 |
@@ -57,6 +64,8 @@ npm run lint
 | [docs/git-flow.md](docs/git-flow.md) | branch、release、hotfix 流程 |
 | [docs/coding-style.md](docs/coding-style.md) | TypeScript、React、CSS 寫法慣例 |
 | [docs/formal-theme.md](docs/formal-theme.md) | formal 風格與 UI 維護規則 |
+| [docs/membership.md](docs/membership.md) | 會員系統、auth client、認領相關 helper |
+| [docs/db-migration-report-claims.md](docs/db-migration-report-claims.md) | 認領系統 DB migration 記錄 |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | 常見問題與排查步驟 |
 
 ## Repository Boundary

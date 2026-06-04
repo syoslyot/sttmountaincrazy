@@ -21,7 +21,7 @@ export interface ExpData {
   all_counties: string | null
   region: string | null
   region_exit: string | null
-  leader: string | null
+  leader_display: string | null
   description: string | null
   preview_image: string | null
 }
@@ -484,7 +484,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
           </h1>
           <div className="d-hero-chips">
             <span className="chip c1">★ {fmtDate(exp.date_start)}{exp.date_end ? ` — ${fmtDate(exp.date_end)}` : ''}</span>
-            {exp.leader    && <span className="chip c3">領隊 {exp.leader}</span>}
+            {exp.leader_display    && <span className="chip c3">領隊 {exp.leader_display}</span>}
             {regionLabel(exp) && <span className="chip c5">{regionLabel(exp)}</span>}
           </div>
         </header>

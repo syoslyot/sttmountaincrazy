@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from '
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useExpeditions, type Expedition, type ExpeditionSort } from '@/lib/useExpeditions'
-import { useAuth } from '@/components/AuthProvider'
+import { FormalHeader } from '@/components/themes/formal/FormalShell'
 import './formal.css'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ function parseName(raw: string): { name: string; grade: string | null; days: num
   return { name: raw, grade: m[2].toUpperCase(), days: parseInt(m[1], 10) }
 }
 
-function fmtLeader(l: string) { return l.length > 5 ? '？' : l }
+function fmtLeader(l: string) { return l.length > 10 ? l.slice(0, 10) + '…' : l }
 
 function subscribeMobile(callback: () => void) {
   const mq = window.matchMedia('(max-width: 680px)')
@@ -137,7 +137,7 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
     <div onClick={onClick} style={{ padding: '12px 18px', borderBottom: '0.5px solid var(--border)', cursor: 'pointer' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
         <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', letterSpacing: '.06em', paddingTop: 1 }}>
-          REC.{String(exp.id).padStart(3, '0')}{exp.leader && <span> / 領隊 {fmtLeader(exp.leader)}</span>}
+          REC.{String(exp.id).padStart(3, '0')}{exp.leader_display && <span> / 領隊 {fmtLeader(exp.leader_display)}</span>}
         </span>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg)', letterSpacing: '.02em' }}>
@@ -252,8 +252,8 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
       {/* Date */}
       <div style={{ display: 'flex', flexDirection: 'column', alignSelf: 'stretch' }}>
         <div className="formal-card-date">{exp.date_start} - {exp.date_end}</div>
-        {exp.leader && (
-          <div className="formal-card-date-end" style={{ marginTop: 10 }}>領隊 {fmtLeader(exp.leader)}</div>
+        {exp.leader_display && (
+          <div className="formal-card-date-end" style={{ marginTop: 10 }}>領隊 {fmtLeader(exp.leader_display)}</div>
         )}
         {(exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0) && (
           <div style={{ marginTop: 'auto', paddingTop: 3, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -271,8 +271,7 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
 
 export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years?: string[] }) {
   const router = useRouter()
-  const { user, profile } = useAuth()
-  const [query, setQuery]             = useState('')
+    const [query, setQuery]             = useState('')
   const [debouncedQ, setDebouncedQ]   = useState('')
   const [counties, setCounties]       = useState<string[]>([])
   const [year, setYear]               = useState('all')
@@ -282,18 +281,6 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   const isMobile                      = useSyncExternalStore(subscribeMobile, getMobileSnapshot, getServerMobileSnapshot)
   const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderRef                     = useRef<HTMLDivElement>(null)
-
-  const authLabel = user && profile
-    ? `● ${profile.nickname ?? profile.name ?? user.email?.split('@')[0] ?? '會員'}`
-    : '登入'
-  const authHref  = user ? '/member' : '/login'
-  const authBtnStyle: React.CSSProperties = {
-    fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em',
-    color: user && profile ? 'var(--accent)' : 'var(--muted)',
-    background: 'transparent', border: 'none', padding: 0,
-    cursor: 'pointer', whiteSpace: 'nowrap', textDecoration: 'none',
-    display: 'inline-block',
-  }
 
   const handleQuery = useCallback((v: string) => {
     setQuery(v)
@@ -333,28 +320,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
         display: 'flex', flexDirection: 'column', width: '100%', minHeight: '100dvh',
         background: 'var(--bg)', color: 'var(--fg)', fontFamily: 'var(--serif)',
       }}>
-        <header style={{ padding: '10px 18px', borderBottom: '0.5px solid var(--border)',
-                         display: 'flex', alignItems: 'baseline', gap: 10 }}>
-          <h1 style={{ fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 500, margin: 0, letterSpacing: '.04em' }}>
-            成大山協
-          </h1>
-          <nav style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'baseline' }}>
-            {[
-              { label: '關於', href: '/formal/about' },
-              { label: '投稿', href: '/formal/submit' },
-              { label: '出隊紀錄', href: '/formal' },
-            ].map(tab => (
-              <Link key={tab.href} href={tab.href} style={{
-                fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em', cursor: 'default',
-                color: tab.label === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
-                borderBottom: tab.label === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
-                paddingBottom: 1, textDecoration: 'none',
-              }}>{tab.label}</Link>
-            ))}
-            <span style={{ width: 1, height: 14, background: 'var(--border)' }} />
-            <Link href={authHref} style={authBtnStyle}>{authLabel}</Link>
-          </nav>
-        </header>
+        <FormalHeader />
 
         <section style={{ padding: '14px 18px', borderBottom: '0.5px solid var(--border)',
                           display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -443,30 +409,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
 
   return (
     <div className="formal-root scrollable">
-      {/* Header */}
-      <header className="formal-header">
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
-          <h1 style={{ fontFamily: 'var(--serif)', fontSize: 22, margin: 0, fontWeight: 500, letterSpacing: '.04em' }}>
-            成大山協
-          </h1>
-        </div>
-        <nav style={{ display: 'flex', gap: 24, alignItems: 'baseline' }}>
-          {[
-            { label: '關於', href: '/formal/about' },
-            { label: '投稿', href: '/formal/submit' },
-            { label: '出隊紀錄', href: '/formal' },
-          ].map(tab => (
-            <Link key={tab.href} href={tab.href} style={{
-              fontFamily: 'var(--serif)', fontSize: 14, letterSpacing: '.04em', cursor: 'default',
-              color: tab.label === '出隊紀錄' ? 'var(--fg)' : 'var(--muted)',
-              borderBottom: tab.label === '出隊紀錄' ? '1.5px solid var(--accent)' : 'none',
-              paddingBottom: 1, textDecoration: 'none',
-            }}>{tab.label}</Link>
-          ))}
-          <span style={{ width: 1, height: 14, background: 'var(--border)' }} />
-          <Link href={authHref} style={authBtnStyle}>{authLabel}</Link>
-        </nav>
-      </header>
+      <FormalHeader />
 
       <div className="formal-body-shell">
       <div className="formal-body">

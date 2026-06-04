@@ -1,16 +1,40 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useRef, useState } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface JournalBlock {
-  type: 'text' | 'image' | 'twincol'
+  type: 'text' | 'image' | 'twincol' | 'day'
   text?: string       // HTML string for text blocks
   cap?: string        // caption for image
   a?: { cap: string } // twincol left
   b?: { cap: string } // twincol right
+  // 'day' type — acts as a section separator
+  day?: string        // e.g. "D0", "D1"
+  label?: string      // day title
+  date?: string       // e.g. "04/30"
+}
+
+export function blocksToJournalDays(raw: object[]): JournalDay[] {
+  const blocks = raw as JournalBlock[]
+  const days: JournalDay[] = []
+  let current: JournalDay | null = null
+
+  for (const block of blocks) {
+    if (block.type === 'day') {
+      current = { day: block.day ?? '', label: block.label ?? '', date: block.date ?? '', blocks: [] }
+      days.push(current)
+    } else {
+      if (!current) {
+        current = { day: '', label: '', date: '', blocks: [] }
+        days.push(current)
+      }
+      current.blocks.push(block)
+    }
+  }
+
+  return days.filter(d => d.blocks.length > 0 || d.day)
 }
 
 export interface JournalDay {
@@ -67,24 +91,18 @@ function JBlock({ b }: { b: JournalBlock }) {
 
 export function FormalJournal({ days, canEdit = false, editHref }: Props) {
   const [activeDay, setActiveDay] = useState(0)
+  const bodyRef = useRef<HTMLDivElement>(null)
   const cur = days[activeDay]
 
   if (!days.length) return null
 
+  const handleTabClick = (i: number) => {
+    setActiveDay(i)
+    bodyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="x-journal">
-      {/* header */}
-      <div className="x-wrap">
-        <div className="x-journal-head">
-          <div className="x-label">
-            圖文紀錄 <span className="en">FIELD JOURNAL</span>
-          </div>
-          {canEdit && editHref && (
-            <Link href={editHref} className="x-btn sm">✎ 編輯紀錄</Link>
-          )}
-        </div>
-      </div>
-
       {/* day tabs */}
       <div className="x-daytabs">
         <div className="x-wrap" style={{ display: 'flex', gap: 0, padding: '0 36px' }}>
@@ -92,7 +110,7 @@ export function FormalJournal({ days, canEdit = false, editHref }: Props) {
             <button
               key={i}
               className={`x-daytab${activeDay === i ? ' active' : ''}`}
-              onClick={() => setActiveDay(i)}
+              onClick={() => handleTabClick(i)}
             >
               <span className="d">{d.day}</span>
               <span className="dt">{d.date}</span>
@@ -102,7 +120,7 @@ export function FormalJournal({ days, canEdit = false, editHref }: Props) {
       </div>
 
       {/* body */}
-      <div className="x-wrap">
+      <div className="x-wrap" ref={bodyRef}>
         <div className="x-journal-body">
           <div className="x-day-head">
             <span className="x-day-no">{cur.day}</span>

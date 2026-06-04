@@ -2,7 +2,8 @@
 
 /* 通用容器 */
 .x-wrap { width: min(100%, 1100px); margin: 0 auto; padding: 0 36px; box-sizing: border-box; }
-.x-scroll-root { width: 100%; min-height: 100dvh; background: var(--bg); color: var(--fg); font-family: var(--serif); display: flex; flex-direction: column; }
+.x-scroll-root { width: 100%; min-height: 100dvh; background: var(--bg); color: var(--fg); font-family: var(--serif); display: flex; flex-direction: column; scrollbar-width: none; }
+.x-scroll-root::-webkit-scrollbar { display: none; }
 
 /* bilingual label */
 .x-label { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; display: flex; align-items: baseline; gap: 8px; }
@@ -38,7 +39,7 @@
 .x-hint { font-family: var(--mono); font-size: 10px; letter-spacing: .03em; color: var(--muted); }
 
 /* status pill */
-.x-pill { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; padding: 2px 8px; border: 0.5px solid; white-space: nowrap; }
+.x-pill { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; padding: 4px 10px; border: 0.5px solid; white-space: nowrap; line-height: 1; }
 .x-pill.pend { color: #9a7b2e; border-color: #c8b277; background: rgba(180,140,40,.07); }
 .x-pill.pass { color: #4d7049; border-color: #9fb78e; background: rgba(90,130,70,.07); }
 .x-pill.rej  { color: #9a4f37; border-color: #c79680; background: rgba(150,70,45,.07); }
@@ -54,7 +55,7 @@
 /* ── 圖文紀錄（tabs）────────────────────────────────────────── */
 .x-journal { border-top: 0.5px solid var(--border); background: var(--bg); }
 .x-journal-head { display: flex; align-items: baseline; justify-content: space-between; padding: 26px 0 0; }
-.x-daytabs { position: sticky; top: 0; z-index: 30; background: color-mix(in oklch, var(--bg) 92%, transparent);
+.x-daytabs { position: sticky; top: 63px; z-index: 30; background: color-mix(in oklch, var(--bg) 92%, transparent);
   backdrop-filter: blur(6px); display: flex; gap: 0; border-bottom: 0.5px solid var(--border); margin-top: 14px; }
 .x-daytab { flex: 0 0 auto; background: transparent; border: none; border-bottom: 1.5px solid transparent; cursor: pointer;
   padding: 12px 20px; font-family: var(--serif); font-size: 15px; color: var(--muted); display: flex; align-items: baseline; gap: 9px; }
@@ -89,8 +90,10 @@
 .x-team-row { display: grid; grid-template-columns: 56px 1fr auto; gap: 18px; align-items: center; padding: 18px 4px; border-bottom: 0.5px solid var(--border); }
 .x-team-row .num { font-family: var(--serif); font-size: 22px; font-variant-numeric: tabular-nums; }
 .x-team-row .nm { font-family: var(--serif); font-size: 16px; }
-.x-team-meta { display: flex; align-items: baseline; gap: 14px; margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
-.x-team-meta .role.lead { color: var(--accent); }
+.x-team-meta { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.x-team-meta .role { padding: 2px 7px; border: 0.5px solid var(--border); font-size: 10px; letter-spacing: .07em; line-height: 1.4; white-space: nowrap; }
+.x-team-meta .role.lead { color: var(--accent); border-color: color-mix(in oklch, var(--accent) 45%, transparent); background: color-mix(in oklch, var(--accent) 8%, transparent); }
+.x-team-meta .sep { color: var(--border); user-select: none; }
 .x-team-actions { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
 
 /* ── 認領 cards ───────────────────────────────────────────── */
@@ -169,6 +172,7 @@
   .x-claim-grid { grid-template-columns: 1fr; }
   .x-journal-body { padding: 24px 0 80px; }
   .x-jp { font-size: 15px; }
+  .x-daytabs { top: 51px; } /* mobile header: padding 12px×2 + ~27px content */
   .x-daytabs > .x-wrap { padding: 0 16px !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .x-daytabs > .x-wrap::-webkit-scrollbar { display: none; }
   .x-daytab { padding: 11px 14px; font-size: 14px; flex-shrink: 0; }

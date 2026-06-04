@@ -246,7 +246,6 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
   const hoverMarkerRef    = useRef<any>(null)
   const [elevPoints, setElevPoints] = useState<ElevPoint[]>([])
   const [loading, setLoading]       = useState(false)
-  const [zoomEnabled, setZoomEnabled] = useState(false)
 
   useEffect(() => { activeGpxesRef.current = activeGpxes })
   useEffect(() => { colorMapRef.current = colorMap })
@@ -288,15 +287,8 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     import('leaflet').then(L => {
       if (cancelled || mapRef.current) return
       leafletRef.current = L
-      const map = L.map(containerRef.current!, { zoomControl: false, attributionControl: true, scrollWheelZoom: false })
+      const map = L.map(containerRef.current!, { zoomControl: false, attributionControl: true, scrollWheelZoom: true })
       mapRef.current = map
-
-      // 預設捲動頁面；點擊地圖啟用縮放，滑鼠移出恢復
-      map.on('click', () => { map.scrollWheelZoom.enable(); setZoomEnabled(true) })
-      containerRef.current!.addEventListener('mouseleave', () => {
-        map.scrollWheelZoom.disable(); setZoomEnabled(false)
-      })
-
       const cfg = TILE_URLS[tileLayer]
       tileLayerRef.current = L.tileLayer(cfg.url, { attribution: cfg.attr, minZoom: cfg.minZoom, maxZoom: cfg.maxZoom, subdomains: cfg.subdomains ?? 'abc' }).addTo(map)
       L.control.scale({ metric: true, imperial: false }).addTo(map)
@@ -385,17 +377,6 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-      {/* 滾輪縮放提示 */}
-      <div style={{
-        position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
-        pointerEvents: 'none', fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.04em',
-        color: zoomEnabled ? 'var(--accent)' : 'var(--muted)',
-        background: 'color-mix(in oklch, var(--bg) 86%, transparent)',
-        border: '0.5px solid var(--border)', padding: '4px 10px', whiteSpace: 'nowrap',
-        opacity: zoomEnabled ? 0.92 : 0.82,
-      }}>
-        {zoomEnabled ? '縮放已啟用 · 滑鼠移出地圖即可繼續捲動頁面' : '滾輪捲動頁面 · 點一下地圖以啟用縮放'}
-      </div>
       {loading && (
         <div className="formal-map-loading">
           <div className="formal-spinner" />
