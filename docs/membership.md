@@ -90,6 +90,15 @@ const { data: memberships } = await listMyMemberships()
 //   expedition: { id, name, date_start, grade } | null }
 ```
 
+## 我參與的隊伍排序
+
+`FormalMemberClient` 取得 memberships 後，client-side 依以下規則排序：
+
+1. **狀態優先**：`pending`（待審核）→ `rejected`（已拒絕）→ `approved`（已通過）
+2. **同狀態內**：出隊日期 `date_start` 新 → 舊
+
+目的是讓需要注意的申請（待審核、已拒絕）優先顯示在上方，已通過的記錄則依時間降序排列。
+
 ## 未來的可見性控制
 
 當需要「某些角色看不到某個區塊」時，統一使用 `hasRole` 做判斷：

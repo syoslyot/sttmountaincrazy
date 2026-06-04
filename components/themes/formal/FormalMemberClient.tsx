@@ -45,7 +45,17 @@ export function FormalMemberClient() {
 
   useEffect(() => {
     if (!user) return
-    listMyMemberships().then(({ data }) => setMemberships(data))
+    listMyMemberships().then(({ data }) => {
+      const STATUS_ORDER: Record<string, number> = { pending: 0, rejected: 1, approved: 2 }
+      const sorted = [...data].sort((a, b) => {
+        const sd = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9)
+        if (sd !== 0) return sd
+        const ad = a.expedition?.date_start ?? ''
+        const bd = b.expedition?.date_start ?? ''
+        return bd.localeCompare(ad)
+      })
+      setMemberships(sorted)
+    })
   }, [user])
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
