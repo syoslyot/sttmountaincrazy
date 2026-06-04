@@ -13,7 +13,7 @@ export default async function HangbaoDetailPage({ params }: Props) {
 
   return (
     <>
-      <HangbaoDetail exp={exp} gpxFiles={exp.gpx_files} records={exp.records} mapFiles={exp.map_files} storageBase={`${process.env.SUPABASE_URL}/storage/v1/object/public`} />
+      <HangbaoDetail exp={exp} gpxFiles={exp.gpx_files} records={exp.record_files} mapFiles={exp.map_files} storageBase={`${process.env.SUPABASE_URL}/storage/v1/object/public`} />
     </>
   )
 }

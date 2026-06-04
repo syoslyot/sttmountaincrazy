@@ -28,6 +28,10 @@
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1500;
+  background: var(--bg);
 }
 
 .formal-body {
@@ -339,11 +343,42 @@
 
 /* ─── Detail page ───────────────────────────────────────────────────── */
 
+/* Scrollable detail layout — explicit scroll container so sticky header works */
+.formal-detail-root {
+  height: 100dvh !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.formal-detail-root::-webkit-scrollbar { display: none; }
+
 .formal-map-area {
   flex: 1;
   position: relative;
   overflow: hidden;
   min-height: 0;
+}
+
+/* Title bar below the standard nav header */
+.formal-detail-title-bar {
+  padding: 10px 36px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+/* Map height: viewport minus headers (~118px) minus daytabs peek (~50px) */
+.formal-detail-root .formal-map-area {
+  height: calc(100dvh - 168px);
+  flex: none;
+}
+
+/* Below-map content wrapper */
+.formal-below-map {
+  border-top: 0.5px solid var(--border);
 }
 
 .formal-detail-header {
@@ -654,6 +689,13 @@
     min-height: 0;
     height: auto;
     margin-top: 77px;
+  }
+
+  /* Mobile: viewport minus mobile headers (~90px) minus daytabs peek (~44px) */
+  .formal-detail-root .formal-map-area {
+    height: calc(100dvh - 134px);
+    flex: none;
+    margin-top: 0;
   }
 
   /* Detail header: wrap, smaller padding */

@@ -30,9 +30,14 @@ import { type MemberRole, type UserProfile, hasRole, ROLE_LABELS } from '@/lib/a
 | Symbol | 說明 |
 | --- | --- |
 | `MemberRole` | `'staff' \| 'member' \| 'newcomer' \| 'partner'` |
-| `UserProfile` | `{ id, user_id, role, display_name, created_at }` |
+| `UserProfile` | `{ id, user_id, role, name, nickname, contact, avatar_url, joined_at, created_at }` |
 | `ROLE_LABELS` | MemberRole → 中文名稱對照表 |
 | `hasRole(userRole, minRole)` | 回傳 `true` 若 userRole 達到或超過 minRole 的層級 |
+| `listMyMemberships()` | 取得目前登入者所有 `expedition_members` 紀錄（含 expedition info） |
+| `submitClaim(expeditionId, evidence)` | 對指定隊伍提出領隊認領申請 |
+| `listPendingClaims()` | 取得所有待審核的認領申請（staff only） |
+| `reviewClaim(claimId, action)` | 審核認領申請，`action`: `'approved'` \| `'rejected'`（staff only） |
+| `updateExpedition(id, fields)` | 更新隊伍資料，自動設 `sync_locked = true`（approved leader 或 staff） |
 
 ## 在 Component 中取得目前使用者
 
@@ -66,6 +71,19 @@ const { error } = await signIn(email, password)
 
 // 登出
 await signOut()
+```
+
+## MyMembership 型別
+
+```ts
+import { type MyMembership, listMyMemberships } from '@/lib/auth'
+
+// 取得目前使用者的所有出隊紀錄
+const { data: memberships } = await listMyMemberships()
+
+// 每筆 membership
+// { id, role: 'leader'|'member', status: 'pending'|'approved'|'rejected',
+//   expedition: { id, name, date_start, grade } | null }
 ```
 
 ## 未來的可見性控制

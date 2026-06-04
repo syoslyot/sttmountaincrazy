@@ -287,9 +287,8 @@ export function FormalLeafletMap({ activeGpxes, colorMap, entryTown, entryCounty
     import('leaflet').then(L => {
       if (cancelled || mapRef.current) return
       leafletRef.current = L
-      const map = L.map(containerRef.current!, { zoomControl: false, attributionControl: true })
+      const map = L.map(containerRef.current!, { zoomControl: false, attributionControl: true, scrollWheelZoom: true })
       mapRef.current = map
-
       const cfg = TILE_URLS[tileLayer]
       tileLayerRef.current = L.tileLayer(cfg.url, { attribution: cfg.attr, minZoom: cfg.minZoom, maxZoom: cfg.maxZoom, subdomains: cfg.subdomains ?? 'abc' }).addTo(map)
       L.control.scale({ metric: true, imperial: false }).addTo(map)

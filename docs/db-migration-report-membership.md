@@ -112,13 +112,35 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<同 SUPABASE_ANON_KEY 的值>
 
 ---
 
+## Migration 檔案位置
+
+| 檔案 | 說明 |
+| --- | --- |
+| `sttmountain/db/migrations/0005_membership.sql` | member_role enum、user_profiles 表、RLS 政策 |
+| `sttmountain/db/migrations/0006_auth_trigger.sql` | 新用戶自動建立 newcomer profile 的 trigger |
+
+詳細說明見 `sttmountain/docs/membership.md`。
+
+## `user_id` 欄位說明
+
+`user_profiles.user_id` 對應 `auth.users.id`（Supabase Auth 為每個帳號指派的 UUID）。
+Email 登入、Google OAuth、Facebook OAuth 都使用同一個 `user_id`；前端用 `auth.uid()` 取得。
+
+## OAuth 支援
+
+前端新增 Google / Facebook 登入按鈕，由 `signInWithOAuth()` 觸發 Supabase Auth 重導流程。
+需在 Supabase Dashboard > Authentication > Providers 啟用對應 provider（需提供 Client ID + Secret）。
+`0006_auth_trigger.sql` 確保首次 OAuth 登入時自動建立 `newcomer` profile，無需額外手動操作。
+
 ## 執行順序
 
-1. 在 dev Supabase 執行上方所有 SQL（enum → table → RLS）
-2. 在 Supabase Dashboard 手動插入第一個 staff profile
-3. 通知 `sttmountaincrazy` 端在 `.env.local` 補上 `NEXT_PUBLIC_*` 變數
-4. 驗證 dev 環境登入與角色讀取正常
-5. 在 prod Supabase 重複步驟 1–2
+1. 在 dev Supabase 執行 `0005_membership.sql`（一次貼完，全部冪等）
+2. 在 dev Supabase 執行 `0006_auth_trigger.sql`
+3. 在 Supabase Dashboard > Auth > Providers 啟用 Google / Facebook
+4. 手動在 Supabase Dashboard 建立第一個 staff profile（因 INSERT policy 需已有 staff 才能用 API 插入）
+5. 補上 `.env.local` 的 `NEXT_PUBLIC_*` 變數（已完成）
+6. 驗證 dev 環境：Email 登入、Google 登入、角色讀取正常
+7. prod 重複步驟 1–4
 
 ---
 

@@ -13,29 +13,39 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY ?? 'anon'
 )
 
-export type GpxFile = { file_path: string; filename: string }
-export type MapFile = { file_path: string; filename: string }
-export type RecordFile = { filename: string; content: string; file_path: string | null }
+export type GpxFile    = { id: number; file_path: string; filename: string }
+export type MapFile    = { id: number; file_path: string; filename: string }
+export type RecordFile = { id: number; filename: string; content: string; file_path: string | null }
+
+type GpxFileRaw    = GpxFile    & { deleted_at: string | null }
+type MapFileRaw    = MapFile    & { deleted_at: string | null }
+type RecordFileRaw = RecordFile & { deleted_at: string | null }
 type County = { county: string }
 type StorageBucket = 'gpx' | 'maps' | 'records' | 'previews'
 
 export interface ExpeditionDetail {
   id: number
   name: string
+  grade: string | null
   date_start: string
   date_end: string | null
   county: string | null
   region: string | null
   county_exit: string | null
   region_exit: string | null
-  leader: string | null
+  leader_display: string | null
   description: string | null
   preview_image: string | null
   created_at: string
+  transport: string | null
+  keeper: string | null
+  participants: number | null
+  sync_locked: boolean
+  journal_blocks: object[]
   gpx_files: GpxFile[]
   all_counties: string | null
   map_files: MapFile[]
-  records: RecordFile[]
+  record_files: RecordFile[]
 }
 
 export async function fetchExpeditionYears(): Promise<string[]> {
@@ -71,7 +81,7 @@ export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, 
   const [gpxRes, mapRes, recRes] = await Promise.all([
     supabaseAdmin.from('gpx_files').select('expedition_id').in('expedition_id', ids),
     supabaseAdmin.from('map_files').select('expedition_id').in('expedition_id', ids),
-    supabaseAdmin.from('records').select('expedition_id').in('expedition_id', ids),
+    supabaseAdmin.from('record_files').select('expedition_id').in('expedition_id', ids),
   ])
   const result = new Map<number, { gpx: number; map: number; rec: number }>()
   ids.forEach(id => result.set(id, { gpx: 0, map: 0, rec: 0 }))
@@ -84,7 +94,7 @@ export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, 
 export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail | null> {
   const { data, error } = await supabaseAdmin
     .from('expeditions')
-    .select('*, gpx_files(file_path, filename), map_files(file_path, filename), records(filename, content, file_path), expedition_counties(county)')
+    .select('*, journal_blocks, gpx_files(id, file_path, filename, deleted_at), map_files(id, file_path, filename, deleted_at), record_files(id, filename, content, file_path, deleted_at), expedition_counties(county)')
     .eq('id', id)
     .eq('is_public', true)
     .single()
@@ -92,22 +102,28 @@ export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail 
   if (error || !data) return null
 
   return {
-    id:            data.id,
-    name:          data.name,
-    date_start:    data.date_start,
-    date_end:      data.date_end,
-    county:        data.region_entry_county,
-    region:        data.region_entry_town,
-    county_exit:   data.region_exit_county,
-    region_exit:   data.region_exit_town,
-    leader:        data.leader,
-    description:   null,
-    preview_image: data.preview_image,
-    created_at:    data.created_at,
-    gpx_files:     data.gpx_files as GpxFile[],
-    all_counties:  (data.expedition_counties as County[]).map(ec => ec.county).join(',') || null,
-    map_files:     data.map_files as MapFile[],
-    records:       data.records as RecordFile[],
+    id:             data.id,
+    name:           data.name,
+    grade:          data.grade ?? null,
+    date_start:     data.date_start,
+    date_end:       data.date_end,
+    county:         data.region_entry_county,
+    region:         data.region_entry_town,
+    county_exit:    data.region_exit_county,
+    region_exit:    data.region_exit_town,
+    leader_display: data.leader_display,
+    description:    null,
+    preview_image:  data.preview_image,
+    created_at:     data.created_at,
+    transport:      data.transport ?? null,
+    keeper:         data.keeper ?? null,
+    participants:   data.participants ?? null,
+    sync_locked:    data.sync_locked ?? false,
+    journal_blocks: Array.isArray(data.journal_blocks) ? data.journal_blocks : [],
+    gpx_files:      (data.gpx_files as GpxFileRaw[]).filter(f => !f.deleted_at),
+    all_counties:   (data.expedition_counties as County[]).map(ec => ec.county).join(',') || null,
+    map_files:      (data.map_files as MapFileRaw[]).filter(f => !f.deleted_at),
+    record_files:   (data.record_files as RecordFileRaw[]).filter(f => !f.deleted_at),
   }
 }
 
@@ -130,7 +146,7 @@ export async function isPublicStorageFile(bucket: StorageBucket, filePath: strin
     ? 'gpx_files'
     : bucket === 'maps'
       ? 'map_files'
-      : 'records'
+      : 'record_files'
 
   const { data, error } = await supabaseAdmin
     .from(table)
