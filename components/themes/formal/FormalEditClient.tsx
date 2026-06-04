@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type FormEvent, type DragEvent } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FormalBackHeader, XField } from '@/components/themes/formal/FormalShell'
 import './formal.css'
 import {
@@ -402,6 +403,8 @@ function parseInitial(data: ExpeditionDetail): BasicForm {
 }
 
 export function FormalEditClient({ expeditionId, initialData }: { expeditionId: string; initialData: ExpeditionDetail }) {
+  const router = useRouter()
+  const [authorized,  setAuthorized] = useState<boolean | null>(null)
   const [layout,     setLayout]    = useState<Layout>('split')
   const rtPreset: RtPreset = 'full'
   const [saving,     setSaving]    = useState(false)
@@ -435,22 +438,36 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
   const [memberSearch, setMemberSearch] = useState('')
 
   useEffect(() => {
-    getAuthClient().auth.getUser().then(({ data }) => {
-      if (data.user) setMembers(ms => ms.map(m => m.locked ? { ...m, user_id: data.user!.id } : m))
+    Promise.all([
+      getAuthClient().auth.getUser(),
+      getExpeditionMembers(Number(expeditionId)),
+      listMemberProfiles(),
+    ]).then(([{ data: userData }, { data: emData }, { data: profiles }]) => {
+      const uid = userData.user?.id
+      if (!uid) { router.replace(`/formal/${expeditionId}`); return }
+
+      const myMem    = emData.find(em => em.user_id === uid)
+      const selfRole = profiles.find(p => p.user_id === uid)?.role
+      const ok = selfRole === 'staff' || myMem?.role === 'leader' || myMem?.can_edit === true
+
+      if (!ok) { router.replace(`/formal/${expeditionId}`); return }
+
+      setAuthorized(true)
+      setAllMembers(profiles)
+
+      if (emData.length) {
+        setMembers(emData.map((em, i) => ({
+          id:      i + 1,
+          user_id: em.user_id,
+          name:    em.name ?? em.nickname ?? '',
+          role:    em.role === 'leader' ? '領隊' : (em.expedition_role ?? '隊員'),
+          locked:  em.role === 'leader',
+          collab:  em.can_edit,
+        })))
+      }
+      setMembers(ms => ms.map(m => m.locked ? { ...m, user_id: uid } : m))
     })
-    listMemberProfiles().then(({ data }) => setAllMembers(data))
-    getExpeditionMembers(Number(expeditionId)).then(({ data }) => {
-      if (!data.length) return
-      setMembers(data.map((em, i) => ({
-        id:     i + 1,
-        user_id: em.user_id,
-        name:   em.name ?? em.nickname ?? '',
-        role:   em.role === 'leader' ? '領隊' : (em.expedition_role ?? '隊員'),
-        locked: em.role === 'leader',
-        collab: em.can_edit,
-      })))
-    })
-  }, [expeditionId])
+  }, [expeditionId, router])
 
   const setMemberRole = (id: number, role: string) => setMembers(m => m.map(x => x.id === id ? { ...x, role } : x))
   const toggleCollab  = (id: number) => setMembers(m => m.map(x => x.id === id ? { ...x, collab: !x.collab } : x))
@@ -663,6 +680,8 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
       {previewBlocks.map((b, i) => <PvBlock key={i} b={b} />)}
     </div>
   )
+
+  if (!authorized) return null
 
   return (
     <div className="x-scroll-root">

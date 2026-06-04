@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "./theme-rocket.css";
 
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+
 /* ── 預設 CSS 變數（fallback） ── */
 :root {
   --bg:           #ffffff;
@@ -24,7 +27,10 @@ html, body {
   color: var(--fg);
   font-family: var(--font-body);
   min-height: 100vh;
+  scrollbar-width: none;
 }
+
+::-webkit-scrollbar { display: none; }
 
 @media (max-width: 680px) {
   html, body { scrollbar-width: none; }

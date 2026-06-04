@@ -37,6 +37,7 @@ export async function DELETE(req: NextRequest) {
     .from(TABLE[bucket])
     .update({ deleted_at: new Date().toISOString(), deleted_by: user.id })
     .eq('id', dbId)
+    .eq('expedition_id', expeditionId)
 
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
