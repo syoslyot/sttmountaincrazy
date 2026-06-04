@@ -32,6 +32,10 @@ Server-only service keys must not be exposed to browser code.
 | `list_pending_claims()` | List all pending leader claims with claimant info | staff only |
 | `review_expedition_claim(p_claim_id, p_action)` | Approve or reject a pending claim (`p_action`: `'approved'` \| `'rejected'`) | staff only |
 | `update_expedition(p_id, p_name, p_grade, p_date_start, ...)` | Update expedition fields. Sets `sync_locked = true`; only staff may pass `sync_locked = false`. | approved leader or staff |
+| `get_expedition_members(p_expedition_id)` | Return approved members for an expedition (user_id, role, expedition_role, can_edit, name, nickname) | anon |
+| `sync_expedition_members(p_expedition_id, p_members)` | Replace all non-leader members with the provided list | approved leader or staff |
+| `save_expedition_journal(p_expedition_id, p_blocks)` | Overwrite journal_blocks JSONB on the expedition | approved leader, can_edit member, or staff |
+| `list_member_profiles()` | Return all user profiles for member selector (user_id, name, nickname) | approved leader or staff |
 
 `list_expeditions()` returns:
 
@@ -96,13 +100,26 @@ Server-side staff client must NOT be used to read `user_profiles` unless explici
 | --- | --- | --- |
 | `id` | `bigint` PK | |
 | `expedition_id` | `bigint` FK → `expeditions.id` | |
-| `user_id` | `uuid` FK → `auth.users.id` | |
+| `user_id` | `uuid` FK → `auth.users.id` | unique per (expedition_id, user_id) |
 | `role` | `text` | `'leader'` \| `'member'` |
 | `status` | `text` | `'pending'` \| `'approved'` \| `'rejected'` |
+| `expedition_role` | `text` nullable | 嚮導 / 隊員 / 新生（出隊角色，非會員等級） |
+| `can_edit` | `boolean` | 是否可編輯圖文紀錄（default `false`） |
 | `evidence` | `text` nullable | 認領申請佐證說明 |
 | `created_at` | `timestamptz` | default `now()` |
 
 Used for the claim workflow and determining which expeditions appear in public listing.
+
+#### RLS 規則
+
+| 操作 | 允許對象 | 限制 |
+| --- | --- | --- |
+| SELECT | 自己的紀錄；staff 可看全部 | — |
+| INSERT | 登入使用者，限自己的 user_id | **`role` 必須為 `'leader'`，`status` 必須為 `'pending'`，`can_edit` 必須為 `false`**（migration 0038）|
+| UPDATE | staff only | — |
+| DELETE | 自己的 `pending` 紀錄 | status = 'pending' |
+
+> **注意**：member 的新增與刪除必須透過 `sync_expedition_members` RPC（SECURITY DEFINER），不可直接操作 `role='member'` 的行。
 
 For role types, helper functions, and component usage, see [membership.md](membership.md).  
 For the migration SQL, see [db-migration-report-membership.md](db-migration-report-membership.md) and [db-migration-report-claims.md](db-migration-report-claims.md).

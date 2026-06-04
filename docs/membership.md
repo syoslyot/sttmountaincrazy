@@ -38,6 +38,10 @@ import { type MemberRole, type UserProfile, hasRole, ROLE_LABELS } from '@/lib/a
 | `listPendingClaims()` | 取得所有待審核的認領申請（staff only） |
 | `reviewClaim(claimId, action)` | 審核認領申請，`action`: `'approved'` \| `'rejected'`（staff only） |
 | `updateExpedition(id, fields)` | 更新隊伍資料，自動設 `sync_locked = true`（approved leader 或 staff） |
+| `getExpeditionMembers(expeditionId)` | 取得隊伍所有 approved 成員（含 user_id、role、expedition_role、can_edit） |
+| `syncExpeditionMembers(expeditionId, members)` | 取代所有非領隊成員（approved leader 或 staff） |
+| `saveExpeditionJournal(expeditionId, blocks)` | 儲存圖文紀錄 blocks（approved leader、can_edit 成員，或 staff） |
+| `listMemberProfiles()` | 取得全員名單供成員選擇器使用（approved leader 或 staff 才會回傳資料） |
 
 ## 在 Component 中取得目前使用者
 
