@@ -80,7 +80,6 @@ export function FormalMemberClient() {
 
   async function handleSignOut() {
     await signOut()
-    router.push('/login')
   }
 
   async function handleSaveProfile(e: React.FormEvent) {

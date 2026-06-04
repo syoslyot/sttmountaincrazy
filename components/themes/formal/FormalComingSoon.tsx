@@ -1,6 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { FormalHeader } from '@/components/themes/formal/FormalShell'
+import { useAuth } from '@/components/AuthProvider'
 import './formal.css'
 
 export function FormalComingSoon({
@@ -11,6 +14,15 @@ export function FormalComingSoon({
   subtitle: string
   activeHref?: string
 }) {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) router.replace('/login')
+  }, [loading, user, router])
+
+  if (loading || !user) return null
+
   return (
     <div className="formal-root">
       <FormalHeader />
