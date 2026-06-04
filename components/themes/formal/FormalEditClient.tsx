@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type FormEvent, type DragEvent } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FormalBackHeader, XField } from '@/components/themes/formal/FormalShell'
 import './formal.css'
 import {
@@ -71,8 +72,6 @@ const RT_PRESETS: Record<RtPreset, string[]> = {
   standard: ['bold','italic','underline','strike','sep','h3','quote','ul','ol','sep','link','clear'],
   full:     ['bold','italic','underline','strike','sep','h2','h3','quote','sep','ul','ol','sep','alignL','alignC','alignR','sep','color','hilite','hr','sep','link','clear'],
 }
-const RT_PRESET_LABELS: Record<RtPreset, string> = { minimal:'精簡', standard:'標準', full:'完整' }
-
 function RichText({ html, onChange, placeholder, preset = 'standard' }: {
   html: string; onChange: (v: string) => void; placeholder?: string; preset?: RtPreset
 }) {
@@ -404,6 +403,8 @@ function parseInitial(data: ExpeditionDetail): BasicForm {
 }
 
 export function FormalEditClient({ expeditionId, initialData }: { expeditionId: string; initialData: ExpeditionDetail }) {
+  const router = useRouter()
+  const [authorized,  setAuthorized] = useState<boolean | null>(null)
   const [layout,     setLayout]    = useState<Layout>('split')
   const rtPreset: RtPreset = 'full'
   const [saving,     setSaving]    = useState(false)
@@ -437,24 +438,37 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
   const [memberSearch, setMemberSearch] = useState('')
 
   useEffect(() => {
-    getAuthClient().auth.getUser().then(({ data }) => {
-      if (data.user) setMembers(ms => ms.map(m => m.locked ? { ...m, user_id: data.user!.id } : m))
-    })
-    listMemberProfiles().then(({ data }) => setAllMembers(data))
-    getExpeditionMembers(Number(expeditionId)).then(({ data }) => {
-      if (!data.length) return
-      setMembers(data.map((em, i) => ({
-        id:     i + 1,
-        user_id: em.user_id,
-        name:   em.name ?? em.nickname ?? '',
-        role:   em.role === 'leader' ? '領隊' : (em.expedition_role ?? '隊員'),
-        locked: em.role === 'leader',
-        collab: em.can_edit,
-      })))
-    })
-  }, [])
+    Promise.all([
+      getAuthClient().auth.getUser(),
+      getExpeditionMembers(Number(expeditionId)),
+      listMemberProfiles(),
+    ]).then(([{ data: userData }, { data: emData }, { data: profiles }]) => {
+      const uid = userData.user?.id
+      if (!uid) { router.replace(`/formal/${expeditionId}`); return }
 
-  const renameMember  = (id: number, name: string) => setMembers(m => m.map(x => x.id === id ? { ...x, name } : x))
+      const myMem    = emData.find(em => em.user_id === uid)
+      const selfRole = profiles.find(p => p.user_id === uid)?.role
+      const ok = selfRole === 'staff' || myMem?.role === 'leader' || myMem?.can_edit === true
+
+      if (!ok) { router.replace(`/formal/${expeditionId}`); return }
+
+      setAuthorized(true)
+      setAllMembers(profiles)
+
+      if (emData.length) {
+        setMembers(emData.map((em, i) => ({
+          id:      i + 1,
+          user_id: em.user_id,
+          name:    em.name ?? em.nickname ?? '',
+          role:    em.role === 'leader' ? '領隊' : (em.expedition_role ?? '隊員'),
+          locked:  em.role === 'leader',
+          collab:  em.can_edit,
+        })))
+      }
+      setMembers(ms => ms.map(m => m.locked ? { ...m, user_id: uid } : m))
+    })
+  }, [expeditionId, router])
+
   const setMemberRole = (id: number, role: string) => setMembers(m => m.map(x => x.id === id ? { ...x, role } : x))
   const toggleCollab  = (id: number) => setMembers(m => m.map(x => x.id === id ? { ...x, collab: !x.collab } : x))
   const delMember     = (id: number) => setMembers(m => m.filter(x => x.id !== id))
@@ -508,7 +522,6 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
   })
   const [activeDay, setActiveDay] = useState(0)
 
-  const addBlock    = (t: JournalBlock['type']) => setBlocks(bs => [...bs, { id: _bid++, type: t, text: '', cap: '', a: { cap: '' }, b: { cap: '' } }])
   const changeBlock = (i: number, p: Partial<EditorBlock>) => setBlocks(bs => bs.map((b, j) => j === i ? { ...b, ...p } : b))
   const moveBlock   = (i: number, d: number) => setBlocks(bs => { const a = [...bs]; const [x] = a.splice(i, 1); a.splice(i + d, 0, x); return a })
   const delBlock    = (i: number) => setBlocks(bs => bs.filter((_, j) => j !== i))
@@ -667,6 +680,8 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
       {previewBlocks.map((b, i) => <PvBlock key={i} b={b} />)}
     </div>
   )
+
+  if (!authorized) return null
 
   return (
     <div className="x-scroll-root">

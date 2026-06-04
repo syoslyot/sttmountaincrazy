@@ -45,4 +45,38 @@ const { error } = await submitClaim(expeditionId, evidence)
 
 ## `list_unclaimed_expeditions` 行為
 
-目前 `0017` 的 RPC 只過濾掉有 `approved` leader 的隊伍，有 `pending` 申請的隊伍仍會出現在清單中（允許多人同時申請）。如需改成「有 pending 就消失」可另開 migration 調整 where 條件。
+目前 `0017` 的 RPC 只過濾掉有 `approved` leader 的隊伍，有 `pending` 申請的隊伍仍會出現在清單中（`claim_status: 'pending'`，前端顯示為不可點擊）。
+
+---
+
+## Migration 0036 — 唯一性約束
+
+`expedition_members` 加上 `UNIQUE (expedition_id, user_id)`，確保同一使用者對同一隊伍最多一筆紀錄。
+
+---
+
+## Migration 0037 — 拒絕後可重新申請
+
+原本 `submit_expedition_claim` 使用 `INSERT`，被拒絕後再申請會觸發 unique constraint 錯誤。改為 `INSERT ... ON CONFLICT DO UPDATE`：
+
+- `status = 'rejected'` → 重設為 `pending`，允許重新提交
+- `status = 'pending'` 或 `'approved'` → 保持不變，不覆蓋
+
+---
+
+## Migration 0038 — INSERT RLS 修正（安全性）
+
+**漏洞**：原本的 INSERT RLS 只驗證 `user_id = auth.uid()`，任何登入使用者可直接 INSERT `role='leader', status='approved'` 到任意隊伍，繞過整個認領審核流程。
+
+**修正**：`WITH CHECK` 限制直接 INSERT 必須為：
+- `role = 'leader'`
+- `status = 'pending'`
+- `can_edit = false`
+
+透過 SECURITY DEFINER RPC（`submit_expedition_claim`、`sync_expedition_members`）的操作不受 RLS 影響，行為不變。
+
+---
+
+## Migration 0039 — NULL uid 防護
+
+`update_expedition`、`review_expedition_claim`、`list_pending_claims`、`submit_expedition_claim` 補上 `IF auth.uid() IS NULL THEN RAISE EXCEPTION` 明確檢查，與 migration 0033 對 `sync_expedition_members`/`save_expedition_journal` 的修正保持一致。

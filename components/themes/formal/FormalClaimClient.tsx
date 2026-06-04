@@ -86,7 +86,11 @@ function ClaimModal({ team, onClose, onSuccess }: {
     const { error } = await submitClaim(team.id, evidence)
     setSubmitting(false)
     if (error) {
-      setSubmitError(error.message)
+      setSubmitError(
+        error.message.includes('unique constraint') || error.message.includes('duplicate key')
+          ? '你已是此隊伍的認領申請人或成員，無法重複申請。'
+          : error.message
+      )
       return
     }
     setDone(true)
@@ -105,7 +109,7 @@ function ClaimModal({ team, onClose, onSuccess }: {
             <div className="x-label" style={{ marginBottom: 14 }}>認領隊伍 <span className="en">CLAIM TEAM</span></div>
             <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 500 }}>{team.name}</h2>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', marginBottom: 22 }}>
-              REC.{String(team.id).padStart(3, '0')} · {team.region_entry_county ?? '—'} · {team.date_start} · {team.grade ?? '—'}級
+              REC.{String(team.id).padStart(3, '0')} · {team.region_entry_county ?? '—'}{team.region_entry_town ? `・${team.region_entry_town}` : ''} · {team.date_start}{team.date_end ? ` — ${team.date_end}` : ''} · {team.grade ?? '—'}級
             </div>
 
             {!authLoading && !user ? (
@@ -129,10 +133,10 @@ function ClaimModal({ team, onClose, onSuccess }: {
                       嚮導 / 隊員 / 新生 由你於編輯頁新增
                     </div>
                   </div>
-                  <XField label="佐證說明 · EVIDENCE" hint="例如：出隊公告連結、合照、行前會記錄，供管理員審核">
+                  <XField label="佐證說明 · EVIDENCE" hint="例如：直企、私訊粉專、告知管理員等方式。">
                     <textarea
                       className="x-textarea"
-                      placeholder="請說明你帶領此隊伍的佐證資料…"
+                      placeholder="我們該如何得知你就是這隻隊伍的領隊？"
                       value={evidence}
                       onChange={e => setEvidence(e.target.value)}
                       disabled={submitting}
@@ -221,7 +225,7 @@ export function FormalClaimClient() {
                 )}
               </div>
               {pendingClaims.length === 0 ? (
-                <p style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', letterSpacing: '.04em', lineHeight: 1.8 }}>
+                <p style={{ fontFamily: 'var(--serif)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.8 }}>
                   目前沒有待審核的認領申請。
                 </p>
               ) : (
@@ -238,8 +242,8 @@ export function FormalClaimClient() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8, flexWrap: 'wrap', gap: 10 }}>
           <div>
             <div className="x-label" style={{ marginBottom: 10 }}>認領隊伍 <span className="en">CLAIM A TEAM</span></div>
-            <p style={{ margin: 0, color: 'var(--muted)', fontFamily: 'var(--mono)', fontSize: 12, maxWidth: 580, lineHeight: 1.9, letterSpacing: '.02em' }}>
-              以下隊伍尚未有人認領<b style={{ color: 'var(--accent)' }}>領隊</b>。認領並填寫佐證後送交管理員審核；通過後即可於編輯頁新增嚮導、隊員與新生。
+            <p style={{ margin: 0, color: 'var(--muted)', fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.9, letterSpacing: '.02em', whiteSpace: 'nowrap' }}>
+              請領隊認領隊伍，以將隊伍紀錄到您的帳號。
             </p>
           </div>
           <Link href="/member" style={{ fontFamily: 'var(--mono)', fontSize: 13, letterSpacing: '.04em', color: 'var(--muted)', textDecoration: 'none', transition: 'color .12s' }}>← 回會員頁</Link>

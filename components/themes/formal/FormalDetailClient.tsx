@@ -8,7 +8,7 @@ import type { ExpeditionDetail } from '@/lib/supabase'
 import type { TileLayerKey } from '@/components/themes/formal/FormalLeafletMap'
 import { FormalBackHeader } from '@/components/themes/formal/FormalShell'
 import { FormalElevationChart, type ElevPoint } from '@/components/themes/formal/FormalElevationChart'
-import { FormalJournal, blocksToJournalDays, type JournalDay } from '@/components/themes/formal/FormalJournal'
+import { FormalJournal, blocksToJournalDays } from '@/components/themes/formal/FormalJournal'
 import './formal.css'
 
 const FormalLeafletMap = dynamic(

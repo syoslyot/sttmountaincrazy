@@ -48,8 +48,6 @@ export interface JournalDay {
 
 interface Props {
   days: JournalDay[]
-  canEdit?: boolean
-  editHref?: string  // href for the edit button
 }
 
 // ─── JBlock ───────────────────────────────────────────────────────────────────
@@ -89,7 +87,7 @@ function JBlock({ b }: { b: JournalBlock }) {
 
 // ─── FormalJournal ────────────────────────────────────────────────────────────
 
-export function FormalJournal({ days, canEdit = false, editHref }: Props) {
+export function FormalJournal({ days }: Props) {
   const [activeDay, setActiveDay] = useState(0)
   const bodyRef = useRef<HTMLDivElement>(null)
   const cur = days[activeDay]
