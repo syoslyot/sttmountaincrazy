@@ -8,9 +8,15 @@ type ExpeditionRow = {
   grade?: string | null
   date_start?: string | null
   date_end?: string | null
+  region_entry_county?: string | null
+  region_entry_town?: string | null
+  region_exit_county?: string | null
+  region_exit_town?: string | null
+  leader_display?: string | null
   gpx_count?: number | null
   map_count?: number | null
   rec_count?: number | null
+  expedition_counties?: { county?: string | null }[] | null
 }
 type ExpeditionList = {
   expeditions: ExpeditionRow[]
@@ -50,6 +56,90 @@ function sortExpeditions(rows: ExpeditionRow[], sort: ExpeditionSort) {
     const bd = b.date_end ?? b.date_start ?? ''
     return ad.localeCompare(bd) * direction
   })
+}
+
+function matchesSearch(e: ExpeditionRow, query: string) {
+  if (!query) return true
+  const q = query.toLowerCase()
+  return [
+    e.name,
+    e.leader_display,
+    e.region_entry_county,
+    e.region_entry_town,
+    e.region_exit_county,
+    e.region_exit_town,
+  ].some(value => value?.toLowerCase().includes(q))
+}
+
+function expeditionCounties(e: ExpeditionRow) {
+  return [
+    e.region_entry_county,
+    e.region_exit_county,
+    ...(e.expedition_counties ?? []).map(ec => ec.county),
+  ].filter((county): county is string => !!county)
+}
+
+function matchesCounty(e: ExpeditionRow, county: string) {
+  if (!county) return true
+  return expeditionCounties(e).includes(county)
+}
+
+function matchesCounties(e: ExpeditionRow, counties: string[]) {
+  if (counties.length === 0) return true
+  const rowCounties = expeditionCounties(e)
+  return counties.some(county => rowCounties.includes(county))
+}
+
+function matchesDateRange(e: ExpeditionRow, start: string | null, end: string | null) {
+  const date = e.date_end ?? e.date_start
+  if (!date) return false
+  if (start && date < start) return false
+  if (end && date > end) return false
+  return true
+}
+
+function pageRows(rows: ExpeditionRow[], page: number, pageSize: number) {
+  const start = (page - 1) * pageSize
+  return rows.slice(start, start + pageSize)
+}
+
+async function listPublicExpeditionsFallback(
+  params: {
+    query: string
+    county: string
+    counties: string[]
+    start: string | null
+    end: string | null
+    page: number
+    pageSize: number
+    grade: string
+    sort: ExpeditionSort
+  }
+): Promise<{ data: ExpeditionList | null; error: { message: string } | null }> {
+  const { data, error } = await supabase
+    .from('expeditions')
+    .select('id, name, grade, date_start, date_end, region_entry_county, region_entry_town, region_exit_county, region_exit_town, leader_display, expedition_counties(county)')
+    .eq('is_public', true)
+
+  if (error) return { data: null, error: { message: error.message } }
+
+  const filtered = ((data ?? []) as ExpeditionRow[])
+    .filter(e => matchesSearch(e, params.query))
+    .filter(e => matchesCounty(e, params.county))
+    .filter(e => matchesCounties(e, params.counties))
+    .filter(e => matchesDateRange(e, params.start, params.end))
+    .filter(e => !params.grade || matchesGrade(e, params.grade))
+
+  const sorted = sortExpeditions(filtered, params.sort)
+  return {
+    data: {
+      expeditions: pageRows(sorted, params.page, params.pageSize),
+      total: sorted.length,
+      page: params.page,
+      pageSize: params.pageSize,
+    },
+    error: null,
+  }
 }
 
 async function listWithLegacyGradeFallback(
@@ -99,12 +189,17 @@ export async function GET(req: NextRequest) {
   const pageSize = 20
   const grade = sp.get('grade')?.trim().toUpperCase() ?? ''
   const sort = sanitizeSort(sp.get('sort'))
+  const query = sp.get('q') ?? ''
+  const county = sp.get('county') ?? ''
+  const counties = sp.get('counties') ? sp.get('counties')!.split(',') : []
+  const start = sp.get('start') || null
+  const end = sp.get('end') || null
   const baseArgs = {
-    p_q:         sp.get('q')       ?? '',
-    p_county:    sp.get('county')  ?? '',
-    p_counties:  sp.get('counties') ? sp.get('counties')!.split(',') : [],
-    p_start:     sp.get('start')   || null,
-    p_end:       sp.get('end')     || null,
+    p_q:         query,
+    p_county:    county,
+    p_counties:  counties,
+    p_start:     start,
+    p_end:       end,
     p_page:      page,
     p_page_size: pageSize,
   }
@@ -115,6 +210,23 @@ export async function GET(req: NextRequest) {
   }
   if (grade && isMissingGradeParam(result.error)) {
     result = await listWithLegacyGradeFallback(baseArgs, page, pageSize, grade, sort)
+  }
+
+  if (!result.error && (result.data as ExpeditionList | null)?.total === 0) {
+    const fallback = await listPublicExpeditionsFallback({
+      query,
+      county,
+      counties,
+      start,
+      end,
+      page,
+      pageSize,
+      grade,
+      sort,
+    })
+    if (!fallback.error && fallback.data && fallback.data.total > 0) {
+      result = fallback
+    }
   }
 
   const { data, error } = result
