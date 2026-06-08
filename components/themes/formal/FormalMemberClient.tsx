@@ -34,7 +34,7 @@ export function FormalMemberClient() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [memberships, setMemberships] = useState<MyMembership[]>([])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (profile) {
       setName(profile.name ?? '')
@@ -43,6 +43,7 @@ export function FormalMemberClient() {
       setAvatarUrl(profile.avatar_url ?? null)
     }
   }, [profile])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!user) return

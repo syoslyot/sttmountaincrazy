@@ -593,6 +593,7 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
       return [...bs.slice(0, insertAt), { id: _bid++, type: t, text: '', cap: '', a: { cap: '' }, b: { cap: '' } }, ...bs.slice(insertAt)]
     })
 
+  /* eslint-disable react-hooks/refs */
   const rawOverIdx = drag.overIdx
   const dayDrag = {
     start: (local: number) => drag.start(activeDayStart + local),
@@ -601,6 +602,7 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
     overIdx: rawOverIdx !== null && rawOverIdx >= activeDayStart && rawOverIdx < activeDayEnd
       ? rawOverIdx - activeDayStart : null,
   }
+  /* eslint-enable react-hooks/refs */
 
   const Editor = (
     <div>
