@@ -8,6 +8,9 @@ The formal theme is a quiet, document-like interface. It should feel consistent 
 | --- | --- |
 | `/formal` | index, county browsing, mobile filters |
 | `/formal/[id]` | expedition detail, maps, GPX/KML, downloads |
+| `/formal/[id]/edit` | edit expedition fields; accessible to approved leader or staff |
+| `/formal/claim` | list unclaimed expeditions; submit / review leader claims |
+| `/formal/member` | user profile, stats, and expedition memberships |
 | `/formal/about` | static informational page |
 | `/formal/submit` | static submission guidance page |
 
@@ -22,7 +25,7 @@ The formal theme is a quiet, document-like interface. It should feel consistent 
 
 Detail pages can show:
 
-- 2D Leaflet map;
+- 2D Leaflet map with scroll wheel zoom enabled;
 - 3D MapLibre terrain view;
 - GPX/KML record points and tracks;
 - start/end labels when track points are available.

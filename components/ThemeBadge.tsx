@@ -32,11 +32,15 @@ export function ThemeBadge({ containerStyle, exclude }: { containerStyle?: React
 
   if (isMobile) return null
 
-  // Layout-level badge: suppress when page handles its own (rocket home, expedition detail, and / which is just redirecting)
+  // Layout-level badge: suppress on homepage redirect, rocket/expedition detail, and formal inner pages
   if (!containerStyle && (
     pathname === '/' ||
     pathname.startsWith('/rocket') ||
-    pathname.startsWith('/expedition')
+    pathname.startsWith('/expedition') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/member') ||
+    pathname.startsWith('/claim') ||
+    !!pathname.match(/^\/formal\/.+/)
   )) return null
 
   const currentBase = pathname.startsWith('/formal') ? '/formal'

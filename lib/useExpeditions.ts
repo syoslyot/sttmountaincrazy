@@ -12,7 +12,7 @@ export interface Expedition {
   region_entry_town:   string | null
   region_exit_county:  string | null
   region_exit_town:    string | null
-  leader: string | null
+  leader_display: string | null
   gpx_count: number
   map_count: number
   rec_count: number

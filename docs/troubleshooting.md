@@ -28,6 +28,20 @@ Check browser console for:
 - MapLibre or Leaflet asset errors;
 - container height collapsing on mobile.
 
+## 編輯頁面進去就被導回詳細頁
+
+`FormalEditClient` 有 auth guard：載入後如果目前使用者不是 approved leader、`can_edit` 成員，或 staff，會立即 redirect 到詳細頁。
+
+確認：
+- 使用者是否已登入（`useAuth().user` 非 null）
+- `expedition_members` 是否有該使用者的 approved 紀錄（`status='approved'` 且 `role='leader'` 或 `can_edit=true`）
+- 若是 staff，確認 `user_profiles.role = 'staff'`
+
+## 認領後 pending claims 沒出現在 Staff 審核區
+
+- 確認帳號的 `user_profiles.role = 'staff'`（由資料組管理員在 Supabase Dashboard 設定）
+- `listPendingClaims()` 在 `role !== 'staff'` 時不會呼叫；RPC `list_pending_claims()` 也會對非 staff 回傳空陣列
+
 ## GitHub Actions Does Not Start
 
 Confirm GitHub Actions status first. If GitHub is healthy, push a new commit to the PR branch or rerun the failed workflow from the Actions page.

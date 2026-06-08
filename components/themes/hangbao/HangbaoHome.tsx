@@ -20,7 +20,7 @@ interface Exp {
   region_entry_town:   string | null
   region_exit_county:  string | null
   region_exit_town:    string | null
-  leader: string | null
+  leader_display: string | null
 }
 
 function regionLabel(e: Exp): string {
@@ -259,7 +259,7 @@ export function HangbaoHome() {
                     {fmtDate(e.date_start)}{e.date_end ? ` — ${fmtDate(e.date_end)}` : ''}
                   </span>
                   <h3 className="trip-title">{e.name}</h3>
-                  {e.leader && <div className="trip-leader">領隊 {e.leader}</div>}
+                  {e.leader_display && <div className="trip-leader">領隊 {e.leader_display}</div>}
                   {region && <div className="trip-region">{region}</div>}
                 </Link>
               )

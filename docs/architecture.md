@@ -27,8 +27,24 @@ Browser
 | `components/themes/formal/` | formal theme UI and map components |
 | `components/themes/rocket/` | rocket theme UI and map components |
 | `components/themes/hangbao/` | hangbao theme UI and map components |
-| `lib/supabase.ts` | Supabase client and data helpers |
+| `lib/supabase.ts` | Supabase client and data helpers (server-side, service key) |
+| `lib/auth.ts` | Browser-side auth client, membership helpers, expedition edit helpers |
 | `styles/` | Global and theme-level CSS |
+
+## Auth & Access Control
+
+| 頁面 / 功能 | 需要登入 | 守門方式 |
+| --- | --- | --- |
+| `/formal`、`/formal/[id]`、`/rocket`、`/hangbao`、`/hangbao/[id]`、`/expedition/[id]` | 否 | 公開頁面 |
+| `/formal/claim` — 瀏覽未認領清單 | 否 | 資料公開；submit 前 modal 會 check `!user` |
+| `/formal/claim` — 送出認領 | 是 | UI: `if (!user) return`；RPC: authenticated + NULL uid guard |
+| `/formal/claim` — Staff 審核區 | staff only | UI: `role === 'staff'`；RPC: staff check + NULL uid guard |
+| `/formal/member` | 是 | `useAuth()` 無 user → `router.replace('/login')` |
+| `/formal/[id]/edit` | approved leader / can\_edit member / staff | client-side auth guard；所有寫入 RPC 皆有伺服器驗證 |
+
+`role` 值來自 `AuthProvider` → `fetchUserProfile` → Supabase RLS，使用者無法在瀏覽器端竄改。
+
+所有資料寫入操作（更新隊伍、同步成員、儲存圖文、審核認領）皆透過 `SECURITY DEFINER` RPC 執行，RPC 內部再次驗證呼叫者身份。詳見 [database-contract.md](database-contract.md) 的 RLS 規則。
 
 ## Data Ownership
 

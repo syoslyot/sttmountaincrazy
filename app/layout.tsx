@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { ThemeBadge } from '@/components/ThemeBadge'
+import { AuthProvider } from '@/components/AuthProvider'
 import '@/styles/globals.css'
+import '@/styles/ext.css'
 
 export const metadata: Metadata = {
   title: '成大山協',
@@ -22,16 +24,18 @@ const FONT_URL = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-TW">
+    <html lang="zh-TW" data-theme="formal" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href={FONT_URL} rel="stylesheet" />
       </head>
       <body>
-        {children}
-        <ThemeBadge />
-        <GoogleAnalytics gaId="G-22DPL2TKN2" />
+        <AuthProvider>
+          {children}
+          <ThemeBadge />
+          <GoogleAnalytics gaId="G-22DPL2TKN2" />
+        </AuthProvider>
       </body>
     </html>
   )
