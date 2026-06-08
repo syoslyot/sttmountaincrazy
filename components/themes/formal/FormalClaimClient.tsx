@@ -196,11 +196,16 @@ export function FormalClaimClient() {
     const params = new URLSearchParams()
     if (q) params.set('q', q)
     if (grade !== 'ALL') params.set('grade', grade)
-    setLoading(true)
-    fetch(`/api/expeditions/unclaimed?${params}`)
-      .then(r => r.json())
-      .then(d => setUnclaimed(Array.isArray(d.expeditions) ? d.expeditions : []))
-      .finally(() => setLoading(false))
+    void (async () => {
+      setLoading(true)
+      try {
+        const r = await fetch(`/api/expeditions/unclaimed?${params}`)
+        const d = await r.json()
+        setUnclaimed(Array.isArray(d.expeditions) ? d.expeditions : [])
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [q, grade, refreshKey])
 
   useEffect(() => {
