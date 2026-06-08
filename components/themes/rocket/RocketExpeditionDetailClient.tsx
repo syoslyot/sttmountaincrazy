@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { openFile } from '@/lib/openFile'
 import { ThemeBadge } from '@/components/ThemeBadge'
+import { useAuth } from '@/components/AuthProvider'
 
 const RocketLeafletMap = dynamic(
   () => import('@/components/themes/rocket/RocketLeafletMap').then(m => m.RocketLeafletMap),
@@ -165,6 +166,7 @@ function RisoMultiDropdown({ options, selected, onToggle, color, open, onOpenTog
 }
 
 export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records, storageBase }: Props) {
+  const { user } = useAuth()
   const [activeGpxes, setActiveGpxes] = useState<Set<string>>(
     () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
   )
@@ -349,7 +351,7 @@ export function RocketExpeditionDetailClient({ exp, gpxFiles, mapFiles, records,
           }} />
 
           {/* P1 image */}
-          {p1Image && (
+          {user && p1Image && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={`/api/preview?file=${encodeURIComponent(p1Image)}`}

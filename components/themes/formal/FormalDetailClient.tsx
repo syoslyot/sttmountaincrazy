@@ -7,6 +7,7 @@ import { openFile } from '@/lib/openFile'
 import type { ExpeditionDetail } from '@/lib/supabase'
 import type { TileLayerKey } from '@/components/themes/formal/FormalLeafletMap'
 import { FormalBackHeader } from '@/components/themes/formal/FormalShell'
+import { useAuth } from '@/components/AuthProvider'
 import { FormalElevationChart, type ElevPoint } from '@/components/themes/formal/FormalElevationChart'
 import { FormalJournal, blocksToJournalDays } from '@/components/themes/formal/FormalJournal'
 import './formal.css'
@@ -138,6 +139,7 @@ function DLRow({ label, filename, filePath, bucket }: {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
+  const { user } = useAuth()
   const journalDays = blocksToJournalDays(exp.journal_blocks)
   const [activeGpxes, setActiveGpxes] = useState<string[]>(
     exp.gpx_files.length > 0 ? [exp.gpx_files[0].file_path] : []
@@ -179,7 +181,7 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
   const days = calcDays(exp.date_start, exp.date_end)
   const previewBasename = exp.preview_image ? exp.preview_image.split('/').pop() ?? null : null
   const previewFilename = `${exp.name.replace(PREFIX_RE, '')}.png`
-  const hasFiles = exp.map_files.length + exp.record_files.length > 0 || !!previewBasename
+  const hasFiles = exp.map_files.length + exp.record_files.length > 0 || (!!user && !!previewBasename)
   const hasBelow = journalDays.length > 0
 
   return (
@@ -366,10 +368,10 @@ export function FormalDetailClient({ exp }: { exp: ExpeditionDetail }) {
         {!isMobile && hasFiles && (
           <CollapsiblePanel
             title="下載"
-            badge={String((previewBasename ? 1 : 0) + exp.map_files.length + exp.record_files.length)}
+            badge={String((user && previewBasename ? 1 : 0) + exp.map_files.length + exp.record_files.length)}
             defaultOpen={false}
             style={{ top: 12, right: 12, width: 'clamp(130px, 38vw, 260px)' }}>
-            {previewBasename && (
+            {user && previewBasename && (
               <DLRow label="直企" filename={previewFilename} filePath={previewBasename} bucket="previews" />
             )}
             {exp.map_files.map(f => (
