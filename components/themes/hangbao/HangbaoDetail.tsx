@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { openFile } from '@/lib/openFile'
+import { useAuth } from '@/components/AuthProvider'
 import 'leaflet/dist/leaflet.css'
 import './hangbao.css'
 
@@ -409,6 +410,7 @@ const TITLE_ROTS = [-4, 3, -6, 2, -3, 5, -2, 4, -5, 2]
 const REC_SHAPES = ['rs-square','rs-rect','rs-circle','rs-ellipse','rs-blob','rs-skew','rs-tall','rs-wide']
 
 export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }: Props) {
+  const { user } = useAuth()
   const [openRec, setOpenRec]     = useState<number | null>(null)
   const [activeGpxes, setActiveGpxes] = useState<Set<string>>(
     () => new Set(gpxFiles[0] ? [gpxFiles[0].file_path] : [])
@@ -465,7 +467,7 @@ export function HangbaoDetail({ exp, gpxFiles, records, mapFiles, storageBase }:
   }
 
   const screenshots: string[] = []
-  if (exp.preview_image) {
+  if (user && exp.preview_image) {
     const name = String(exp.preview_image).split('/').pop() ?? ''
     if (name) screenshots.push(name)
   }
