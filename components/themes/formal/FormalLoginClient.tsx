@@ -95,34 +95,31 @@ export function FormalLoginClient() {
                 </XField>
               )}
               <XField label="電子郵件 · EMAIL">
-                <input className="x-input mono" type="email" placeholder="you@example.ncku.edu.tw" value={email} onChange={e => setEmail(e.target.value)} required />
+                <input className="x-input mono" type="email" value={email} onChange={e => setEmail(e.target.value)} required disabled />
               </XField>
               {mode !== 'forgot' && (
                 <XField label="密碼 · PASSWORD">
-                  <input className="x-input mono" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
+                  <input className="x-input mono" type="password" value={password} onChange={e => setPassword(e.target.value)} required disabled />
                 </XField>
               )}
               {mode === 'signup' && (
                 <XField label="確認密碼 · CONFIRM">
-                  <input className="x-input mono" type="password" placeholder="••••••••" value={confirm} onChange={e => setConfirm(e.target.value)} required />
+                  <input className="x-input mono" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required disabled />
                 </XField>
               )}
               {mode === 'login' && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
                     記住我
                   </label>
-                  <button type="button" className="x-btn ghost sm" style={{ color: 'var(--accent)' }} onClick={() => setMode('forgot')}>
-                    忘記密碼？
-                  </button>
                 </div>
               )}
               {error && (
                 <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: '#9a4f37', letterSpacing: '.03em' }}>{error}</div>
               )}
-              <button className="x-btn solid" type="submit" disabled={loading} style={{ padding: '12px', marginTop: 4, fontSize: 13 }}>
-                {loading ? '請稍候…' : mode === 'login' ? '登入 · LOGIN' : mode === 'forgot' ? '寄送重設連結' : '送出申請'}
+              <button className="x-btn solid" type="submit" disabled style={{ padding: '12px', marginTop: 4, fontSize: 13 }}>
+                登入 · LOGIN
               </button>
             </form>
           )}
@@ -136,7 +133,7 @@ export function FormalLoginClient() {
                 <span style={{ flex: 1, height: '0.5px', background: 'var(--border)' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
-                {(['google', 'facebook'] as const).map(provider => (
+                {(['google'] as const).map(provider => (
                   <button
                     key={provider}
                     type="button"
@@ -163,14 +160,6 @@ export function FormalLoginClient() {
             </>
           )}
 
-          <div className="x-hr" style={{ margin: '24px 0 16px' }} />
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--muted)', display: 'flex', justifyContent: 'center', gap: 8, alignItems: 'center' }}>
-            {mode === 'login' ? (
-              <>還沒有帳號？<button className="x-btn ghost sm" style={{ color: 'var(--accent)' }} onClick={() => { setMode('signup'); setError(null) }}>註冊 →</button></>
-            ) : (
-              <>已有帳號？<button className="x-btn ghost sm" style={{ color: 'var(--accent)' }} onClick={() => { setMode('login'); setError(null); setSent(false) }}>返回登入</button></>
-            )}
-          </div>
         </div>
       </div>
     </div>
