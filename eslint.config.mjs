@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Prototype directory is not part of the app
+    "prototype/**",
   ]),
 ]);
 

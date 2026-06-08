@@ -110,32 +110,34 @@ function RichText({ html, onChange, placeholder, preset = 'standard' }: {
 
   const keys = RT_PRESETS[preset] ?? RT_PRESETS.standard
 
+  function renderBtn(key: string, i: number) {
+    const b = RT_DEFS[key]
+    return (
+      <span key={i} style={{ position: 'relative', display: 'inline-flex' }}>
+        <button type="button" className="x-rt-btn" style={b.style} title={b.title}
+          onMouseDown={e => e.preventDefault()} onClick={() => run(key)}>
+          {b.label}
+        </button>
+        {b.color && pop === b.color && (
+          <div className="x-rt-pop" onMouseDown={e => e.preventDefault()}>
+            {(b.color === 'foreColor' ? RT_PALETTE_TEXT : RT_PALETTE_HILITE).map(c => (
+              <button key={c} type="button" className="x-rt-swatch" title={c === '__none__' ? '移除' : c}
+                style={{ background: c === '__none__' ? 'transparent' : c,
+                  backgroundImage: c === '__none__' ? 'linear-gradient(45deg,transparent 45%,#9a4f37 45% 55%,transparent 55%)' : 'none' }}
+                onClick={() => applyColor(b.color!, c)} />
+            ))}
+          </div>
+        )}
+      </span>
+    )
+  }
+
   return (
     <div className="x-rt">
       <div className="x-rt-tb">
         {keys.map((key, i) => key === 'sep'
           ? <span key={i} className="x-rt-sep" />
-          : (() => {
-              const b = RT_DEFS[key]
-              return (
-                <span key={i} style={{ position: 'relative', display: 'inline-flex' }}>
-                  <button type="button" className="x-rt-btn" style={b.style} title={b.title}
-                    onMouseDown={e => e.preventDefault()} onClick={() => run(key)}>
-                    {b.label}
-                  </button>
-                  {b.color && pop === b.color && (
-                    <div className="x-rt-pop" onMouseDown={e => e.preventDefault()}>
-                      {(b.color === 'foreColor' ? RT_PALETTE_TEXT : RT_PALETTE_HILITE).map(c => (
-                        <button key={c} type="button" className="x-rt-swatch" title={c === '__none__' ? '移除' : c}
-                          style={{ background: c === '__none__' ? 'transparent' : c,
-                            backgroundImage: c === '__none__' ? 'linear-gradient(45deg,transparent 45%,#9a4f37 45% 55%,transparent 55%)' : 'none' }}
-                          onClick={() => applyColor(b.color!, c)} />
-                      ))}
-                    </div>
-                  )}
-                </span>
-              )
-            })()
+          : renderBtn(key, i)
         )}
       </div>
       <div ref={ref} className="x-rt-area" contentEditable suppressContentEditableWarning
@@ -591,13 +593,16 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
       return [...bs.slice(0, insertAt), { id: _bid++, type: t, text: '', cap: '', a: { cap: '' }, b: { cap: '' } }, ...bs.slice(insertAt)]
     })
 
+  /* eslint-disable react-hooks/refs */
+  const rawOverIdx = drag.overIdx
   const dayDrag = {
     start: (local: number) => drag.start(activeDayStart + local),
     over:  (local: number) => drag.over(activeDayStart + local),
     drop:  drag.drop,
-    overIdx: drag.overIdx !== null && drag.overIdx >= activeDayStart && drag.overIdx < activeDayEnd
-      ? drag.overIdx - activeDayStart : null,
+    overIdx: rawOverIdx !== null && rawOverIdx >= activeDayStart && rawOverIdx < activeDayEnd
+      ? rawOverIdx - activeDayStart : null,
   }
+  /* eslint-enable react-hooks/refs */
 
   const Editor = (
     <div>
