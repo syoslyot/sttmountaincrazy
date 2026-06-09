@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { FormalBackHeader } from '@/components/themes/formal/FormalShell'
 import { XField } from '@/components/themes/formal/FormalShell'
 import { useAuth } from '@/components/AuthProvider'
@@ -22,8 +22,14 @@ const OAUTH_ICON: Record<'google' | 'facebook', string> = {
   facebook: 'f',
 }
 
+const AUTH_ERRORS: Record<string, string> = {
+  missing_code: '登入連結無效，請重新登入。',
+  auth_failed:  '登入驗證失敗，請重新嘗試。',
+}
+
 export function FormalLoginClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signIn, user, loading: authLoading } = useAuth()
   const [mode, setMode] = useState<Mode>('login')
 
@@ -37,7 +43,10 @@ export function FormalLoginClient() {
   const [remember, setRemember] = useState(true)
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<'google' | 'facebook' | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const errorParam = searchParams.get('error')
+  const [error, setError] = useState<string | null>(
+    errorParam ? (AUTH_ERRORS[errorParam] ?? '登入時發生錯誤，請重新嘗試。') : null
+  )
   const [sent, setSent] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
