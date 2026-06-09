@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { SetTheme } from '@/components/SetTheme'
 import { FormalLoginClient } from '@/components/themes/formal/FormalLoginClient'
 import '@/components/themes/formal/formal.css'
@@ -8,7 +9,9 @@ export default function LoginPage() {
   return (
     <>
       <SetTheme theme="formal" />
-      <FormalLoginClient />
+      <Suspense>
+        <FormalLoginClient />
+      </Suspense>
     </>
   )
 }
