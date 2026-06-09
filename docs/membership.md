@@ -4,12 +4,12 @@
 
 | Role value | 中文名稱 | 說明 |
 | --- | --- | --- |
-| `staff` | 資料組管理員 | 可存取所有內容，負責資料維護 |
-| `member` | 山協隊員 | 通過山協隊員考試的社員 |
-| `newcomer` | 山協新生 | 尚未通過隊員考試的社員 |
-| `partner` | 校外夥伴 | 非成大山協社員的外部合作者 |
+| `curator` | 山協資料組 | 可存取所有內容，負責資料維護與認領審核 |
+| `ranger` | 山協隊員 | 通過山協隊員考試的社員 |
+| `cadet` | 山協新生 | 尚未通過隊員考試的社員 |
+| `associate` | 山協會員 | 非成大山協社員的外部合作者 |
 
-權限層級（高 → 低）：`staff` > `member` > `newcomer` > `partner`。
+權限層級（高 → 低）：`curator` > `ranger` > `cadet` > `associate`。
 
 > 隊伍資料中的「領隊」、「嚮導」是遠征紀錄的欄位，與此會員等級無關。
 
@@ -29,19 +29,19 @@ import { type MemberRole, type UserProfile, hasRole, ROLE_LABELS } from '@/lib/a
 
 | Symbol | 說明 |
 | --- | --- |
-| `MemberRole` | `'staff' \| 'member' \| 'newcomer' \| 'partner'` |
+| `MemberRole` | `'curator' \| 'ranger' \| 'cadet' \| 'associate'` |
 | `UserProfile` | `{ id, user_id, role, name, nickname, contact, avatar_url, joined_at, created_at }` |
 | `ROLE_LABELS` | MemberRole → 中文名稱對照表 |
 | `hasRole(userRole, minRole)` | 回傳 `true` 若 userRole 達到或超過 minRole 的層級 |
 | `listMyMemberships()` | 取得目前登入者所有 `expedition_members` 紀錄（含 expedition info） |
 | `submitClaim(expeditionId, evidence)` | 對指定隊伍提出領隊認領申請 |
-| `listPendingClaims()` | 取得所有待審核的認領申請（staff only） |
-| `reviewClaim(claimId, action)` | 審核認領申請，`action`: `'approved'` \| `'rejected'`（staff only） |
-| `updateExpedition(id, fields)` | 更新隊伍資料，自動設 `sync_locked = true`（approved leader 或 staff） |
+| `listPendingClaims()` | 取得所有待審核的認領申請（curator only） |
+| `reviewClaim(claimId, action)` | 審核認領申請，`action`: `'approved'` \| `'rejected'`（curator only） |
+| `updateExpedition(id, fields)` | 更新隊伍資料，自動設 `sync_locked = true`（approved leader 或 curator） |
 | `getExpeditionMembers(expeditionId)` | 取得隊伍所有 approved 成員（含 user_id、role、expedition_role、can_edit） |
-| `syncExpeditionMembers(expeditionId, members)` | 取代所有非領隊成員（approved leader 或 staff） |
-| `saveExpeditionJournal(expeditionId, blocks)` | 儲存圖文紀錄 blocks（approved leader、can_edit 成員，或 staff） |
-| `listMemberProfiles()` | 取得全員名單供成員選擇器使用（approved leader 或 staff 才會回傳資料） |
+| `syncExpeditionMembers(expeditionId, members)` | 取代所有非領隊成員（approved leader 或 curator） |
+| `saveExpeditionJournal(expeditionId, blocks)` | 儲存圖文紀錄 blocks（approved leader、can_edit 成員，或 curator） |
+| `listMemberProfiles()` | 取得全員名單供成員選擇器使用（approved leader 或 curator 才會回傳資料） |
 
 ## 在 Component 中取得目前使用者
 
@@ -59,7 +59,7 @@ export function SomeComponent() {
   return (
     <>
       <p>歡迎，{role}</p>
-      {hasRole(role, 'member') && <AdminSection />}
+      {hasRole(role, 'ranger') && <AdminSection />}
     </>
   )
 }
@@ -104,14 +104,14 @@ const { data: memberships } = await listMyMemberships()
 當需要「某些角色看不到某個區塊」時，統一使用 `hasRole` 做判斷：
 
 ```tsx
-// 只有 staff 可見
-if (!hasRole(role, 'staff')) return null
+// 只有 curator 可見
+if (!hasRole(role, 'curator')) return null
 
-// member 以上可見（含 staff）
-if (!hasRole(role, 'member')) return null
+// ranger 以上可見（含 curator）
+if (!hasRole(role, 'ranger')) return null
 ```
 
-如果需要**精確**比對單一角色（非層級），直接比對 `role === 'staff'`。
+如果需要**精確**比對單一角色（非層級），直接比對 `role === 'curator'`。
 
 ## 環境變數
 
