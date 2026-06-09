@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-export type MemberRole = 'staff' | 'member' | 'newcomer' | 'partner'
+export type MemberRole = 'curator' | 'ranger' | 'cadet' | 'associate'
 
 export interface UserProfile {
   id: string
@@ -16,18 +16,18 @@ export interface UserProfile {
 }
 
 export const ROLE_LABELS: Record<MemberRole, string> = {
-  staff:    '資料組管理員',
-  member:   '山協隊員',
-  newcomer: '山協新生',
-  partner:  '校外夥伴',
+  curator:   '山協資料組',
+  ranger:    '山協隊員',
+  cadet:     '山協新生',
+  associate: '山協會員',
 }
 
 // Higher rank = broader access
 const ROLE_RANK: Record<MemberRole, number> = {
-  staff:    3,
-  member:   2,
-  newcomer: 1,
-  partner:  0,
+  curator:   3,
+  ranger:    2,
+  cadet:     1,
+  associate: 0,
 }
 
 /** Returns true if userRole meets or exceeds minRole in the permission hierarchy. */

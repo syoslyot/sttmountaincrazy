@@ -209,7 +209,7 @@ export function FormalClaimClient() {
   }, [q, grade, refreshKey])
 
   useEffect(() => {
-    if (role !== 'staff') return
+    if (role !== 'curator') return
     listPendingClaims().then(({ data }) => setPendingClaims(data))
   }, [role, refreshKey])
 
@@ -226,7 +226,7 @@ export function FormalClaimClient() {
       <div className="x-wrap" style={{ paddingTop: 30, paddingBottom: 90 }}>
 
         {/* Staff: pending claims review section */}
-        {role === 'staff' && (
+        {role === 'curator' && (
           <>
             <div style={{ marginBottom: 20 }}>
               <div className="x-label" style={{ marginBottom: 14 }}>

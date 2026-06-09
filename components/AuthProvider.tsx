@@ -23,6 +23,37 @@ interface AuthContextValue extends AuthState {
 
 const AuthCtx = createContext<AuthContextValue | null>(null)
 
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+
+const PROFILE_CACHE_KEY = 'stt-profile-cache'
+
+function getCachedProfile(): UserProfile | null {
+  try {
+    const raw = localStorage.getItem(PROFILE_CACHE_KEY)
+    return raw ? (JSON.parse(raw) as UserProfile) : null
+  } catch { return null }
+}
+
+function setCachedProfile(profile: UserProfile | null) {
+  if (profile) localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile))
+  else localStorage.removeItem(PROFILE_CACHE_KEY)
+}
+
+// Returns the user object stored by Supabase in localStorage (synchronous).
+// Used only to detect "might be logged in" without an async call.
+function getStoredUser(): User | null {
+  try {
+    const key = Object.keys(localStorage).find(
+      k => k.startsWith('sb-') && k.endsWith('-auth-token'),
+    )
+    if (!key) return null
+    const stored = JSON.parse(localStorage.getItem(key) ?? 'null')
+    return (stored?.user as User) ?? null
+  } catch { return null }
+}
+
+// ─── AuthProvider ─────────────────────────────────────────────────────────────
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user:    null,
@@ -34,19 +65,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const client = getAuthClient()
 
+    // Pre-load from localStorage in a microtask so nav renders the correct
+    // state well before getSession() (~500ms) returns, without calling
+    // setState directly in the effect body (satisfies react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const storedUser = getStoredUser()
+      if (!storedUser) {
+        setState({ user: null, profile: null, role: null, loading: false })
+      } else {
+        const cached = getCachedProfile()
+        if (cached) {
+          setState({ user: storedUser, profile: cached, role: cached.role, loading: false })
+        }
+      }
+    })
+
     async function loadProfile(user: User | null) {
-      console.log('[AuthProvider] loadProfile user=', user?.id ?? null)
       if (!user) {
+        setCachedProfile(null)
         setState({ user: null, profile: null, role: null, loading: false })
         return
       }
       const profile = await fetchUserProfile(user.id)
-      console.log('[AuthProvider] profile=', profile)
+      setCachedProfile(profile)
       setState({ user, profile, role: profile?.role ?? null, loading: false })
     }
 
     client.auth.getSession().then(({ data }) => {
-      console.log('[AuthProvider] getSession user=', data.session?.user?.id ?? null)
       loadProfile(data.session?.user ?? null)
     })
 
