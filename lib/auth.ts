@@ -10,6 +10,7 @@ export interface UserProfile {
   nickname: string | null
   contact: string | null
   avatar_url: string | null
+  email: string | null
   joined_at: string | null
   created_at: string
 }
