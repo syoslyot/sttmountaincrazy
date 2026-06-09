@@ -67,6 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     client.auth.getSession().then(({ data }) => {
       loadProfile(data.session?.user ?? null)
+    }).catch(() => {
+      setState({ user: null, profile: null, role: null, loading: false })
     })
 
     const { data: { subscription } } = client.auth.onAuthStateChange(

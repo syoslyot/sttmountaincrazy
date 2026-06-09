@@ -4,7 +4,7 @@ function isMobileUA(ua: string | null) {
   return !!ua && /Mobi|Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(ua)
 }
 
-export function proxy(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   if (!isMobileUA(req.headers.get('user-agent'))) return NextResponse.next()
 
