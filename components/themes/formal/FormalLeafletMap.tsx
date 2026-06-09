@@ -175,8 +175,8 @@ function addTrackLayers(map: any, L: any, parsed: ParsedTrack, color: string, si
   const { latlngs, elevs, waypoints } = parsed
   if (!latlngs.length) return []
   const layers: any[] = []
-  const simple = rdpSimplify(latlngs, 0.0001)
-  const line = L.polyline(simple, { color, weight: 3, opacity: 0.9 })
+  // const simple = rdpSimplify(latlngs, 0.0001)  // GPX already simplified at sync time
+  const line = L.polyline(latlngs, { color, weight: 3, opacity: 0.9 })
   line.addTo(map); layers.push(line)
 
   const mkIcon = (bg: string, fg: string, label: string) => L.divIcon({
