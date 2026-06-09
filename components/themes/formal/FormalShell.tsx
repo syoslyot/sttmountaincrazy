@@ -27,7 +27,7 @@ const NAV_TABS = [
 export function FormalHeader() {
   const isMobile = useSyncExternalStore(subscribeMobile, getMobile, getServerMobile)
   const pathname  = usePathname()
-  const { user, profile } = useAuth()
+  const { user, profile, loading } = useAuth()
 
   const authHref  = user && profile ? '/member' : '/login'
   const authLabel = user && profile
@@ -38,6 +38,7 @@ export function FormalHeader() {
     fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em',
     color: user && profile ? 'var(--accent)' : 'var(--muted)',
     textDecoration: 'none',
+    visibility: loading ? 'hidden' : 'visible',
   }
 
   return (
@@ -86,7 +87,7 @@ export function FormalBackHeader() { return <FormalHeader /> }
 // ─── FormalHeaderNav — right-side nav for use in custom page headers ──────────
 export function FormalHeaderNav() {
   const pathname         = usePathname()
-  const { user, profile } = useAuth()
+  const { user, profile, loading } = useAuth()
   const authHref  = user && profile ? '/member' : '/login'
   const authLabel = user && profile
     ? (profile.nickname ?? profile.name ?? user.email?.split('@')[0] ?? '會員')
@@ -117,7 +118,9 @@ export function FormalHeaderNav() {
       <span style={{ width: 1, height: 14, background: 'var(--border)', display: 'inline-block' }} />
       <Link href={authHref} style={{
         fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em',
-        color: user && profile ? 'var(--accent)' : 'var(--muted)', textDecoration: 'none',
+        color: user && profile ? 'var(--accent)' : 'var(--muted)',
+        textDecoration: 'none',
+        visibility: loading ? 'hidden' : 'visible',
       }}>{authLabel}</Link>
     </nav>
   )
