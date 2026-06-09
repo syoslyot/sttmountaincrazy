@@ -67,10 +67,10 @@ export function FormalHeader() {
           )
         })}
         {(profile?.role === 'ranger' || profile?.role === 'curator') && (
-          <Link href="/claim" style={{
+          <Link href="/formal/claim" style={{
             fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 14, letterSpacing: '.04em',
-            color: pathname === '/claim' ? 'var(--fg)' : 'var(--muted)',
-            borderBottom: pathname === '/claim' ? '1.5px solid var(--accent)' : 'none',
+            color: pathname === '/formal/claim' ? 'var(--fg)' : 'var(--muted)',
+            borderBottom: pathname === '/formal/claim' ? '1.5px solid var(--accent)' : 'none',
             paddingBottom: 1, textDecoration: 'none',
           }}>認領</Link>
         )}

@@ -10,7 +10,7 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-export default async function ExpeditionPage({ params }: Props) {
+export default async function RocketExpeditionPage({ params }: Props) {
   const { id } = await params
   const exp = await fetchExpeditionById(id)
   if (!exp) notFound()

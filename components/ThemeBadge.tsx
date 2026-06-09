@@ -36,10 +36,8 @@ export function ThemeBadge({ containerStyle, exclude }: { containerStyle?: React
   if (!containerStyle && (
     pathname === '/' ||
     pathname.startsWith('/rocket') ||
-    pathname.startsWith('/expedition') ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/member') ||
-    pathname.startsWith('/claim') ||
     !!pathname.match(/^\/formal\/.+/)
   )) return null
 
