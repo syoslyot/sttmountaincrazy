@@ -29,7 +29,7 @@ export async function DELETE(req: NextRequest) {
     adminClient.from('expedition_members').select('id')
       .eq('expedition_id', expeditionId).eq('user_id', user.id).eq('status', 'approved')
       .or('role.eq.leader,can_edit.eq.true').maybeSingle(),
-    adminClient.from('user_profiles').select('id').eq('user_id', user.id).eq('role', 'staff').maybeSingle(),
+    adminClient.from('user_profiles').select('id').eq('user_id', user.id).eq('role', 'curator').maybeSingle(),
   ])
   if (!member && !profile) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 

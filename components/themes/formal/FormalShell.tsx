@@ -65,7 +65,7 @@ export function FormalHeader() {
             }}>{tab.label}</Link>
           )
         })}
-        {(profile?.role === 'member' || profile?.role === 'staff') && (
+        {(profile?.role === 'ranger' || profile?.role === 'curator') && (
           <Link href="/claim" style={{
             fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 14, letterSpacing: '.04em',
             color: pathname === '/claim' ? 'var(--fg)' : 'var(--muted)',
@@ -106,7 +106,7 @@ export function FormalHeaderNav() {
           }}>{tab.label}</Link>
         )
       })}
-      {(profile?.role === 'member' || profile?.role === 'staff') && (
+      {(profile?.role === 'ranger' || profile?.role === 'curator') && (
         <Link href="/formal/claim" style={{
           fontFamily: 'var(--serif)', fontSize: 14, letterSpacing: '.04em',
           color: pathname.startsWith('/formal/claim') ? 'var(--fg)' : 'var(--muted)',
