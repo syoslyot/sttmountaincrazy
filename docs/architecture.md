@@ -35,12 +35,12 @@ Browser
 
 | 頁面 / 功能 | 需要登入 | 守門方式 |
 | --- | --- | --- |
-| `/formal`、`/formal/[id]`、`/rocket`、`/hangbao`、`/hangbao/[id]`、`/expedition/[id]` | 否 | 公開頁面 |
+| `/formal`、`/formal/[id]`、`/rocket`、`/rocket/[id]`、`/hangbao`、`/hangbao/[id]` | 否 | 公開頁面 |
 | `/formal/claim` — 瀏覽未認領清單 | 否 | 資料公開；submit 前 modal 會 check `!user` |
 | `/formal/claim` — 送出認領 | 是 | UI: `if (!user) return`；RPC: authenticated + NULL uid guard |
-| `/formal/claim` — Staff 審核區 | staff only | UI: `role === 'staff'`；RPC: staff check + NULL uid guard |
-| `/formal/member` | 是 | `useAuth()` 無 user → `router.replace('/login')` |
-| `/formal/[id]/edit` | approved leader / can\_edit member / staff | client-side auth guard；所有寫入 RPC 皆有伺服器驗證 |
+| `/formal/claim` — 審核區 | curator only | UI: `role === 'curator'`；RPC: curator check + NULL uid guard |
+| `/member` | 是 | `useAuth()` 無 user → `router.replace('/login')` |
+| `/formal/[id]/edit` | approved leader / can\_edit member / curator | client-side auth guard；所有寫入 RPC 皆有伺服器驗證 |
 
 `role` 值來自 `AuthProvider` → `fetchUserProfile` → Supabase RLS，使用者無法在瀏覽器端竄改。
 
