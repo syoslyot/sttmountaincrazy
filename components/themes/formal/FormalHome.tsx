@@ -471,7 +471,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
           </div>
 
           <div className="formal-sidebar-footer">
-            <div>FOUNDED&nbsp;1982</div>
+            <div>FOUNDED&nbsp;2026</div>
             <div>NCKU&nbsp;TAINAN&nbsp;·&nbsp;TW</div>
           </div>
         </aside>
@@ -481,7 +481,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
           <div className="formal-result-bar">
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
               <span style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '.15em', color: 'var(--muted)' }}>
-                結果 · RESULTS
+                RESULTS
               </span>
               <span style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 500 }}>
                 {String(exps.length).padStart(2, '0')}
@@ -506,7 +506,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
               type="button"
               onClick={() => setSort(prev => prev === 'latest' ? 'oldest' : 'latest')}
             >
-              排序&nbsp;<span className="formal-sort-value">{sort === 'latest' ? '最新 ↓' : '最舊 ↑'}</span>
+              <span className="formal-sort-value">{sort === 'latest' ? '最新 ↓' : '最舊 ↑'}</span>
             </button>
           </div>
 

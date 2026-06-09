@@ -8,8 +8,6 @@ import { useAuth } from '@/components/AuthProvider'
 import { ROLE_LABELS, updateUserProfile, uploadAvatar, listMyMemberships, type MyMembership } from '@/lib/auth'
 import './formal.css'
 
-const CONTACT_RE = /^(\+?886|0)9\d{2}[-\s]?\d{3}[-\s]?\d{3}$/
-
 type Tab = 'teams' | 'profile'
 
 const ROLE_ZH: Record<MyMembership['role'], string> = { leader: '領隊', member: '隊員' }
@@ -29,7 +27,7 @@ export function FormalMemberClient() {
   const [nickname, setNickname] = useState('')
   const [contact, setContact] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
-  const [saveMsg, setSaveMsg] = useState<'ok' | 'err' | 'invalid-contact' | null>(null)
+  const [saveMsg, setSaveMsg] = useState<'ok' | 'err' | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [memberships, setMemberships] = useState<MyMembership[]>([])
@@ -87,10 +85,6 @@ export function FormalMemberClient() {
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault()
     setSaveMsg(null)
-    if (contact && !CONTACT_RE.test(contact.trim())) {
-      setSaveMsg('invalid-contact')
-      return
-    }
     if (!user) return
     setSavingProfile(true)
     const { error } = await updateUserProfile(user.id, { name, nickname, contact: contact.trim() || null })
@@ -226,10 +220,7 @@ export function FormalMemberClient() {
               <input className="x-input" placeholder="自訂暱稱" value={nickname} onChange={e => setNickname(e.target.value)} />
             </XField>
             <XField label="聯絡電話 · CONTACT">
-              <input className="x-input mono" placeholder="09xx-xxx-xxx" value={contact}
-                onChange={e => { setContact(e.target.value); if (saveMsg === 'invalid-contact') setSaveMsg(null) }}
-                onBlur={() => { if (contact && !CONTACT_RE.test(contact.trim())) setSaveMsg('invalid-contact') }}
-                style={saveMsg === 'invalid-contact' ? { borderColor: '#9a4f37' } : undefined} />
+              <input className="x-input mono" placeholder="09xx-xxx-xxx" value={contact} disabled />
             </XField>
             <XField label="電子郵件 · EMAIL" style={{ gridColumn: '1 / -1' }}>
               <input className="x-input mono" defaultValue={user.email ?? ''} disabled />
@@ -242,9 +233,6 @@ export function FormalMemberClient() {
                 {savingProfile ? '儲存中…' : saveMsg === 'ok' ? '已儲存' : saveMsg === 'err' ? '儲存失敗' : '儲存變更'}
               </button>
               <button type="button" className="x-btn" onClick={() => { setName(profile.name ?? ''); setNickname(profile.nickname ?? ''); setContact(profile.contact ?? ''); setSaveMsg(null) }}>取消</button>
-              {saveMsg === 'invalid-contact' && (
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: '#9a4f37', letterSpacing: '.05em' }}>電話格式不正確（例：0932-222-222）</span>
-              )}
             </div>
           </form>
         )}
