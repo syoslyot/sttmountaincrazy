@@ -39,19 +39,6 @@ function setCachedProfile(profile: UserProfile | null) {
   else localStorage.removeItem(PROFILE_CACHE_KEY)
 }
 
-// Returns the user object stored by Supabase in localStorage (synchronous).
-// Used only to detect "might be logged in" without an async call.
-function getStoredUser(): User | null {
-  try {
-    const key = Object.keys(localStorage).find(
-      k => k.startsWith('sb-') && k.endsWith('-auth-token'),
-    )
-    if (!key) return null
-    const stored = JSON.parse(localStorage.getItem(key) ?? 'null')
-    return (stored?.user as User) ?? null
-  } catch { return null }
-}
-
 // ─── AuthProvider ─────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -65,27 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const client = getAuthClient()
 
-    // Pre-load from localStorage in a microtask so nav renders the correct
-    // state well before getSession() (~500ms) returns, without calling
-    // setState directly in the effect body (satisfies react-hooks/set-state-in-effect).
-    queueMicrotask(() => {
-      const storedUser = getStoredUser()
-      if (!storedUser) {
-        setState({ user: null, profile: null, role: null, loading: false })
-      } else {
-        const cached = getCachedProfile()
-        if (cached) {
-          setState({ user: storedUser, profile: cached, role: cached.role, loading: false })
-        }
-      }
-    })
-
     async function loadProfile(user: User | null) {
       if (!user) {
         setCachedProfile(null)
         setState({ user: null, profile: null, role: null, loading: false })
         return
       }
+      const cached = getCachedProfile()
+      if (cached) setState({ user, profile: cached, role: cached.role, loading: false })
       const profile = await fetchUserProfile(user.id)
       setCachedProfile(profile)
       setState({ user, profile, role: profile?.role ?? null, loading: false })
