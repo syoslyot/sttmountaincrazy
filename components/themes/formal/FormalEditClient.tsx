@@ -450,7 +450,7 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
 
       const myMem    = emData.find(em => em.user_id === uid)
       const selfRole = profiles.find(p => p.user_id === uid)?.role
-      const ok = selfRole === 'staff' || myMem?.role === 'leader' || myMem?.can_edit === true
+      const ok = selfRole === 'curator' || myMem?.role === 'leader' || myMem?.can_edit === true
 
       if (!ok) { router.replace(`/formal/${expeditionId}`); return }
 
@@ -479,8 +479,8 @@ export function FormalEditClient({ expeditionId, initialData }: { expeditionId: 
   function filteredForRole(memberRole: string) {
     const eligible = allMembers.filter(p => {
       if (usedUserIds.has(p.user_id)) return false
-      if (memberRole === '新生') return p.role === 'newcomer'
-      return p.role === 'member' || p.role === 'staff'
+      if (memberRole === '新生') return p.role === 'cadet'
+      return p.role === 'ranger' || p.role === 'curator'
     })
     if (!memberSearch.trim()) return eligible
     const q = memberSearch.toLowerCase()
