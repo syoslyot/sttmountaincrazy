@@ -17,7 +17,21 @@ interface UnclaimedExpedition {
   leader_display: string | null
   region_entry_county: string | null
   region_entry_town: string | null
+  region_exit_county: string | null
+  region_exit_town: string | null
   claim_status: 'unclaimed' | 'pending'
+}
+
+function formatRegion(county: string | null, town: string | null) {
+  if (county && town) return `${county}${town}`
+  return county ?? town ?? null
+}
+
+function formatClaimDateRange(start: string, end: string | null) {
+  const shortStart = start.slice(2)
+  if (!end) return shortStart
+  const shortEnd = start.slice(0, 4) === end.slice(0, 4) ? end.slice(5) : end.slice(2)
+  return `${shortStart} – ${shortEnd}`
 }
 
 // ─── Staff: pending claim review row ──────────────────────────────────────────
@@ -223,14 +237,14 @@ export function FormalClaimClient() {
   return (
     <div className="x-scroll-root">
       <FormalBackHeader />
-      <div className="x-wrap" style={{ paddingTop: 30, paddingBottom: 90 }}>
+      <div className="x-wrap" style={{ width: 'min(100%, 1160px)', paddingTop: 30, paddingBottom: 90 }}>
 
         {/* Staff: pending claims review section */}
         {role === 'curator' && (
           <>
             <div style={{ marginBottom: 20 }}>
-              <div className="x-label" style={{ marginBottom: 14 }}>
-                待審核認領 <span className="en">PENDING CLAIMS</span>
+              <div className="x-label" style={{ marginBottom: 14, fontSize: 14 }}>
+                待審核認領
                 {pendingClaims.length > 0 && (
                   <span style={{ marginLeft: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>
                     {pendingClaims.length}
@@ -251,22 +265,16 @@ export function FormalClaimClient() {
           </>
         )}
 
-        {/* Header + description */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8, flexWrap: 'wrap', gap: 10 }}>
-          <div>
-            <div className="x-label" style={{ marginBottom: 10 }}>認領隊伍 <span className="en">CLAIM A TEAM</span></div>
-            <p style={{ margin: 0, color: 'var(--muted)', fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.9, letterSpacing: '.02em', whiteSpace: 'nowrap' }}>
-              請領隊認領隊伍，以將隊伍紀錄到您的帳號。
-            </p>
-          </div>
-          {user && <Link href="/member" style={{ fontFamily: 'var(--mono)', fontSize: 13, letterSpacing: '.04em', color: 'var(--muted)', textDecoration: 'none', transition: 'color .12s' }}>← 回會員頁</Link>}
+        {/* Header */}
+        <div className="x-label" style={{ marginBottom: 8, fontSize: 14 }}>
+          認領隊伍
         </div>
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', margin: '22px 0 6px', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 340 }}>
             <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontFamily: 'var(--mono)', fontSize: 11 }}>⌕</span>
-            <input className="x-input" style={{ paddingLeft: 28 }} placeholder="搜尋名稱／地區" value={q} onChange={e => setQ(e.target.value)} />
+            <input className="x-input" style={{ paddingLeft: 28 }} placeholder="搜尋 隊伍/地點/領隊" value={q} onChange={e => setQ(e.target.value)} />
           </div>
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
             {['ALL', 'A', 'B', 'C', 'D'].map((g, i) => (
@@ -282,7 +290,7 @@ export function FormalClaimClient() {
             ))}
           </div>
           <div style={{ flex: 1 }} />
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 14, color: 'var(--muted)' }}>
             未認領 {unclaimed.filter(r => r.claim_status === 'unclaimed').length}
           </span>
         </div>
@@ -294,24 +302,39 @@ export function FormalClaimClient() {
             目前沒有符合條件的未認領隊伍。
           </p>
         )}
-        <div className="x-claim-grid">
+        <div className="x-claim-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
           {unclaimed.map(r => {
             const isPending = r.claim_status === 'pending'
+            const entryRegion = formatRegion(r.region_entry_county, r.region_entry_town)
+            const exitRegion = formatRegion(r.region_exit_county, r.region_exit_town)
+            const sameRegion = r.region_entry_county === r.region_exit_county
+              && r.region_entry_town === r.region_exit_town
             return (
               <div
                 key={r.id}
                 className="x-claim-card"
                 style={{ opacity: isPending ? 0.5 : 1, transition: 'opacity .15s' }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
-                    {String(r.id).padStart(3, '0')}
-                  </span>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)' }}>{r.grade ?? '—'}級</span>
-                </div>
-                <div style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 500, lineHeight: 1.45, flex: 1 }}>{r.name}</div>
-                <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>
-                  {r.region_entry_county ?? '—'} · {r.date_start}{r.date_end ? ` – ${r.date_end}` : ''}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'baseline' }}>
+                    <div style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 500, lineHeight: 1.45, minWidth: 0 }}>
+                      {r.name}
+                    </div>
+                    <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--fg)', lineHeight: 1.4, textAlign: 'right', flexShrink: 0 }}>
+                      {r.leader_display ?? '—'}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'baseline', marginTop: 'auto' }}>
+                    <div style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
+                      {formatClaimDateRange(r.date_start, r.date_end)}
+                    </div>
+                    <div style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7, textAlign: 'right', flexShrink: 0 }}>
+                      {entryRegion ?? '—'}
+                      {!sameRegion && exitRegion && (
+                        <> <span style={{ color: 'var(--accent)' }}>→</span> {exitRegion}</>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 {isPending ? (
                   <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', letterSpacing: '.06em', padding: '7px 0' }}>
