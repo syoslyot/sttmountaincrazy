@@ -5,9 +5,9 @@ import { cookies } from 'next/headers'
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const { searchParams } = url
-  const forwardedHost = request.headers.get('x-forwarded-host')
-  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https'
-  const origin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : url.origin
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
+  const proto = request.headers.get('x-forwarded-proto') ?? 'https'
+  const origin = host ? `${proto}://${host}` : url.origin
   const code = searchParams.get('code')
 
   if (code) {
