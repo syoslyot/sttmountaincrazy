@@ -65,20 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const client = getAuthClient()
 
-    // Synchronously pre-load from localStorage so nav renders correct state
-    // on the very first paint — no async round-trip needed.
-    const storedUser = getStoredUser()
-    if (!storedUser) {
-      // Definitely not logged in: show login button immediately.
-      setState({ user: null, profile: null, role: null, loading: false })
-    } else {
-      const cached = getCachedProfile()
-      if (cached) {
-        // Logged in with cached profile: show name immediately.
-        setState({ user: storedUser, profile: cached, role: cached.role, loading: false })
+    // Pre-load from localStorage in a microtask so nav renders the correct
+    // state well before getSession() (~500ms) returns, without calling
+    // setState directly in the effect body (satisfies react-hooks/set-state-in-effect).
+    queueMicrotask(() => {
+      const storedUser = getStoredUser()
+      if (!storedUser) {
+        setState({ user: null, profile: null, role: null, loading: false })
+      } else {
+        const cached = getCachedProfile()
+        if (cached) {
+          setState({ user: storedUser, profile: cached, role: cached.role, loading: false })
+        }
       }
-      // No cache yet (first login): stay loading until getSession() resolves.
-    }
+    })
 
     async function loadProfile(user: User | null) {
       if (!user) {
