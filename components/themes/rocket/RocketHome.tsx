@@ -130,7 +130,7 @@ export function RocketHome() {
             const c = COLORS[i % COLORS.length]
             const isOdd = i % 2 === 1
             return (
-              <Link key={e.id} href={`/expedition/${e.id}`} className="riso-card"
+              <Link key={e.id} href={`/rocket/${e.id}`} className="riso-card"
                 style={{ display: 'block', textDecoration: 'none', background: c.bg, border: `2px solid ${c.accent}`, padding: '0.9rem 1.1rem', marginBottom: '-4px', marginLeft: isOdd ? '16px' : '0', marginRight: isOdd ? '0' : '16px', transform: `rotate(${rot}deg)`, transition: 'transform 0.15s, box-shadow 0.15s, z-index 0s', position: 'relative', zIndex: i % 3 === 0 ? 2 : 1, boxShadow: `3px 3px 0 ${c.accent}44` }}>
                 <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.05rem', letterSpacing: '0.08em', color: c.accent, marginBottom: '2px' }}>{e.name}</div>
                 <div style={{ fontSize: '0.65rem', color: '#5a4a00' }}>

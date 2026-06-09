@@ -9,9 +9,10 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get('code')
-    if (!code) { router.replace('/formal'); return }
+    if (!code) { router.replace('/login?error=missing_code'); return }
 
-    getAuthClient().auth.exchangeCodeForSession(code).then(() => {
+    getAuthClient().auth.exchangeCodeForSession(code).then(({ error }) => {
+      if (error) { router.replace('/login?error=auth_failed'); return }
       router.replace('/formal')
     })
   }, [router])
