@@ -335,10 +335,10 @@ function addTrackLayers(
   const { latlngs, waypoints } = parsed
   if (latlngs.length === 0) return []
 
-  const simplified = rdpSimplify(latlngs, 0.0001)
+  // const simplified = rdpSimplify(latlngs, 0.0001)  // GPX already simplified at sync time
   const layers: any[] = []
 
-  const line = L.polyline(simplified, { color, weight: 3.5, opacity: 0.9 })
+  const line = L.polyline(latlngs, { color, weight: 3.5, opacity: 0.9 })
   line.addTo(map)
   layers.push(line)
 
