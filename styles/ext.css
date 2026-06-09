@@ -34,6 +34,13 @@
   border: 0.5px solid var(--border); padding: 9px 11px; width: 100%; box-sizing: border-box; outline: none; transition: border-color .12s; border-radius: 0; }
 .x-input::placeholder, .x-textarea::placeholder { color: var(--muted); }
 .x-input:focus, .x-select:focus, .x-textarea:focus { border-color: var(--accent); }
+.x-input:disabled, .x-select:disabled, .x-textarea:disabled {
+  color: color-mix(in oklch, var(--muted) 72%, var(--bg));
+  background: color-mix(in oklch, var(--surface) 58%, var(--bg));
+  border-color: color-mix(in oklch, var(--border) 58%, transparent);
+  cursor: not-allowed;
+  opacity: 1;
+}
 .x-textarea { resize: vertical; min-height: 84px; line-height: 1.75; }
 .x-input.mono { font-family: var(--mono); font-size: 13px; letter-spacing: .02em; }
 .x-hint { font-family: var(--mono); font-size: 10px; letter-spacing: .03em; color: var(--muted); }

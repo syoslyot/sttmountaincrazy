@@ -211,9 +211,9 @@
 }
 
 .formal-sort-value {
-  color: var(--fg);
+  color: var(--muted);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Specimen card */

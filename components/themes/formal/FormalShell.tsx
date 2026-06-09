@@ -35,7 +35,7 @@ export function FormalHeader() {
     : '登入'
 
   const accBtnStyle: CSSProperties = {
-    fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em',
+    fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 15, letterSpacing: '.04em',
     color: user && profile ? 'var(--accent)' : 'var(--muted)',
     textDecoration: 'none',
     visibility: loading ? 'hidden' : 'visible',
@@ -45,7 +45,7 @@ export function FormalHeader() {
     <header className="formal-header" style={isMobile ? { padding: '12px 16px' } : undefined}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
         <Link href="/formal" style={{
-          fontFamily: 'var(--serif)', fontSize: isMobile ? 18 : 22,
+          fontFamily: 'var(--serif)', fontSize: isMobile ? 19 : 23,
           fontWeight: 500, letterSpacing: '.04em',
           textDecoration: 'none', color: 'inherit',
         }}>
@@ -59,7 +59,7 @@ export function FormalHeader() {
             : pathname.startsWith(tab.href)
           return (
             <Link key={tab.href} href={tab.href} style={{
-              fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 14, letterSpacing: '.04em',
+              fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 15, letterSpacing: '.04em',
               color: active ? 'var(--fg)' : 'var(--muted)',
               borderBottom: active ? '1.5px solid var(--accent)' : 'none',
               paddingBottom: 1, textDecoration: 'none',
@@ -68,7 +68,7 @@ export function FormalHeader() {
         })}
         {(profile?.role === 'ranger' || profile?.role === 'curator') && (
           <Link href="/formal/claim" style={{
-            fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 14, letterSpacing: '.04em',
+            fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 15, letterSpacing: '.04em',
             color: pathname === '/formal/claim' ? 'var(--fg)' : 'var(--muted)',
             borderBottom: pathname === '/formal/claim' ? '1.5px solid var(--accent)' : 'none',
             paddingBottom: 1, textDecoration: 'none',
@@ -100,7 +100,7 @@ export function FormalHeaderNav() {
           : pathname.startsWith(tab.href)
         return (
           <Link key={tab.href} href={tab.href} style={{
-            fontFamily: 'var(--serif)', fontSize: 14, letterSpacing: '.04em',
+            fontFamily: 'var(--serif)', fontSize: 15, letterSpacing: '.04em',
             color: active ? 'var(--fg)' : 'var(--muted)',
             borderBottom: active ? '1.5px solid var(--accent)' : 'none',
             paddingBottom: 1, textDecoration: 'none',
@@ -109,7 +109,7 @@ export function FormalHeaderNav() {
       })}
       {(profile?.role === 'ranger' || profile?.role === 'curator') && (
         <Link href="/formal/claim" style={{
-          fontFamily: 'var(--serif)', fontSize: 14, letterSpacing: '.04em',
+          fontFamily: 'var(--serif)', fontSize: 15, letterSpacing: '.04em',
           color: pathname.startsWith('/formal/claim') ? 'var(--fg)' : 'var(--muted)',
           borderBottom: pathname.startsWith('/formal/claim') ? '1.5px solid var(--accent)' : 'none',
           paddingBottom: 1, textDecoration: 'none',
@@ -117,7 +117,7 @@ export function FormalHeaderNav() {
       )}
       <span style={{ width: 1, height: 14, background: 'var(--border)', display: 'inline-block' }} />
       <Link href={authHref} style={{
-        fontFamily: 'var(--serif)', fontSize: 13, letterSpacing: '.04em',
+        fontFamily: 'var(--serif)', fontSize: 15, letterSpacing: '.04em',
         color: user && profile ? 'var(--accent)' : 'var(--muted)',
         textDecoration: 'none',
         visibility: loading ? 'hidden' : 'visible',
