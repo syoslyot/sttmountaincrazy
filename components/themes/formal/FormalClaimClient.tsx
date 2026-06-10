@@ -122,7 +122,6 @@ function ClaimModal({ team, onClose, onSuccess }: {
       <div className="x-modal" onClick={e => e.stopPropagation()}>
         {!done ? (
           <>
-            <div className="x-label" style={{ marginBottom: 14 }}>認領隊伍 <span className="en">CLAIM TEAM</span></div>
             <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 500 }}>{team.name}</h2>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', marginBottom: 22 }}>
               REC.{String(team.id).padStart(3, '0')} · {team.region_entry_county ?? '—'}{team.region_entry_town ? `・${team.region_entry_town}` : ''} · {team.date_start}{team.date_end ? ` — ${team.date_end}` : ''} · {team.grade ?? '—'}級
@@ -149,7 +148,7 @@ function ClaimModal({ team, onClose, onSuccess }: {
                       嚮導 / 隊員 / 新生 由你於編輯頁新增
                     </div>
                   </div>
-                  <XField label="佐證說明 · EVIDENCE" hint="例如：直企、私訊粉專、告知管理員等方式。">
+                  <XField label="" hint="例如：直企、私訊粉專、告知管理員等方式。">
                     <textarea
                       className="x-textarea"
                       placeholder="我們該如何得知你就是這隻隊伍的領隊？"
@@ -175,10 +174,11 @@ function ClaimModal({ team, onClose, onSuccess }: {
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: '14px 0' }}>
-            <div style={{ width: 52, height: 52, borderRadius: '50%', margin: '0 auto 16px', border: '0.5px solid #c8b277', color: '#9a7b2e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>⏳</div>
-            <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--serif)', fontSize: 19, fontWeight: 500 }}>已送出，等待審核</h2>
-            <p style={{ color: 'var(--muted)', fontFamily: 'var(--serif)', fontSize: 13.5, lineHeight: 1.8, margin: '0 0 22px' }}>
-              管理員審核通過後，此隊伍將出現在你的會員頁。可於「我參與的隊伍」追蹤狀態。
+            <div style={{ width: 52, height: 52, borderRadius: '50%', margin: '0 auto 16px', border: '0.5px solid #c8b277', color: '#9a7b2e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--serif)', fontSize: 18, letterSpacing: 0 }}>審</div>
+            <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 500 }}>已送出，等待審核</h2>
+            <p style={{ color: 'var(--muted)', fontFamily: 'var(--serif)', fontSize: 15, lineHeight: 1.8, margin: '0 0 22px' }}>
+              資料組審核通過後，此隊伍將出現在你的會員頁。<br />
+              可於「我參與的隊伍」追蹤狀態。
             </p>
             <button className="x-btn solid" onClick={handleClose}>完成</button>
           </div>
