@@ -38,7 +38,7 @@ export function FormalHeader() {
     fontFamily: 'var(--serif)', fontSize: isMobile ? 13 : 15, letterSpacing: '.04em',
     color: user && profile ? 'var(--accent)' : 'var(--muted)',
     textDecoration: 'none',
-    visibility: loading ? 'hidden' : 'visible',
+    visibility: 'visible',
   }
 
   return (
@@ -120,7 +120,7 @@ export function FormalHeaderNav() {
         fontFamily: 'var(--serif)', fontSize: 15, letterSpacing: '.04em',
         color: user && profile ? 'var(--accent)' : 'var(--muted)',
         textDecoration: 'none',
-        visibility: loading ? 'hidden' : 'visible',
+        visibility: 'visible',
       }}>{authLabel}</Link>
     </nav>
   )

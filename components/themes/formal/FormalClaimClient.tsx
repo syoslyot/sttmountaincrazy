@@ -320,7 +320,7 @@ export function FormalClaimClient() {
                     <div style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 500, lineHeight: 1.45, minWidth: 0 }}>
                       {r.name}
                     </div>
-                    <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--fg)', lineHeight: 1.4, textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--fg)', lineHeight: 1.4, textAlign: 'right', flexShrink: 0, maxWidth: '45%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {r.leader_display ?? '—'}
                     </div>
                   </div>
