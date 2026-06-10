@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { hasRole, ROLE_LABELS, type MemberRole } from '../lib/auth'
+import { getAuthDisplayName } from '../components/themes/formal/FormalShell'
 
 describe('hasRole', () => {
   it('returns false for null role', () => {
@@ -41,5 +42,24 @@ describe('ROLE_LABELS', () => {
     for (const role of roles) {
       expect(ROLE_LABELS[role]).toBeTruthy()
     }
+  })
+})
+
+describe('getAuthDisplayName', () => {
+  it('uses nickname when present', () => {
+    expect(getAuthDisplayName({ nickname: ' 阿山 ', name: '王小明' }, 'user@example.com')).toBe('阿山')
+  })
+
+  it('falls back to name when nickname is blank', () => {
+    expect(getAuthDisplayName({ nickname: '', name: '王小明' }, 'user@example.com')).toBe('王小明')
+    expect(getAuthDisplayName({ nickname: '   ', name: '王小明' }, 'user@example.com')).toBe('王小明')
+  })
+
+  it('falls back to email prefix when profile names are blank', () => {
+    expect(getAuthDisplayName({ nickname: '', name: ' ' }, 'mountain@example.com')).toBe('mountain')
+  })
+
+  it('uses the generic member label when no displayable value exists', () => {
+    expect(getAuthDisplayName({ nickname: null, name: null }, null)).toBe('會員')
   })
 })

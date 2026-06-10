@@ -22,16 +22,28 @@ const NAV_TABS = [
   { label: '隊伍', href: '/formal'        },
 ]
 
+function presentText(value: string | null | undefined): string | null {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : null
+}
+
+export function getAuthDisplayName(profile: { nickname?: string | null; name?: string | null } | null, email?: string | null): string {
+  return presentText(profile?.nickname)
+    ?? presentText(profile?.name)
+    ?? presentText(email?.split('@')[0])
+    ?? '會員'
+}
+
 // ─── FormalHeader — single shared header for all formal pages ─────────────────
 
 export function FormalHeader() {
   const isMobile = useSyncExternalStore(subscribeMobile, getMobile, getServerMobile)
   const pathname  = usePathname()
-  const { user, profile, loading } = useAuth()
+  const { user, profile } = useAuth()
 
   const authHref  = user && profile ? '/member' : '/login'
   const authLabel = user && profile
-    ? (profile.nickname ?? profile.name ?? user.email?.split('@')[0] ?? '會員')
+    ? getAuthDisplayName(profile, user.email)
     : '登入'
 
   const accBtnStyle: CSSProperties = {
@@ -87,10 +99,10 @@ export function FormalBackHeader() { return <FormalHeader /> }
 // ─── FormalHeaderNav — right-side nav for use in custom page headers ──────────
 export function FormalHeaderNav() {
   const pathname         = usePathname()
-  const { user, profile, loading } = useAuth()
+  const { user, profile } = useAuth()
   const authHref  = user && profile ? '/member' : '/login'
   const authLabel = user && profile
-    ? (profile.nickname ?? profile.name ?? user.email?.split('@')[0] ?? '會員')
+    ? getAuthDisplayName(profile, user.email)
     : '登入'
   return (
     <nav style={{ display: 'flex', gap: 24, alignItems: 'baseline', flexShrink: 0 }}>
