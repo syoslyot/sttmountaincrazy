@@ -37,6 +37,11 @@ export function hasRole(userRole: MemberRole | null, minRole: MemberRole): boole
   return ROLE_RANK[userRole] >= ROLE_RANK[minRole]
 }
 
+function cleanProfileField(value: string | null | undefined): string | null {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : null
+}
+
 // Singleton browser-side client — auth operations only.
 // Data queries must continue to use the server-side client in supabase.ts.
 let _browserClient: SupabaseClient | null = null
@@ -87,9 +92,9 @@ export async function updateUserProfile(
   fields: Partial<Pick<UserProfile, 'name' | 'nickname' | 'contact'>>,
 ): Promise<{ error: Error | null }> {
   const { error } = await getAuthClient().rpc('update_own_profile', {
-    p_name:     fields.name     ?? null,
-    p_nickname: fields.nickname ?? null,
-    p_contact:  fields.contact  ?? null,
+    p_name:     cleanProfileField(fields.name),
+    p_nickname: cleanProfileField(fields.nickname),
+    p_contact:  cleanProfileField(fields.contact),
   })
   return { error }
 }
