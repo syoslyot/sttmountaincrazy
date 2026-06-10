@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { FormalBackHeader, XField } from '@/components/themes/formal/FormalShell'
 import { useAuth } from '@/components/AuthProvider'
 import { submitClaim, listPendingClaims, reviewClaim, type PendingClaim } from '@/lib/auth'
+import { formatClaimLeaderDisplay } from '@/lib/claimDisplay'
 import './formal.css'
 
 interface UnclaimedExpedition {
@@ -321,7 +322,7 @@ export function FormalClaimClient() {
                       {r.name}
                     </div>
                     <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--fg)', lineHeight: 1.4, textAlign: 'right', flexShrink: 0, maxWidth: '45%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {r.leader_display ?? '—'}
+                      {formatClaimLeaderDisplay(r.leader_display)}
                     </div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'baseline', marginTop: 'auto' }}>
