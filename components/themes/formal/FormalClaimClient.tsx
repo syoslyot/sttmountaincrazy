@@ -163,7 +163,7 @@ function ClaimModal({ team, onClose, onSuccess }: {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span className="x-role-tag" style={{ color: 'var(--accent)', borderColor: 'color-mix(in oklch, var(--accent) 40%, var(--border))' }}>領隊</span>
                       <span style={{ fontFamily: 'var(--serif)', fontSize: 14 }}>
-                        以<b style={{ color: 'var(--accent)' }}>領隊</b>身分認領此隊
+                        認領後隊伍資料將會與 <b style={{ color: 'var(--accent)' }}>Google Drive</b> 取消同步！
                       </span>
                     </div>
                     <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', paddingLeft: 2 }}>
