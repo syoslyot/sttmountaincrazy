@@ -91,13 +91,13 @@ export async function fetchExpeditionCounts(ids: number[]): Promise<Map<number, 
   return result
 }
 
-export async function fetchExpeditionById(id: string): Promise<ExpeditionDetail | null> {
-  const { data, error } = await supabaseAdmin
+export async function fetchExpeditionById(id: string, opts?: { allowPrivate?: boolean }): Promise<ExpeditionDetail | null> {
+  let query = supabaseAdmin
     .from('expeditions')
     .select('*, journal_blocks, gpx_files(id, file_path, filename, deleted_at), map_files(id, file_path, filename, deleted_at), record_files(id, filename, content, file_path, deleted_at), expedition_counties(county)')
     .eq('id', id)
-    .eq('is_public', true)
-    .single()
+  if (!opts?.allowPrivate) query = query.eq('is_public', true)
+  const { data, error } = await query.single()
 
   if (error || !data) return null
 

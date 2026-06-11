@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FormalBackHeader, XField } from '@/components/themes/formal/FormalShell'
 import { useAuth } from '@/components/AuthProvider'
-import { submitClaim, listPendingClaims, reviewClaim, type PendingClaim } from '@/lib/auth'
+import { submitClaim, listPendingClaims, reviewClaim, hasRole, type PendingClaim } from '@/lib/auth'
 import { formatClaimLeaderDisplay } from '@/lib/claimDisplay'
 import './formal.css'
 
@@ -37,9 +37,11 @@ function formatClaimDateRange(start: string, end: string | null) {
 
 // ─── Staff: pending claim review row ──────────────────────────────────────────
 
-function PendingClaimRow({ claim, onAction }: {
+function PendingClaimRow({ claim, exp, onAction, onOpen }: {
   claim: PendingClaim
+  exp?: UnclaimedExpedition
   onAction: (id: number, action: 'approved' | 'rejected') => Promise<void>
+  onOpen: (expeditionId: number) => void
 }) {
   const [acting, setActing] = useState(false)
 
@@ -49,34 +51,54 @@ function PendingClaimRow({ claim, onAction }: {
     setActing(false)
   }
 
+  const entryRegion = formatRegion(exp?.region_entry_county ?? null, exp?.region_entry_town ?? null)
+  const exitRegion = formatRegion(exp?.region_exit_county ?? null, exp?.region_exit_town ?? null)
+  const sameRegion = exp?.region_entry_county === exp?.region_exit_county
+    && exp?.region_entry_town === exp?.region_exit_town
+
   return (
-    <div className="x-fieldbox" style={{ marginBottom: 10, display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 5 }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', flexShrink: 0 }}>
-            REC.{String(claim.expedition_id).padStart(3, '0')}
+    <div
+      className="x-fieldbox"
+      style={{ marginBottom: 10, display: 'flex', alignItems: 'stretch', cursor: 'pointer', padding: 0, overflow: 'hidden' }}
+      onClick={() => onOpen(claim.expedition_id)}
+    >
+      <div style={{ flex: 1, minWidth: 0, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* identity — 沿用認領 card 文法 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'baseline' }}>
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 500, lineHeight: 1.45, minWidth: 0 }}>
+            {claim.expedition_name}
+          </div>
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--fg)', lineHeight: 1.4, textAlign: 'right', flexShrink: 0, maxWidth: '45%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {formatClaimLeaderDisplay(exp?.leader_display ?? null)}
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'baseline', fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
+          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            申請人 <span style={{ color: 'var(--accent)' }}>{claim.claimant_name || '—'}</span> · 申請日期 {claim.created_at.slice(0, 10)}
           </span>
-          {claim.grade && (
-            <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>{claim.grade}級</span>
-          )}
-          <span style={{ fontFamily: 'var(--serif)', fontSize: 15, fontWeight: 500 }}>{claim.expedition_name}</span>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)' }}>{claim.date_start}</span>
+          <span style={{ flexShrink: 0, textAlign: 'right' }}>
+            {entryRegion ?? '—'}
+            {!sameRegion && exitRegion && (
+              <> <span style={{ color: 'var(--accent)' }}>→</span> {exitRegion}</>
+            )}
+            {' · '}{formatClaimDateRange(claim.date_start, exp?.date_end ?? null)}
+          </span>
         </div>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', marginBottom: claim.evidence ? 8 : 0 }}>
-          申請人：{claim.claimant_name || '—'} · {claim.created_at.slice(0, 10)}
-        </div>
+        {/* 審核專屬：佐證 */}
         {claim.evidence && (
-          <div style={{
-            fontFamily: 'var(--serif)', fontSize: 13, color: 'var(--fg)',
-            lineHeight: 1.75, borderLeft: '2px solid var(--border)', paddingLeft: 10, marginTop: 4,
-          }}>
-            {claim.evidence}
+          <div style={{ borderTop: '0.5px dotted var(--border)', marginTop: 4, paddingTop: 10 }}>
+            <div style={{
+              fontFamily: 'var(--serif)', fontSize: 13, color: 'var(--fg)',
+              lineHeight: 1.75, borderLeft: '2px solid var(--border)', paddingLeft: 10,
+            }}>
+              {claim.evidence}
+            </div>
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-        <button className="x-btn sm solid" onClick={() => handle('approved')} disabled={acting}>核准</button>
-        <button className="x-btn sm" onClick={() => handle('rejected')} disabled={acting}>拒絕</button>
+      <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0, borderLeft: '0.5px solid var(--border)' }}>
+        <button className="x-claim-review-btn" onClick={(e) => { e.stopPropagation(); handle('approved') }} disabled={acting}>核准</button>
+        <button className="x-claim-review-btn" onClick={(e) => { e.stopPropagation(); handle('rejected') }} disabled={acting}>拒絕</button>
       </div>
     </div>
   )
@@ -199,6 +221,7 @@ export function FormalClaimClient() {
   const [q, setQ] = useState('')
   const [grade, setGrade] = useState('ALL')
   const [modal, setModal] = useState<UnclaimedExpedition | null>(null)
+  const [expMap, setExpMap] = useState<Map<number, UnclaimedExpedition>>(new Map())
   const [refreshKey, setRefreshKey] = useState(0)
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), [])
@@ -225,7 +248,15 @@ export function FormalClaimClient() {
 
   useEffect(() => {
     if (role !== 'curator') return
-    listPendingClaims().then(({ data }) => setPendingClaims(data))
+    void (async () => {
+      const [{ data }, expRes] = await Promise.all([
+        listPendingClaims(),
+        fetch('/api/expeditions/unclaimed').then(r => r.json()).catch(() => ({})),
+      ])
+      setPendingClaims(data)
+      const list: UnclaimedExpedition[] = Array.isArray(expRes.expeditions) ? expRes.expeditions : []
+      setExpMap(new Map(list.map(e => [e.id, e])))
+    })()
   }, [role, refreshKey])
 
   async function handleReview(id: number, action: 'approved' | 'rejected') {
@@ -234,6 +265,8 @@ export function FormalClaimClient() {
   }
 
   if (authLoading || !user) return null
+
+  const canOpen = hasRole(role, 'ranger')
 
   return (
     <div className="x-scroll-root">
@@ -258,7 +291,7 @@ export function FormalClaimClient() {
                 </p>
               ) : (
                 pendingClaims.map(claim => (
-                  <PendingClaimRow key={claim.id} claim={claim} onAction={handleReview} />
+                  <PendingClaimRow key={claim.id} claim={claim} exp={expMap.get(claim.expedition_id)} onAction={handleReview} onOpen={(id) => router.push(`/formal/${id}`)} />
                 ))
               )}
             </div>
@@ -314,9 +347,10 @@ export function FormalClaimClient() {
               <div
                 key={r.id}
                 className="x-claim-card"
-                style={{ opacity: isPending ? 0.5 : 1, transition: 'opacity .15s' }}
+                style={{ opacity: isPending ? 0.5 : 1, transition: 'opacity .15s', cursor: canOpen ? 'pointer' : undefined, padding: 0, gap: 0, overflow: 'hidden' }}
+                onClick={canOpen ? () => router.push(`/formal/${r.id}`) : undefined}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1, padding: '18px 18px 16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'baseline' }}>
                     <div style={{ fontFamily: 'var(--serif)', fontSize: 16, fontWeight: 500, lineHeight: 1.45, minWidth: 0 }}>
                       {r.name}
@@ -338,11 +372,9 @@ export function FormalClaimClient() {
                   </div>
                 </div>
                 {isPending ? (
-                  <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', letterSpacing: '.06em', padding: '7px 0' }}>
-                    審核中
-                  </div>
+                  <div className="x-claim-cta pending">審核中</div>
                 ) : (
-                  <button className="x-btn" onClick={() => setModal(r)}>認領 →</button>
+                  <button className="x-claim-cta" onClick={(e) => { e.stopPropagation(); setModal(r) }}>認領</button>
                 )}
               </div>
             )
