@@ -107,6 +107,20 @@
 .x-claim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 .x-claim-card { border: 0.5px solid var(--border); background: var(--bg); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 12px; }
 .x-claim-card:hover { border-color: var(--accent); }
+.x-claim-review-btn { flex: 1; min-width: 84px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 15px; text-align: center;
+  background: var(--bg); color: var(--fg); border: none; padding: 0 20px; cursor: pointer;
+  transition: background .12s, color .12s; }
+.x-claim-review-btn + .x-claim-review-btn { border-top: 0.5px solid var(--border); }
+.x-claim-review-btn:hover { background: var(--surface); color: var(--accent); }
+.x-claim-review-btn:disabled { opacity: .4; cursor: not-allowed; }
+.x-claim-cta { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px;
+  padding: 0 16px; box-sizing: border-box; border-top: 0.5px solid var(--border);
+  font-family: var(--mono); font-size: 15px; letter-spacing: .06em; }
+button.x-claim-cta { background: var(--bg); color: var(--fg); border-left: none; border-right: none; border-bottom: none;
+  cursor: pointer; transition: background .12s, color .12s; }
+button.x-claim-cta:hover { background: var(--surface); color: var(--accent); }
+.x-claim-cta.pending { color: var(--muted); }
 
 /* modal */
 .x-modal-bg { position: fixed; inset: 0; z-index: 2147483000; background: rgba(26,25,22,.4); display: flex; align-items: center; justify-content: center; padding: 24px; }
