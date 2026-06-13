@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useExpeditions, type Expedition, type ExpeditionSort } from '@/lib/useExpeditions'
 import { FormalHeader } from '@/components/themes/formal/FormalShell'
 import './formal.css'
@@ -55,12 +55,13 @@ const COUNTY_GRID: Record<string, { r: number; c: number }> = {
 // ─── CountyGrid (desktop) ────────────────────────────────────────────────────
 
 function CountyGrid({ selected, onToggle }: { selected: string[]; onToggle: (c: string) => void }) {
-  const SIZE = 24, GAP = 10
+  // Rectangular cells: vertical CJK text is 1 char wide, 2 chars tall
+  const CW = 24, CH = 32, GX = 10, GY = 4
   const entries = Object.entries(COUNTY_GRID)
   const maxR = Math.max(...entries.map(([, v]) => v.r))
   const maxC = Math.max(...entries.map(([, v]) => v.c))
-  const W = (maxC + 1) * (SIZE + GAP) + 40
-  const H = (maxR + 1) * (SIZE + GAP) + 8
+  const W = (maxC + 1) * (CW + GX) + 20
+  const H = (maxR + 1) * (CH + GY) + 8
 
   return (
     <div style={{ position: 'relative', width: W, height: H }}>
@@ -70,17 +71,19 @@ function CountyGrid({ selected, onToggle }: { selected: string[]; onToggle: (c: 
           <button key={name} onClick={() => onToggle(name)} title={name}
             style={{
               position: 'absolute',
-              left: c * (SIZE + GAP), top: r * (SIZE + GAP),
-              width: SIZE, height: SIZE, padding: 0, border: 'none',
+              left: c * (CW + GX) - GX / 2, top: r * (CH + GY) - GY / 2,
+              width: CW + GX, height: CH + GY, padding: 0, border: 'none',
               cursor: 'pointer', background: 'transparent',
-              fontFamily: 'var(--serif)', fontSize: SIZE * 0.55,
+              fontFamily: 'var(--serif)',
               color: active ? 'var(--accent)' : 'var(--muted)',
               fontWeight: active ? 600 : 400,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
             <span style={{
+              writingMode: 'vertical-rl', textOrientation: 'upright',
+              fontSize: 13, lineHeight: 1.15, letterSpacing: 0,
               borderBottom: active ? '1.5px solid var(--accent)' : '1px solid var(--border)',
-              padding: '0 1px', lineHeight: 1.4,
+              paddingBottom: 1,
             }}>{name}</span>
           </button>
         )
@@ -98,6 +101,7 @@ function BigCountyGridMobile({ selected, onToggle }: {
   const maxR = Math.max(...entries.map(([, v]) => v.r))
   const maxC = Math.max(...entries.map(([, v]) => v.c))
   const cell = 26, gap = 4
+  const hit = cell + gap // enlarged hit area (M3 touch target)
   const W = (maxC + 1) * (cell + gap) + 20
   const H = (maxR + 1) * (cell + gap) + 4
   return (
@@ -108,8 +112,8 @@ function BigCountyGridMobile({ selected, onToggle }: {
           <button key={name} onClick={() => onToggle(name)}
             style={{
               position: 'absolute',
-              left: c * (cell + gap), top: r * (cell + gap),
-              width: cell, height: cell, padding: 0, border: 'none',
+              left: c * (cell + gap) - gap / 2, top: r * (cell + gap) - gap / 2,
+              width: hit, height: hit, padding: 0, border: 'none',
               cursor: 'pointer', background: 'transparent',
               fontFamily: 'var(--serif)',
               color: active ? 'var(--accent)' : 'var(--muted)',
@@ -129,18 +133,22 @@ function BigCountyGridMobile({ selected, onToggle }: {
 
 // ─── MobileExpCard ────────────────────────────────────────────────────────────
 
-function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void }) {
+function MobileExpCard({ exp }: { exp: Expedition }) {
   const hasBadges = exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0
 
   return (
-    <div onClick={onClick} style={{ padding: '12px 18px', borderBottom: '0.5px solid var(--border)', cursor: 'pointer' }}>
+    <Link href={`/formal/${exp.id}`} style={{ display: 'block', padding: '12px 18px', borderBottom: '0.5px solid var(--border)',
+                                              cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
         <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', letterSpacing: '.06em', paddingTop: 1 }}>
           REC.{String(exp.id).padStart(3, '0')}{exp.leader_display && <span> / 領隊 {fmtLeader(exp.leader_display)}</span>}
         </span>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--fg)', letterSpacing: '.02em' }}>
-            {exp.date_start}{exp.date_end ? ` – ${exp.date_end.slice(5)}` : ''}
+            {exp.date_start}
+            {exp.date_end
+              ? ` – ${exp.date_end.slice(0, 4) === exp.date_start.slice(0, 4) ? exp.date_end.slice(5) : exp.date_end}`
+              : ''}
           </div>
         </div>
       </div>
@@ -163,12 +171,12 @@ function MobileExpCard({ exp, onClick }: { exp: Expedition; onClick: () => void 
         {hasBadges && (
           <span style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX·{exp.gpx_count}</span>}
-            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
+            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent-2)', letterSpacing: '.04em' }}>MAP·{exp.map_count}</span>}
             {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>REC·{exp.rec_count}</span>}
           </span>
         )}
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -219,7 +227,7 @@ function MobileFilterSelect({
 
 // ─── SpecimenCard ─────────────────────────────────────────────────────────────
 
-function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }) {
+function SpecimenCard({ exp }: { exp: Expedition }) {
   const parsed = parseName(exp.name)
   const name = parsed.name
   const grade = exp.grade ?? parsed.grade
@@ -227,7 +235,7 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
     && exp.region_entry_town === exp.region_exit_town
 
   return (
-    <div className="formal-card" onClick={onClick}>
+    <Link href={`/formal/${exp.id}`} className="formal-card">
       {/* Number / grade */}
       <div>
         <div className="formal-card-no">REC.</div>
@@ -257,20 +265,43 @@ function SpecimenCard({ exp, onClick }: { exp: Expedition; onClick: () => void }
         {(exp.gpx_count > 0 || exp.map_count > 0 || exp.rec_count > 0) && (
           <div style={{ marginTop: 'auto', paddingTop: 3, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             {exp.gpx_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>GPX / KML: {exp.gpx_count}</span>}
-            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: '#3d6b9e', letterSpacing: '.04em' }}>MAP: {exp.map_count}</span>}
+            {exp.map_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent-2)', letterSpacing: '.04em' }}>MAP: {exp.map_count}</span>}
             {exp.rec_count > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent)', letterSpacing: '.04em' }}>REC: {exp.rec_count}</span>}
           </div>
         )}
       </div>
-    </div>
+    </Link>
+  )
+}
+
+// ─── SkeletonRows — M3 progressive loading placeholder ───────────────────────
+
+function SkeletonRows({ count = 3 }: { count?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="formal-skel-row" aria-hidden>
+          <div>
+            <div className="formal-skel-block" style={{ width: 28, height: 9, marginBottom: 8 }} />
+            <div className="formal-skel-block" style={{ width: 52, height: 30 }} />
+          </div>
+          <div>
+            <div className="formal-skel-block" style={{ width: '55%', height: 21, marginBottom: 16 }} />
+            <div className="formal-skel-block" style={{ width: '35%', height: 13 }} />
+          </div>
+          <div>
+            <div className="formal-skel-block" style={{ width: '90%', height: 13, marginLeft: 'auto' }} />
+          </div>
+        </div>
+      ))}
+    </>
   )
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years?: string[] }) {
-  const router = useRouter()
-    const [query, setQuery]             = useState('')
+  const [query, setQuery]             = useState('')
   const [debouncedQ, setDebouncedQ]   = useState('')
   const [counties, setCounties]       = useState<string[]>([])
   const [year, setYear]               = useState('all')
@@ -280,12 +311,36 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
   const isMobile                      = useSyncExternalStore(subscribeMobile, getMobileSnapshot, getServerMobileSnapshot)
   const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loaderRef                     = useRef<HTMLDivElement>(null)
+  const filterRowRef                  = useRef<HTMLDivElement>(null)
 
   const handleQuery = useCallback((v: string) => {
     setQuery(v)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => setDebouncedQ(v), 300)
   }, [])
+
+  const clearQuery = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setQuery('')
+    setDebouncedQ('')
+  }, [])
+
+  // M3: menus dismiss on outside interaction / Escape
+  useEffect(() => {
+    if (mobileSelectOpen === null) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (!filterRowRef.current?.contains(e.target as Node)) setMobileSelectOpen(null)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileSelectOpen(null)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [mobileSelectOpen])
 
   const filter = {
     mode: debouncedQ ? 'search' as const : counties.length ? 'counties' as const : year !== 'all' ? 'date' as const : 'recent' as const,
@@ -308,7 +363,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
     if (!el) return
     const obs = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) loadMore()
-    }, { threshold: 0.1 })
+    }, { threshold: 0, rootMargin: '400px' })
     obs.observe(el)
     return () => obs.disconnect()
   }, [loadMore])
@@ -338,13 +393,18 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
           </div>
         </section>
 
-        <div className="formal-mobile-filter-row">
+        <div className="formal-mobile-filter-row" ref={filterRowRef}>
           <label className="formal-mobile-filter-field formal-mobile-filter-query">
             <input
               value={query}
               onChange={e => handleQuery(e.target.value)}
               placeholder="請輸入隊伍名稱或領隊"
             />
+            {query && (
+              <button type="button" className="formal-search-clear" onClick={clearQuery} aria-label="清除搜尋">
+                ×
+              </button>
+            )}
           </label>
           <label className="formal-mobile-filter-field">
             <MobileFilterSelect
@@ -385,15 +445,10 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
 
         <div>
           {exps.map(exp => (
-            <MobileExpCard key={exp.id} exp={exp} onClick={() => router.push(`/formal/${exp.id}`)} />
+            <MobileExpCard key={exp.id} exp={exp} />
           ))}
           <div ref={loaderRef} style={{ height: 1 }} />
-          {loading && (
-            <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: 'var(--mono)',
-                          fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em' }}>
-              LOADING…
-            </div>
-          )}
+          {loading && <SkeletonRows count={3} />}
           {!loading && exps.length === 0 && (
             <div style={{ padding: '60px 0', textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--muted)' }}>
@@ -424,6 +479,11 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
                 onChange={e => handleQuery(e.target.value)}
                 placeholder="名稱／領隊"
               />
+              {query && (
+                <button type="button" className="formal-search-clear" onClick={clearQuery} aria-label="清除搜尋">
+                  ×
+                </button>
+              )}
             </div>
           </div>
 
@@ -512,7 +572,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
 
           <div className="formal-result-list">
             <div className="formal-result-list-inner">
-              {exps.map(exp => <SpecimenCard key={exp.id} exp={exp} onClick={() => router.push(`/formal/${exp.id}`)} />)}
+              {exps.map(exp => <SpecimenCard key={exp.id} exp={exp} />)}
               {!loading && exps.length === 0 && (
                 <div style={{ padding: '60px 0', textAlign: 'center' }}>
                   <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--muted)', marginBottom: 6 }}>
@@ -524,11 +584,7 @@ export function FormalHome({ years = ['2026', '2025', '2024', '2023'] }: { years
                 </div>
               )}
               <div ref={loaderRef} style={{ height: 1 }} />
-              {loading && (
-                <div style={{ padding: '20px 0', textAlign: 'center', fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '.1em' }}>
-                  LOADING…
-                </div>
-              )}
+              {loading && <SkeletonRows count={3} />}
             </div>
           </div>
         </div>
