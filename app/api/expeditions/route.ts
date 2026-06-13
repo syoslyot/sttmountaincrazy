@@ -128,12 +128,16 @@ export async function GET(req: NextRequest) {
   )
   const counts = hasCounts ? new Map<number, { gpx: number; map: number; rec: number }>() : await fetchExpeditionCounts(expeditions.map(e => e.id))
 
-  const enriched = expeditions.map(e => ({
-    ...e,
-    gpx_count: typeof e.gpx_count === 'number' ? e.gpx_count : counts.get(e.id)?.gpx ?? 0,
-    map_count: typeof e.map_count === 'number' ? e.map_count : counts.get(e.id)?.map ?? 0,
-    rec_count: typeof e.rec_count === 'number' ? e.rec_count : counts.get(e.id)?.rec ?? 0,
-  }))
+  // drive_folder_id is internal sync data — keep it server-side
+  const enriched = expeditions.map(e => {
+    const { drive_folder_id: _drive, ...rest } = e as ExpeditionRow & Record<string, unknown>
+    return {
+      ...rest,
+      gpx_count: typeof e.gpx_count === 'number' ? e.gpx_count : counts.get(e.id)?.gpx ?? 0,
+      map_count: typeof e.map_count === 'number' ? e.map_count : counts.get(e.id)?.map ?? 0,
+      rec_count: typeof e.rec_count === 'number' ? e.rec_count : counts.get(e.id)?.rec ?? 0,
+    }
+  })
 
   return NextResponse.json({ ...(data as object), expeditions: enriched })
 }
